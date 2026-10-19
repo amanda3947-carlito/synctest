@@ -1,0 +1,15 @@
+{
+  "name": "Sync Concept Lab",
+  "short_name": "Concept Lab",
+  "description": "A phone-based harness for testing a dating app concept: swipe prototype, A/B variants, tester survey and exportable results.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF6F7",
+  "theme_color": "#C8385A",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

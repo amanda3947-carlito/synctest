@@ -1,0 +1,807 @@
+<!doctype html><!-- pwa-only -->
+<html lang="en"><!-- pwa-only -->
+<head><!-- pwa-only -->
+<meta charset="utf-8"><!-- pwa-only -->
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><!-- pwa-only -->
+<meta name="theme-color" content="#C8385A"><!-- pwa-only -->
+<meta name="apple-mobile-web-app-capable" content="yes"><!-- pwa-only -->
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><!-- pwa-only -->
+<link rel="manifest" href="manifest.webmanifest"><!-- pwa-only -->
+<link rel="icon" href="icon.svg" type="image/svg+xml"><!-- pwa-only -->
+<link rel="apple-touch-icon" href="icon.svg"><!-- pwa-only -->
+<title>Sync Concept Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one-screen phone app. A slim header, a scrolling stage, and a bottom tab bar.
+   The swipe deck is the hero; everything else (survey, results, setup) is utilitarian. */
+:root{
+  --bg:#FAF6F7; --surface:#FFFFFF; --surface-2:#F2EAEE; --fg:#241B22; --muted:#6E5F69; --line:#E5D9DE;
+  --accent:#C8385A; --accent-fg:#FFFFFF; --accent-soft:#F8E1E7;
+  --like:#1F8A70; --like-soft:#DDF2EC; --pass:#7A6E78; --pass-soft:#ECE6E9; --warn:#B7791F;
+  --shadow:0 12px 32px rgba(70,20,45,.14); --shadow-sm:0 2px 8px rgba(70,20,45,.08);
+  --display:"Fraunces",Georgia,"Times New Roman",serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --radius:20px; --radius-sm:12px;
+  --gutter-l:max(16px,env(safe-area-inset-left,0px)); --gutter-r:max(16px,env(safe-area-inset-right,0px));
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#17121A; --surface:#221A26; --surface-2:#2D2331; --fg:#F4ECF0; --muted:#AA9AA3; --line:#3B2F3E;
+  --accent:#E8607E; --accent-fg:#1B0F14; --accent-soft:#3D2130;
+  --like:#43C2A0; --like-soft:#1E3A33; --pass:#A3959E; --pass-soft:#352B38; --warn:#E0A64A;
+  --shadow:0 12px 32px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.3); color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#17121A; --surface:#221A26; --surface-2:#2D2331; --fg:#F4ECF0; --muted:#AA9AA3; --line:#3B2F3E;
+  --accent:#E8607E; --accent-fg:#1B0F14; --accent-soft:#3D2130;
+  --like:#43C2A0; --like-soft:#1E3A33; --pass:#A3959E; --pass-soft:#352B38; --warn:#E0A64A;
+  --shadow:0 12px 32px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.3); color-scheme:dark }
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.15;margin:0;text-wrap:balance}
+h1{font-size:1.9rem} h2{font-size:1.4rem} h3{font-size:1.1rem}
+p{margin:0}
+.muted{color:var(--muted)}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+[hidden]{display:none!important}
+
+/* App frame */
+.app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px;padding-left:var(--gutter-l);padding-right:var(--gutter-r);background:var(--bg)}
+.brand{display:flex;flex-direction:column;line-height:1.1}
+.brand .name{font-family:var(--display);font-weight:700;font-size:1.05rem}
+.brand .sub{font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.topbar .right{display:flex;align-items:center;gap:8px}
+.stage{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-left:var(--gutter-l);padding-right:var(--gutter-r);padding-block:8px 24px;-webkit-overflow-scrolling:touch}
+.stage.locked{overflow:hidden}
+.screen{display:flex;flex-direction:column;gap:16px;min-height:100%}
+.tabbar{display:flex;border-top:1px solid var(--line);background:var(--surface);padding-left:var(--gutter-l);padding-right:var(--gutter-r);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;font-size:.72rem;font-weight:600;color:var(--muted);letter-spacing:.02em}
+.tabbar button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-selected="true"]{color:var(--accent)}
+
+/* Controls */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:999px;font-weight:600;font-size:.95rem;background:var(--surface-2);color:var(--fg);transition:transform .08s ease,background .15s ease;min-height:46px}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.small{padding:8px 14px;min-height:36px;font-size:.85rem}
+.btn.block{width:100%}
+.btn.danger{color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default;transform:none}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:.85rem;font-weight:600}
+.field .hint{font-size:.8rem;color:var(--muted)}
+input[type=text],input[type=number],textarea,select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);min-width:0}
+textarea{min-height:90px;resize:vertical}
+textarea.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.78rem;line-height:1.5;min-height:320px;white-space:pre;overflow:auto}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:.85rem}
+.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.stack{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:600;background:var(--surface-2);color:var(--fg)}
+.chip.like{background:var(--like-soft);color:var(--like)}
+.chip.pass{background:var(--pass-soft);color:var(--pass)}
+.chip.accent{background:var(--accent-soft);color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;max-width:calc(100vw - 32px);text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.notice{background:var(--accent-soft);color:var(--fg);border-radius:var(--radius-sm);padding:12px 14px;font-size:.88rem;line-height:1.4}
+.notice b{color:var(--accent)}
+
+/* Home */
+.hero{padding:18px 4px 4px;display:flex;flex-direction:column;gap:8px}
+.hero h1{font-size:2.3rem;font-weight:700;letter-spacing:-.01em}
+.hero .tag{font-size:1.05rem;color:var(--muted);max-width:32ch}
+.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .v{font-family:var(--display);font-size:1.5rem;font-weight:600;line-height:1}
+.stat .k{font-size:.72rem;color:var(--muted)}
+
+/* Pitch */
+.pitch{flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding-block:24px}
+.pitch .slide{display:flex;flex-direction:column;gap:14px}
+.pitch .slide h2{font-size:2rem;font-weight:700}
+.pitch .slide p{font-size:1.05rem;color:var(--muted);max-width:36ch}
+.dots{display:flex;gap:6px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
+.dots i.on{background:var(--accent);width:22px;border-radius:4px}
+
+/* Deck */
+.deckwrap{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
+.deck{position:relative;flex:1;min-height:420px;touch-action:none}
+.pcard{position:absolute;inset:0;border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:var(--shadow);transform-origin:50% 100%;will-change:transform;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column}
+.pcard.under{transform:scale(.95) translateY(10px);opacity:.85}
+.pcard.under2{transform:scale(.9) translateY(20px);opacity:.6}
+.pcard.flying{transition:transform .35s cubic-bezier(.2,.7,.3,1),opacity .35s}
+.pcard.snap{transition:transform .25s cubic-bezier(.2,.7,.3,1)}
+.photo{position:relative;flex:1;min-height:0;background:var(--surface-2);display:flex;align-items:flex-end;overflow:hidden}
+.photo .initial{position:absolute;right:-6%;top:-10%;font-family:var(--display);font-size:min(60vw,320px);font-weight:700;line-height:1;color:rgba(255,255,255,.22);pointer-events:none}
+.photo .glow{position:absolute;inset:auto -20% -30% -20%;height:70%;background:radial-gradient(ellipse at center,rgba(255,255,255,.35),transparent 65%);pointer-events:none}
+.photo .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(20,8,14,.78) 100%);pointer-events:none}
+.photo .meta{position:relative;padding:16px 18px 18px;color:#fff;display:flex;flex-direction:column;gap:6px;width:100%}
+.photo .meta h2{font-size:1.9rem;font-weight:700;color:#fff;letter-spacing:-.01em}
+.photo .meta .line{font-size:.9rem;opacity:.9;display:flex;gap:10px;flex-wrap:wrap}
+.stamp{position:absolute;top:22px;padding:6px 12px;border:3px solid;border-radius:8px;font-weight:800;font-size:1.4rem;letter-spacing:.08em;text-transform:uppercase;opacity:0;transform:rotate(-14deg);font-family:var(--body)}
+.stamp.like{left:18px;color:#3DD3A6;border-color:#3DD3A6}
+.stamp.pass{right:18px;color:#FF6B8A;border-color:#FF6B8A;transform:rotate(14deg)}
+.pbody{padding:14px 18px 16px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.prompt{display:flex;flex-direction:column;gap:3px}
+.prompt .q{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.prompt .a{font-family:var(--display);font-size:1.1rem;font-weight:500;line-height:1.3}
+.prompt-first .photo .meta h2{font-size:1.3rem}
+.prompt-first .photo .lead{position:relative;padding:22px 20px;color:#fff;display:flex;flex-direction:column;gap:10px;width:100%;margin-top:auto}
+.prompt-first .photo .lead .q{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85;font-weight:600}
+.prompt-first .photo .lead .a{font-family:var(--display);font-size:1.7rem;font-weight:600;line-height:1.2;text-wrap:balance}
+.prompt-first .photo.hidden-photo .initial{display:none}
+.prompt-first .photo.hidden-photo .shade{background:linear-gradient(180deg,rgba(20,8,14,.15),rgba(20,8,14,.55))}
+.reveal{align-self:flex-start;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);padding:6px 12px;border-radius:999px;font-size:.78rem;font-weight:600;backdrop-filter:blur(6px)}
+.sync{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:var(--radius-sm);padding:8px 10px}
+.sync .pct{font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--accent);min-width:3.2ch;font-variant-numeric:tabular-nums}
+.sync .lbl{font-size:.75rem;color:var(--muted);line-height:1.2}
+.week{display:flex;gap:3px;margin-left:auto;align-items:flex-end;height:26px}
+.week i{width:9px;border-radius:3px;background:var(--line);display:block}
+.week i.m{background:var(--accent)}
+.week i.h{background:var(--accent);opacity:.45}
+.details{display:flex;flex-direction:column;gap:10px;padding-top:4px;border-top:1px dashed var(--line);margin-top:4px}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.actions{display:flex;justify-content:center;align-items:center;gap:18px;padding-block:4px}
+.actions button{width:62px;height:62px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;border:1px solid var(--line);transition:transform .1s}
+.actions button:active{transform:scale(.92)}
+.actions button svg{width:28px;height:28px;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.actions .pass svg{stroke:var(--pass)}
+.actions .like svg{stroke:var(--like)}
+.actions .info{width:48px;height:48px}
+.actions .info svg{width:22px;height:22px;stroke:var(--muted)}
+.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+
+/* Match */
+.match{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;text-align:center;padding-block:20px}
+.match h1{font-size:2.6rem;font-weight:700;color:var(--accent)}
+.avatars{display:flex;justify-content:center;gap:-10px}
+.avatar{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:2rem;font-weight:700;color:#fff;border:4px solid var(--bg);box-shadow:var(--shadow-sm)}
+.avatar+.avatar{margin-left:-18px}
+.opener{text-align:left;display:flex;flex-direction:column;gap:10px}
+.opener .suggest{background:var(--accent-soft);border-radius:var(--radius-sm);padding:12px 14px;font-size:.95rem;line-height:1.4}
+.opener .suggest b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+
+/* Survey */
+.q{display:flex;flex-direction:column;gap:10px}
+.q .text{font-weight:600;font-size:1rem}
+.likert{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.likert button,.npsrow button{padding:10px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:.9rem}
+.likert button[aria-pressed="true"],.npsrow button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.likert .ends{grid-column:1/-1;display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.npsrow{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.npsrow button{padding:9px 0;font-size:.8rem;border-radius:8px}
+
+/* Results */
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.tile .v{font-family:var(--display);font-size:1.7rem;font-weight:600;line-height:1.05}
+.tile .k{font-size:.75rem;color:var(--muted)}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+.bars{display:flex;flex-direction:column;gap:8px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) 3fr auto;gap:10px;align-items:center;font-size:.85rem}
+.bar .track{height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+.bar .fill{height:100%;background:var(--accent);border-radius:6px}
+.bar .fill.like{background:var(--like)}
+.bar .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.bar .val{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4ch;text-align:right}
+.sess{display:flex;flex-direction:column;gap:8px}
+.sess summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none}
+.sess summary::-webkit-details-marker{display:none}
+.sess .body{display:flex;flex-direction:column;gap:8px;padding-top:10px;font-size:.88rem}
+.quote{border-left:3px solid var(--accent-soft);padding-left:10px;color:var(--muted);font-style:italic}
+.empty{text-align:center;color:var(--muted);padding:30px 10px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.confirm{display:flex;flex-direction:column;gap:10px;background:var(--surface-2);border-radius:var(--radius-sm);padding:12px 14px}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+</style>
+</head><!-- pwa-only -->
+<body><!-- pwa-only -->
+<div class="app">
+  <header class="topbar">
+    <div class="brand"><span class="name" id="brandName">Sync</span><span class="sub">Concept Lab</span></div>
+    <div class="right" id="topRight"></div>
+  </header>
+  <main class="stage" id="stage"></main>
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <button data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.2-9A5.2 5.2 0 0 1 12 6.3 5.2 5.2 0 0 1 21.2 12C19 16.4 12 21 12 21z"/></svg>Test</button>
+    <button data-tab="results"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Results</button>
+    <button data-tab="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Setup</button>
+  </nav>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Default concept (placeholder: replace in Setup) ---------- */
+const DEFAULT_CONFIG = {
+  concept: {
+    name: "Sync",
+    tagline: "Match on how you actually spend your week.",
+    pitch: [
+      { title: "Your week is your profile", body: "Instead of a photo grid, Sync builds your profile from the rhythm of your week: when you're free, what you do with it, and who you'd want along." },
+      { title: "See the overlap first", body: "Every card opens with a Sync score: how much of your free time lines up with theirs." },
+      { title: "Plans, not small talk", body: "Matches start with a concrete plan for a time you're both free, so the first message is a yes or no, not a 'hey'." }
+    ]
+  },
+  variants: [
+    { id: "A", label: "Classic swipe", cardStyle: "photo-first", showSyncScore: false, openerStyle: "blank" },
+    { id: "B", label: "Sync-first", cardStyle: "prompt-first", showSyncScore: true, openerStyle: "plan" }
+  ],
+  session: { cardsPerSession: 10, matchChance: 0.4, assignVariant: "alternate" },
+  survey: [
+    { id: "clear", type: "likert", text: "I understood what makes this app different from the ones I already use." },
+    { id: "useful", type: "likert", text: "The information on each card helped me decide quickly." },
+    { id: "trust", type: "likert", text: "I'd trust the matches this app suggests." },
+    { id: "nps", type: "nps", text: "How likely are you to recommend this to a friend?" },
+    { id: "confusing", type: "text", text: "What, if anything, confused you?" },
+    { id: "missing", type: "text", text: "What would make you actually use this?" }
+  ]
+};
+
+/* ---------- Sample profiles (synthetic) ---------- */
+const PROFILES = [
+  { id:"p1", name:"Maya", age:29, dist:"2 km", job:"Pastry chef", hue:340, week:[1,0,0,2,3,3,2], interests:["early mornings","bouldering","farmers' markets"], prompts:[{q:"A perfect Sunday",a:"Market at 8, nap at 2, something slow in the oven by 6."},{q:"I'm free most",a:"Sunday afternoons and Thursday nights, after the kitchen closes."}] },
+  { id:"p2", name:"Theo", age:32, dist:"5 km", job:"Urban planner", hue:210, week:[2,2,1,1,3,0,1], interests:["long walks","city maps","jazz on vinyl"], prompts:[{q:"My week in one line",a:"Meetings till five, then I walk home the long way, every day."},{q:"Best way to spend a Friday",a:"A record shop, then whichever bar has a piano."}] },
+  { id:"p3", name:"Priya", age:27, dist:"1 km", job:"ER nurse", hue:20, week:[3,3,0,0,0,3,3], interests:["night swims","crosswords","spicy food"], prompts:[{q:"Fair warning",a:"My weekends are Monday and Tuesday. Bring snacks."},{q:"Ask me about",a:"The crossword I finished in nine minutes once. Once."}] },
+  { id:"p4", name:"Jonah", age:34, dist:"8 km", job:"Woodworker", hue:95, week:[0,1,1,1,1,3,3], interests:["sawdust","trail runs","making dinner from scratch"], prompts:[{q:"Weekends are for",a:"Being outside until I'm hungry, then cooking too much."},{q:"I'm looking for",a:"Someone who'll argue about the right way to cut an onion."}] },
+  { id:"p5", name:"Lena", age:30, dist:"3 km", job:"Translator", hue:270, week:[2,1,2,1,2,2,2], interests:["languages","foreign films","very long dinners"], prompts:[{q:"My schedule is",a:"Flexible, which is both a gift and a curse. Suggest a time and I'll say yes."},{q:"Last thing I loved",a:"A three-hour Portuguese film I understood about half of."}] },
+  { id:"p6", name:"Marcus", age:36, dist:"6 km", job:"High school teacher", hue:30, week:[1,1,1,1,2,3,3], interests:["Sunday football","grading in cafés","bad puns"], prompts:[{q:"Honest truth",a:"I'm asleep by ten on school nights. Weekends I make up for it."},{q:"Best first date",a:"Coffee that turns into a walk that turns into lunch."}] },
+  { id:"p7", name:"Sofia", age:26, dist:"4 km", job:"Illustrator", hue:180, week:[2,2,2,2,2,1,1], interests:["sketching strangers","thrift stores","karaoke, badly"], prompts:[{q:"My week in one line",a:"Drawing all day, then out most nights, home by eleven."},{q:"Green flag",a:"You pick the karaoke song without checking your phone."}] },
+  { id:"p8", name:"Daniel", age:31, dist:"12 km", job:"Paramedic", hue:0, week:[3,0,0,3,3,0,0], interests:["motorbikes","board games","breakfast for dinner"], prompts:[{q:"Fair warning",a:"Four days on, four days off. The off days are very off."},{q:"I'm free most",a:"Whole weekdays, which is wasted on a city that's at work."}] },
+  { id:"p9", name:"Amara", age:28, dist:"2 km", job:"Product designer", hue:320, week:[1,1,1,2,3,2,1], interests:["ceramics","running clubs","natural wine"], prompts:[{q:"Best way to spend a Friday",a:"A run at six, a shower, and a table outside somewhere loud."},{q:"I'm looking for",a:"Plans, not pen pals."}] },
+  { id:"p10", name:"Felix", age:33, dist:"7 km", job:"Sound engineer", hue:240, week:[1,2,2,2,0,0,2], interests:["live shows","cycling","cooking with the radio on"], prompts:[{q:"My schedule is",a:"Backwards. Weekends I'm working, Monday is my Saturday."},{q:"Ask me about",a:"Which venue in town has the best sound. I have a ranking."}] },
+  { id:"p11", name:"Hana", age:30, dist:"3 km", job:"Veterinarian", hue:140, week:[1,1,1,1,2,3,2], interests:["dogs, obviously","hiking","pub quizzes"], prompts:[{q:"A perfect Sunday",a:"A hill, a dog, a pub at the bottom of the hill."},{q:"Green flag",a:"You greet the dog before you greet me."}] },
+  { id:"p12", name:"Rafael", age:35, dist:"9 km", job:"Architect", hue:50, week:[1,1,2,2,2,2,2], interests:["galleries","swimming","building furniture badly"], prompts:[{q:"Honest truth",a:"I will suggest a gallery. You're allowed to say no."},{q:"Best first date",a:"Something with a start and an end time. Low pressure, easy exit."}] }
+];
+const TESTER_WEEK = [1,1,2,1,3,3,2];
+const DAYS = ["M","T","W","T","F","S","S"];
+
+/* ---------- Storage ---------- */
+const LS = { cfg: "scl.config.v1", sessions: "scl.sessions.v1", counter: "scl.counter.v1" };
+function lsGet(k, fallback){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
+let config = normalizeConfig(lsGet(LS.cfg, null) || deepClone(DEFAULT_CONFIG));
+let sessions = lsGet(LS.sessions, []);
+if (!Array.isArray(sessions)) sessions = [];
+
+function normalizeConfig(c){
+  const d = deepClone(DEFAULT_CONFIG);
+  const out = Object.assign({}, d, c || {});
+  out.concept = Object.assign({}, d.concept, (c && c.concept) || {});
+  out.session = Object.assign({}, d.session, (c && c.session) || {});
+  if (!Array.isArray(out.variants) || !out.variants.length) out.variants = d.variants;
+  if (!Array.isArray(out.survey)) out.survey = d.survey;
+  if (!Array.isArray(out.concept.pitch)) out.concept.pitch = d.concept.pitch;
+  return out;
+}
+
+/* ---------- State ---------- */
+const stage = document.getElementById("stage");
+const tabbar = document.getElementById("tabbar");
+const topRight = document.getElementById("topRight");
+let tab = "home";
+let session = null;   // active session
+let deck = null;      // {profiles, index, cardStart, expanded, revealed, featureTaps}
+let pendingMatch = null;
+
+/* ---------- Utilities ---------- */
+function el(tag, attrs, ...children){
+  const n = document.createElement(tag);
+  if (attrs) for (const k in attrs) {
+    if (k === "class") n.className = attrs[k];
+    else if (k === "html") n.innerHTML = attrs[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else if (attrs[k] !== null && attrs[k] !== undefined && attrs[k] !== false) n.setAttribute(k, attrs[k] === true ? "" : attrs[k]);
+  }
+  for (const c of children.flat()) { if (c === null || c === undefined || c === false) continue; n.append(c.nodeType ? c : document.createTextNode(String(c))); }
+  return n;
+}
+function esc(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200); }
+function median(a){ if (!a.length) return 0; const s = a.slice().sort((x,y)=>x-y); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
+function mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0; }
+function pct(n, d){ return d ? Math.round(100*n/d) : 0; }
+function fmtMs(ms){ return ms >= 10000 ? (ms/1000).toFixed(0)+"s" : (ms/1000).toFixed(1)+"s"; }
+function fmtDate(iso){ const d = new Date(iso); return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}) + " " + d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}); }
+function syncScore(p){ let overlap = 0, total = 0; for (let i=0;i<7;i++){ overlap += Math.min(p.week[i], TESTER_WEEK[i]); total += Math.max(p.week[i], TESTER_WEEK[i]); } return total ? Math.round(100*overlap/total) : 0; }
+function bestSlot(p){ let best = -1, bi = 0; for (let i=0;i<7;i++){ const v = Math.min(p.week[i], TESTER_WEEK[i]); if (v > best) { best = v; bi = i; } } const names = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]; return { day: names[bi], part: p.week[bi] >= 3 ? "afternoon" : "evening" }; }
+function grad(hue){ return `linear-gradient(160deg, hsl(${hue} 62% 72%) 0%, hsl(${(hue+35)%360} 58% 48%) 60%, hsl(${(hue+60)%360} 55% 32%) 100%)`; }
+function shuffle(a){ const s = a.slice(); for (let i = s.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [s[i],s[j]] = [s[j],s[i]]; } return s; }
+function variantById(id){ return config.variants.find(v => v.id === id) || config.variants[0]; }
+function nps(scores){ if (!scores.length) return null; const p = scores.filter(s=>s>=9).length, d = scores.filter(s=>s<=6).length; return Math.round(100*(p-d)/scores.length); }
+function persistSessions(){ if (!lsSet(LS.sessions, sessions)) toast("Couldn't save to this browser's storage"); }
+function copyText(text, label){
+  const done = () => toast((label || "Copied") + " to clipboard");
+  const fail = () => { const ta = el("textarea", {style:"position:fixed;left:-9999px"}); ta.value = text; document.body.append(ta); ta.select(); try { document.execCommand("copy"); done(); } catch(e){ toast("Copy failed. Select the text manually."); } ta.remove(); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fail); else fail();
+}
+function download(filename, text, type){
+  try { const blob = new Blob([text], {type: type || "application/json"}); const a = el("a", {href: URL.createObjectURL(blob), download: filename}); document.body.append(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500); } catch(e){ copyText(text, "Download blocked. Copied"); }
+}
+
+/* ---------- Router ---------- */
+function setTab(t){ tab = t; for (const b of tabbar.querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.tab === t ? "true" : "false"); render(); }
+tabbar.addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (!b) return; if (session && b.dataset.tab !== "home") { if (!confirmEnd) return; } setTab(b.dataset.tab); });
+let confirmEnd = true;
+
+function render(){
+  stage.innerHTML = ""; topRight.innerHTML = "";
+  stage.classList.remove("locked");
+  document.getElementById("brandName").textContent = config.concept.name || "Concept";
+  tabbar.hidden = !!session;
+  if (session) {
+    topRight.append(el("button", {class:"btn ghost small", onclick: () => abandonSession()}, "End session"));
+    if (session.stage === "pitch") renderPitch();
+    else if (session.stage === "deck") renderDeck();
+    else if (session.stage === "match") renderMatch();
+    else if (session.stage === "survey") renderSurvey();
+    else if (session.stage === "done") renderDone();
+    return;
+  }
+  if (tab === "home") renderHome();
+  else if (tab === "results") renderResults();
+  else if (tab === "setup") renderSetup();
+  stage.scrollTop = 0;
+}
+
+/* ---------- Home ---------- */
+let homeTester = "", homeVariant = "auto";
+function renderHome(){
+  const c = config.concept;
+  const s = el("section", {class:"screen"});
+  s.append(el("div", {class:"hero"},
+    el("span", {class:"eyebrow"}, "Testing concept"),
+    el("h1", null, c.name),
+    el("p", {class:"tag"}, c.tagline)));
+
+  const likes = sessions.flatMap(x => x.decisions).filter(d => d.choice === "like").length;
+  const decs = sessions.flatMap(x => x.decisions).length;
+  s.append(el("div", {class:"statrow"},
+    stat(sessions.length, "sessions"),
+    stat(decs ? pct(likes, decs) + "%" : "–", "like rate"),
+    stat(npsText(sessions), "NPS")));
+
+  const tester = el("input", {type:"text", id:"testerName", placeholder:"e.g. Tester 4, or a first name", autocomplete:"off", value: homeTester, oninput: e => homeTester = e.target.value});
+  s.append(el("div", {class:"field"}, el("label", {for:"testerName"}, "Who is testing?"), tester, el("span", {class:"hint"}, "Hand the phone over after you tap Start. The tester sees only the concept, never these controls.")));
+
+  const seg = el("div", {class:"seg", role:"group", "aria-label":"Variant"});
+  const opts = [["auto","Auto-assign"]].concat(config.variants.map(v => [v.id, v.id + " · " + v.label]));
+  for (const [id, label] of opts) seg.append(el("button", {"aria-pressed": homeVariant === id ? "true" : "false", onclick: () => { homeVariant = id; render(); }}, label));
+  s.append(el("div", {class:"field"}, el("label", null, "Variant"), seg, el("span", {class:"hint"}, homeVariant === "auto" ? `Auto alternates variants so each gets a fair share (${config.session.assignVariant}).` : variantSummary(variantById(homeVariant)))));
+
+  s.append(el("button", {class:"btn primary block", onclick: startSession}, "Start test session"));
+  s.append(el("p", {class:"muted", style:"font-size:.82rem"}, `Each session shows the pitch, then ${config.session.cardsPerSession} profiles, then a short survey. Takes about three minutes.`));
+  stage.append(s);
+}
+function stat(v, k){ return el("div", {class:"stat"}, el("span", {class:"v num"}, v), el("span", {class:"k"}, k)); }
+function npsText(list){ const scores = list.map(s => s.survey && s.survey.nps).filter(v => typeof v === "number"); const n = nps(scores); return n === null ? "–" : (n > 0 ? "+" : "") + n; }
+function variantSummary(v){ const bits = []; bits.push(v.cardStyle === "prompt-first" ? "Prompt shown before the photo" : "Photo-first cards"); bits.push(v.showSyncScore ? "Sync score visible" : "No Sync score"); bits.push(v.openerStyle === "plan" ? "Suggested plan on match" : "Blank message box on match"); return bits.join(" · "); }
+
+/* ---------- Session lifecycle ---------- */
+function pickVariant(){
+  if (homeVariant !== "auto") return homeVariant;
+  const mode = config.session.assignVariant;
+  if (mode === "random") return config.variants[Math.floor(Math.random()*config.variants.length)].id;
+  const counter = lsGet(LS.counter, 0); lsSet(LS.counter, counter + 1);
+  return config.variants[counter % config.variants.length].id;
+}
+function startSession(){
+  const variantId = pickVariant();
+  session = { id: "s" + Date.now().toString(36), tester: (homeTester || "").trim() || "Anonymous", variantId, startedAt: new Date().toISOString(), stage: "pitch", pitchMs: 0, decisions: [], matches: [], survey: null, events: [] };
+  session._pitchStart = performance.now(); session._pitchIndex = 0;
+  deck = null; pendingMatch = null;
+  logEvent("session_start", { variantId });
+  render();
+}
+function logEvent(type, data){ if (!session) return; session.events.push({ t: Date.now(), type, data: data || {} }); }
+function abandonSession(){
+  const box = el("div", {class:"confirm"},
+    el("b", null, "End this session?"),
+    el("p", {class:"muted", style:"font-size:.85rem"}, session.decisions.length ? `${session.decisions.length} decisions so far will be saved as an incomplete session.` : "Nothing has been recorded yet, so nothing will be saved."),
+    el("div", {class:"row"},
+      el("button", {class:"btn small danger", onclick: () => { finishSession(false); }}, "End session"),
+      el("button", {class:"btn small ghost", onclick: () => box.remove()}, "Keep going")));
+  stage.prepend(box);
+}
+function finishSession(completed){
+  if (session) {
+    session.endedAt = new Date().toISOString(); session.completed = !!completed;
+    delete session._pitchStart; delete session._pitchIndex;
+    if (session.decisions.length || completed) { sessions.push(session); persistSessions(); }
+  }
+  session = null; deck = null; pendingMatch = null; homeTester = "";
+  setTab(completed ? "home" : "home");
+}
+
+/* ---------- Pitch ---------- */
+function renderPitch(){
+  const slides = config.concept.pitch; const i = session._pitchIndex;
+  const sl = slides[i];
+  const s = el("section", {class:"screen"});
+  const dots = el("div", {class:"dots"}, slides.map((_, k) => el("i", {class: k === i ? "on" : ""})));
+  s.append(el("div", {class:"pitch"},
+    el("span", {class:"eyebrow"}, config.concept.name),
+    el("div", {class:"slide"}, el("h2", null, sl.title), el("p", null, sl.body)),
+    dots,
+    el("div", {class:"row"},
+      el("button", {class:"btn primary", onclick: () => { logEvent("pitch_next", {index:i}); if (i + 1 < slides.length) { session._pitchIndex++; render(); } else beginDeck(); }}, i + 1 < slides.length ? "Next" : "Start swiping"),
+      i === 0 ? el("button", {class:"btn ghost", onclick: () => { logEvent("pitch_skipped", {index:i}); beginDeck(); }}, "Skip") : null)));
+  stage.append(s);
+}
+function beginDeck(){
+  session.pitchMs = Math.round(performance.now() - session._pitchStart);
+  const n = Math.max(1, Math.min(PROFILES.length, config.session.cardsPerSession|0 || 10));
+  deck = { profiles: shuffle(PROFILES).slice(0, n), index: 0, cardStart: performance.now(), expanded: false, revealed: false, featureTaps: 0 };
+  session.stage = "deck"; render();
+}
+
+/* ---------- Deck ---------- */
+function renderDeck(){
+  stage.classList.add("locked");
+  const v = variantById(session.variantId);
+  const s = el("section", {class:"screen deckwrap"});
+  const done = deck.index, total = deck.profiles.length;
+  s.append(el("div", {class:"row between"}, el("span", {class:"eyebrow num"}, `Profile ${Math.min(done+1,total)} of ${total}`), el("span", {class:"chip accent"}, "Variant " + v.id)));
+  s.append(el("div", {class:"progress"}, el("i", {style:`width:${pct(done,total)}%`})));
+  const deckEl = el("div", {class:"deck", id:"deck"});
+  for (let k = Math.min(deck.index + 2, total - 1); k >= deck.index; k--) {
+    const card = buildCard(deck.profiles[k], v, k === deck.index);
+    if (k === deck.index + 1) card.classList.add("under"); if (k === deck.index + 2) card.classList.add("under2");
+    deckEl.append(card);
+  }
+  s.append(deckEl);
+  s.append(el("div", {class:"actions"},
+    el("button", {class:"pass", "aria-label":"Pass", onclick: () => decide("pass", true)}, svg("M6 6l12 12M18 6L6 18")),
+    el("button", {class:"info", "aria-label":"More about this profile", onclick: toggleExpand}, svg("M12 16v-4M12 8h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z")),
+    el("button", {class:"like", "aria-label":"Like", onclick: () => decide("like", true)}, svg("M12 21s-7-4.6-9.2-9A5.2 5.2 0 0 1 12 6.3 5.2 5.2 0 0 1 21.2 12C19 16.4 12 21 12 21z"))));
+  stage.append(s);
+  attachSwipe(deckEl.querySelector(".pcard.top"));
+}
+function svg(d){ const n = document.createElementNS("http://www.w3.org/2000/svg","svg"); n.setAttribute("viewBox","0 0 24 24"); const p = document.createElementNS("http://www.w3.org/2000/svg","path"); p.setAttribute("d", d); n.append(p); return n; }
+
+function buildCard(p, v, top){
+  const promptFirst = v.cardStyle === "prompt-first";
+  const card = el("article", {class:"pcard" + (top ? " top" : "") + (promptFirst ? " prompt-first" : ""), "data-id": p.id});
+  const photo = el("div", {class:"photo" + (promptFirst && !(top && deck.revealed) ? " hidden-photo" : ""), style:`background:${grad(p.hue)}`});
+  photo.append(el("span", {class:"initial", "aria-hidden":"true"}, p.name[0]), el("i", {class:"glow"}), el("i", {class:"shade"}));
+  if (promptFirst) {
+    const lead = el("div", {class:"lead"},
+      el("span", {class:"q"}, p.prompts[0].q),
+      el("span", {class:"a"}, p.prompts[0].a),
+      el("div", {class:"row between", style:"margin-top:6px"},
+        el("h2", null, p.name + ", " + p.age),
+        (top && deck.revealed) ? null : el("button", {class:"reveal", onclick: e => { e.stopPropagation(); deck.revealed = true; deck.featureTaps++; logEvent("photo_revealed", {profileId:p.id}); render(); }}, "Reveal photo")));
+    photo.append(lead);
+  } else {
+    photo.append(el("div", {class:"meta"},
+      el("h2", null, p.name + ", " + p.age),
+      el("div", {class:"line"}, el("span", null, p.job), el("span", null, p.dist + " away"))));
+  }
+  photo.append(el("span", {class:"stamp like"}, "Like"), el("span", {class:"stamp pass"}, "Pass"));
+  card.append(photo);
+  const body = el("div", {class:"pbody"});
+  if (v.showSyncScore) {
+    const sc = syncScore(p);
+    body.append(el("button", {class:"sync", onclick: e => { e.stopPropagation(); deck.featureTaps++; logEvent("sync_tapped", {profileId:p.id, score:sc}); toast(`Overlap is highest on ${bestSlot(p).day} ${bestSlot(p).part}`); }},
+      el("span", {class:"pct"}, sc + "%"),
+      el("span", {class:"lbl"}, "in sync", el("br"), "with your week"),
+      el("span", {class:"week", "aria-label":"Free time by weekday"}, p.week.map((w, i) => { const mine = TESTER_WEEK[i]; const both = Math.min(w, mine); return el("i", {class: both >= 2 ? "m" : both === 1 ? "h" : "", style:`height:${6 + w*6}px`, title: DAYS[i]}); }))));
+  }
+  if (!promptFirst) body.append(el("div", {class:"prompt"}, el("span", {class:"q"}, p.prompts[0].q), el("span", {class:"a"}, p.prompts[0].a)));
+  if (top && deck.expanded) {
+    body.append(el("div", {class:"details"},
+      el("div", {class:"prompt"}, el("span", {class:"q"}, p.prompts[1].q), el("span", {class:"a"}, p.prompts[1].a)),
+      promptFirst ? el("p", {class:"muted", style:"font-size:.85rem"}, p.job + " · " + p.dist + " away") : null,
+      el("div", {class:"tags"}, p.interests.map(t => el("span", {class:"chip"}, t)))));
+  }
+  card.append(body);
+  return card;
+}
+function toggleExpand(){ deck.expanded = !deck.expanded; if (deck.expanded) logEvent("profile_expanded", {profileId: deck.profiles[deck.index].id}); render(); }
+
+function attachSwipe(card){
+  if (!card) return;
+  let startX = 0, startY = 0, dx = 0, dy = 0, dragging = false, pid = null;
+  const likeStamp = card.querySelector(".stamp.like"), passStamp = card.querySelector(".stamp.pass");
+  const W = () => card.offsetWidth || 300;
+  card.addEventListener("pointerdown", e => {
+    if (e.target.closest("button")) return;
+    dragging = true; pid = e.pointerId; startX = e.clientX; startY = e.clientY; dx = dy = 0;
+    card.classList.remove("snap"); card.setPointerCapture(pid);
+  });
+  card.addEventListener("pointermove", e => {
+    if (!dragging || e.pointerId !== pid) return;
+    dx = e.clientX - startX; dy = e.clientY - startY;
+    const rot = dx / W() * 18;
+    card.style.transform = `translate(${dx}px, ${dy*0.4}px) rotate(${rot}deg)`;
+    const k = Math.min(1, Math.abs(dx) / (W()*0.35));
+    likeStamp.style.opacity = dx > 0 ? k : 0; passStamp.style.opacity = dx < 0 ? k : 0;
+  });
+  const end = e => {
+    if (!dragging || e.pointerId !== pid) return;
+    dragging = false;
+    const thresh = W() * 0.3;
+    if (dx > thresh) decide("like", false, dx, dy);
+    else if (dx < -thresh) decide("pass", false, dx, dy);
+    else { card.classList.add("snap"); card.style.transform = ""; likeStamp.style.opacity = 0; passStamp.style.opacity = 0; }
+  };
+  card.addEventListener("pointerup", end); card.addEventListener("pointercancel", end);
+}
+
+let deciding = false;
+function decide(choice, viaButton, dx, dy){
+  if (deciding || !deck) return; deciding = true;
+  const p = deck.profiles[deck.index];
+  const ms = Math.round(performance.now() - deck.cardStart);
+  session.decisions.push({ profileId: p.id, name: p.name, choice, ms, expanded: deck.expanded, revealed: deck.revealed, featureTaps: deck.featureTaps, viaButton: !!viaButton, syncScore: syncScore(p) });
+  logEvent("decision", { profileId: p.id, choice, ms });
+  const card = stage.querySelector(".pcard.top");
+  if (card) {
+    const W = card.offsetWidth || 300; const dir = choice === "like" ? 1 : -1;
+    card.classList.remove("snap"); card.classList.add("flying");
+    card.style.transform = `translate(${dir * (W*1.5)}px, ${(dy||0)*0.4 + 40}px) rotate(${dir*24}deg)`; card.style.opacity = "0";
+    const st = card.querySelector(".stamp." + choice); if (st) st.style.opacity = "1";
+  }
+  const matched = choice === "like" && Math.random() < (Number(config.session.matchChance) || 0);
+  setTimeout(() => {
+    deciding = false;
+    deck.index++; deck.expanded = false; deck.revealed = false; deck.featureTaps = 0; deck.cardStart = performance.now();
+    if (matched) { pendingMatch = p; session.stage = "match"; render(); return; }
+    if (deck.index >= deck.profiles.length) { session.stage = "survey"; render(); return; }
+    render();
+  }, card ? 320 : 0);
+}
+
+/* ---------- Match ---------- */
+function renderMatch(){
+  const p = pendingMatch; const v = variantById(session.variantId);
+  const slot = bestSlot(p);
+  const suggestion = v.openerStyle === "plan" ? `You're both free ${slot.day} ${slot.part}. Coffee at ${slot.part === "afternoon" ? "3" : "6:30"}?` : null;
+  const s = el("section", {class:"screen"});
+  const ta = el("textarea", {id:"openerText", placeholder: suggestion ? "Edit the plan or write your own" : "Say something", rows: 3});
+  if (suggestion) ta.value = suggestion;
+  const openedAt = performance.now();
+  const send = () => {
+    const text = ta.value.trim();
+    session.matches.push({ profileId: p.id, name: p.name, messaged: !!text, usedSuggestion: !!suggestion && text === suggestion, editedSuggestion: !!suggestion && !!text && text !== suggestion, length: text.length, ms: Math.round(performance.now() - openedAt) });
+    logEvent("match_message", {profileId:p.id, sent: !!text});
+    toast(text ? "Sent to " + p.name : "Skipped");
+    continueAfterMatch();
+  };
+  s.append(el("div", {class:"match"},
+    el("div", null, el("span", {class:"eyebrow"}, config.concept.name), el("h1", null, v.openerStyle === "plan" ? "You're in sync" : "It's a match")),
+    el("div", {class:"avatars"}, el("div", {class:"avatar", style:"background:linear-gradient(160deg,#8e7cc3,#4a3a8a)"}, "You"), el("div", {class:"avatar", style:`background:${grad(p.hue)}`}, p.name[0])),
+    el("p", {class:"muted"}, `${p.name} liked you too.`),
+    el("div", {class:"opener"},
+      suggestion ? el("div", {class:"suggest"}, el("b", null, "Suggested plan"), suggestion) : null,
+      ta,
+      el("button", {class:"btn primary block", onclick: send}, "Send"),
+      el("button", {class:"btn ghost block", onclick: () => { session.matches.push({ profileId: p.id, name: p.name, messaged: false, usedSuggestion: false, editedSuggestion: false, length: 0, ms: Math.round(performance.now()-openedAt) }); logEvent("match_skipped", {profileId:p.id}); continueAfterMatch(); }}, "Keep swiping"))));
+  stage.append(s);
+}
+function continueAfterMatch(){ pendingMatch = null; deck.cardStart = performance.now(); session.stage = deck.index >= deck.profiles.length ? "survey" : "deck"; render(); }
+
+/* ---------- Survey ---------- */
+function renderSurvey(){
+  const answers = session._answers || (session._answers = {});
+  const s = el("section", {class:"screen"});
+  s.append(el("div", null, el("span", {class:"eyebrow"}, "Almost done"), el("h2", null, "Quick reactions"), el("p", {class:"muted"}, "No right answers. First instinct is best.")));
+  for (const q of config.survey) {
+    const box = el("div", {class:"card q"}, el("span", {class:"text"}, q.text));
+    if (q.type === "likert") {
+      const g = el("div", {class:"likert"});
+      for (let i = 1; i <= 5; i++) g.append(el("button", {"aria-pressed": answers[q.id] === i ? "true" : "false", onclick: () => { answers[q.id] = i; refresh(g, i); }}, i));
+      g.append(el("div", {class:"ends"}, el("span", null, "Strongly disagree"), el("span", null, "Strongly agree")));
+      box.append(g);
+    } else if (q.type === "nps") {
+      const g = el("div", {class:"npsrow"});
+      for (let i = 0; i <= 10; i++) g.append(el("button", {"aria-pressed": answers[q.id] === i ? "true" : "false", onclick: () => { answers[q.id] = i; refresh(g, i); }}, i));
+      box.append(g, el("div", {class:"row between", style:"font-size:.72rem;color:var(--muted)"}, el("span", null, "Not at all"), el("span", null, "Extremely")));
+    } else {
+      box.append(el("textarea", {id:"q_" + q.id, rows:3, placeholder:"Optional", oninput: e => answers[q.id] = e.target.value, value: answers[q.id] || ""}));
+      if (answers[q.id]) box.querySelector("textarea").value = answers[q.id];
+    }
+    s.append(box);
+  }
+  const required = config.survey.filter(q => q.type !== "text");
+  s.append(el("button", {class:"btn primary block", onclick: () => {
+    const missing = required.filter(q => answers[q.id] === undefined);
+    if (missing.length) { toast(`Answer ${missing.length} more ${missing.length === 1 ? "question" : "questions"} to finish`); return; }
+    session.survey = Object.assign({}, answers); delete session._answers; session.stage = "done"; logEvent("survey_submitted"); render();
+  }}, "Finish"));
+  stage.append(s);
+  function refresh(group, val){ for (const b of group.querySelectorAll("button")) b.setAttribute("aria-pressed", String(Number(b.textContent) === val)); }
+}
+
+/* ---------- Done ---------- */
+function renderDone(){
+  const likes = session.decisions.filter(d => d.choice === "like").length;
+  const s = el("section", {class:"screen"});
+  s.append(el("div", {class:"match"},
+    el("h1", null, "Thanks, " + session.tester),
+    el("p", {class:"muted"}, `${likes} ${likes === 1 ? "like" : "likes"} out of ${session.decisions.length}, median ${fmtMs(median(session.decisions.map(d=>d.ms)))} per decision.`),
+    el("p", {class:"muted", style:"font-size:.85rem"}, "Hand the phone back to the facilitator."),
+    el("button", {class:"btn primary block", onclick: () => finishSession(true)}, "Save session")));
+  stage.append(s);
+}
+
+/* ---------- Results ---------- */
+let resultFilter = "all";
+function renderResults(){
+  const s = el("section", {class:"screen"});
+  s.append(el("div", {class:"row between"}, el("h2", null, "Results"), el("span", {class:"muted num", style:"font-size:.85rem"}, sessions.length + (sessions.length === 1 ? " session" : " sessions"))));
+  if (!sessions.length) {
+    s.append(el("div", {class:"empty"}, el("h3", null, "No sessions yet"), el("p", null, "Run a test from the Test tab. Every swipe, decision time and survey answer lands here."), el("button", {class:"btn small", onclick: () => setTab("home")}, "Go to Test")));
+    stage.append(s); return;
+  }
+  const seg = el("div", {class:"seg"});
+  for (const [id, label] of [["all","All"]].concat(config.variants.map(v => [v.id, "Variant " + v.id]))) seg.append(el("button", {"aria-pressed": resultFilter === id ? "true" : "false", onclick: () => { resultFilter = id; render(); }}, label));
+  s.append(seg);
+  const list = resultFilter === "all" ? sessions : sessions.filter(x => x.variantId === resultFilter);
+  const decs = list.flatMap(x => x.decisions), likes = decs.filter(d => d.choice === "like");
+  const matches = list.flatMap(x => x.matches || []);
+  s.append(el("div", {class:"tiles"},
+    tile(decs.length ? pct(likes.length, decs.length) + "%" : "–", "like rate", `${likes.length} of ${decs.length} swipes`),
+    tile(decs.length ? fmtMs(median(decs.map(d=>d.ms))) : "–", "median decision", "time per profile"),
+    tile(matches.length ? pct(matches.filter(m=>m.messaged).length, matches.length) + "%" : "–", "messaged on match", `${matches.length} ${matches.length === 1 ? "match" : "matches"}`),
+    tile(npsText(list), "NPS", `${list.filter(x=>x.survey).length} ${list.filter(x=>x.survey).length === 1 ? "survey" : "surveys"}`)));
+
+  /* Variant comparison */
+  const tbl = el("table", null, el("thead", null, el("tr", null, el("th", null, "Variant"), el("th", {class:"n"}, "N"), el("th", {class:"n"}, "Like"), el("th", {class:"n"}, "Time"), el("th", {class:"n"}, "Msg"), el("th", {class:"n"}, "NPS"), el("th", {class:"n"}, "Clear"))));
+  const tb = el("tbody");
+  for (const v of config.variants) {
+    const vs = sessions.filter(x => x.variantId === v.id); const vd = vs.flatMap(x=>x.decisions); const vm = vs.flatMap(x=>x.matches||[]);
+    const clear = vs.map(x => x.survey && x.survey.clear).filter(n => typeof n === "number");
+    tb.append(el("tr", null, el("td", null, el("b", null, v.id), " ", el("span", {class:"muted"}, v.label)), el("td", {class:"n"}, vs.length), el("td", {class:"n"}, vd.length ? pct(vd.filter(d=>d.choice==="like").length, vd.length) : "–"), el("td", {class:"n"}, vd.length ? fmtMs(median(vd.map(d=>d.ms))) : "–"), el("td", {class:"n"}, vm.length ? pct(vm.filter(m=>m.messaged).length, vm.length) : "–"), el("td", {class:"n"}, npsText(vs)), el("td", {class:"n"}, clear.length ? mean(clear).toFixed(1) : "–")));
+  }
+  tbl.append(tb);
+  s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Variant comparison"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted", style:"font-size:.75rem"}, "N = sessions. Like and Msg are percentages. Time is the median decision time. Clear = mean agreement (1 to 5) with \"I understood what makes this app different\".")));
+
+  /* Survey averages */
+  const likerts = config.survey.filter(q => q.type === "likert");
+  if (likerts.length) {
+    const bars = el("div", {class:"bars"});
+    for (const q of likerts) { const vals = list.map(x => x.survey && x.survey[q.id]).filter(n => typeof n === "number"); const m = mean(vals); bars.append(el("div", {class:"bar"}, el("span", {class:"lab", title:q.text}, q.text), el("div", {class:"track"}, el("div", {class:"fill", style:`width:${vals.length ? (m-1)/4*100 : 0}%`})), el("span", {class:"val"}, vals.length ? m.toFixed(1) : "–"))); }
+    s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Survey agreement (1 to 5)"), bars));
+  }
+
+  /* Profiles */
+  const byP = {};
+  for (const d of decs) { byP[d.profileId] = byP[d.profileId] || {name:d.name, n:0, likes:0, ms:[]}; byP[d.profileId].n++; if (d.choice === "like") byP[d.profileId].likes++; byP[d.profileId].ms.push(d.ms); }
+  const rows = Object.values(byP).sort((a,b) => (b.likes/b.n) - (a.likes/a.n));
+  if (rows.length) {
+    const bars = el("div", {class:"bars"});
+    for (const r of rows) bars.append(el("div", {class:"bar"}, el("span", {class:"lab"}, r.name), el("div", {class:"track"}, el("div", {class:"fill like", style:`width:${pct(r.likes,r.n)}%`})), el("span", {class:"val"}, pct(r.likes,r.n) + "%")));
+    s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Like rate by profile"), bars, el("p", {class:"muted", style:"font-size:.75rem"}, "A flat spread means the concept, not the sample profiles, is driving decisions.")));
+  }
+
+  /* Free text */
+  const texts = config.survey.filter(q => q.type === "text");
+  const quotes = [];
+  for (const x of list) for (const q of texts) if (x.survey && x.survey[q.id] && String(x.survey[q.id]).trim()) quotes.push({tester:x.tester, variant:x.variantId, q:q.text, a:String(x.survey[q.id]).trim()});
+  if (quotes.length) s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "What testers wrote"), quotes.slice(0, 30).map(qq => el("div", {class:"stack", style:"gap:2px"}, el("span", {class:"muted", style:"font-size:.75rem"}, `${qq.tester} · ${qq.variant} · ${qq.q}`), el("p", {class:"quote"}, qq.a)))));
+
+  /* Export */
+  s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Export"),
+    el("div", {class:"row"},
+      el("button", {class:"btn small", onclick: () => copyText(JSON.stringify(exportBundle(), null, 2), "JSON copied")}, "Copy JSON"),
+      el("button", {class:"btn small", onclick: () => copyText(toCSV(), "CSV copied")}, "Copy CSV"),
+      el("button", {class:"btn small", onclick: () => download(`${slug(config.concept.name)}-sessions.json`, JSON.stringify(exportBundle(), null, 2))}, "Download JSON"),
+      el("button", {class:"btn small", onclick: () => download(`${slug(config.concept.name)}-decisions.csv`, toCSV(), "text/csv")}, "Download CSV")),
+    el("p", {class:"muted", style:"font-size:.75rem"}, "Data lives only in this phone's browser. Export after each round of testing.")));
+
+  /* Sessions */
+  const sess = el("div", {class:"sess"});
+  for (const x of list.slice().reverse()) {
+    const d = el("details", {class:"card"});
+    const likesN = x.decisions.filter(dd => dd.choice === "like").length;
+    d.append(el("summary", null,
+      el("span", null, el("b", null, x.tester), " ", el("span", {class:"chip accent"}, x.variantId), !x.completed ? el("span", {class:"chip", style:"margin-left:6px"}, "incomplete") : null),
+      el("span", {class:"muted num", style:"font-size:.8rem"}, fmtDate(x.startedAt))));
+    const body = el("div", {class:"body"});
+    body.append(el("p", {class:"num"}, `${likesN} likes of ${x.decisions.length} · median ${fmtMs(median(x.decisions.map(dd=>dd.ms)))} · pitch read for ${fmtMs(x.pitchMs||0)} · ${(x.matches||[]).filter(m=>m.messaged).length} of ${(x.matches||[]).length} matches messaged`));
+    if (x.survey) body.append(el("p", {class:"muted num"}, config.survey.filter(q=>q.type!=="text").map(q => `${q.id} ${x.survey[q.id] ?? "–"}`).join(" · ")));
+    const dl = el("div", {class:"tags"}, x.decisions.map(dd => el("span", {class:"chip " + dd.choice, title: fmtMs(dd.ms)}, `${dd.name} ${fmtMs(dd.ms)}`)));
+    body.append(dl);
+    const delBtn = el("button", {class:"btn small danger", onclick: () => {
+      const c = el("div", {class:"confirm"}, el("span", null, "Delete this session? This can't be undone."), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = sessions.filter(y => y.id !== x.id); persistSessions(); toast("Session deleted"); render(); }}, "Delete"), el("button", {class:"btn small ghost", onclick: () => c.replaceWith(delBtn)}, "Cancel")));
+      delBtn.replaceWith(c);
+    }}, "Delete session");
+    body.append(el("div", null, delBtn));
+    d.append(body); sess.append(d);
+  }
+  s.append(el("div", {class:"stack"}, el("span", {class:"eyebrow"}, "Sessions"), sess));
+  stage.append(s);
+}
+function tile(v, k, sub){ return el("div", {class:"tile"}, el("span", {class:"v num"}, v), el("span", {class:"k"}, k), sub ? el("span", {class:"k num"}, sub) : null); }
+function slug(s){ return String(s||"concept").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "concept"; }
+function exportBundle(){ return { exportedAt: new Date().toISOString(), concept: config.concept.name, variants: config.variants, survey: config.survey, sessions }; }
+function toCSV(){
+  const rows = [["session","tester","variant","started","completed","profile","choice","decision_ms","expanded","revealed","feature_taps","via_button","sync_score"]];
+  for (const x of sessions) for (const d of x.decisions) rows.push([x.id, x.tester, x.variantId, x.startedAt, x.completed ? 1 : 0, d.name, d.choice, d.ms, d.expanded ? 1 : 0, d.revealed ? 1 : 0, d.featureTaps, d.viaButton ? 1 : 0, d.syncScore]);
+  return rows.map(r => r.map(c => { const s = String(c ?? ""); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(",")).join("\n");
+}
+
+/* ---------- Setup ---------- */
+function renderSetup(){
+  const s = el("section", {class:"screen"});
+  s.append(el("h2", null, "Setup"));
+  s.append(el("div", {class:"notice", html: "<b>Make it yours.</b> \"Sync\" and its pitch are placeholders that show what the tool can do. Change the name, tagline, pitch slides, variants and survey below to match your own concept."}));
+
+  const name = el("input", {type:"text", id:"cfgName", value: config.concept.name});
+  const tag = el("input", {type:"text", id:"cfgTag", value: config.concept.tagline});
+  const cards = el("input", {type:"number", id:"cfgCards", min:1, max:PROFILES.length, value: config.session.cardsPerSession});
+  const chance = el("input", {type:"number", id:"cfgChance", min:0, max:100, step:5, value: Math.round((Number(config.session.matchChance)||0)*100)});
+  const assign = el("select", {id:"cfgAssign"}, el("option", {value:"alternate", selected: config.session.assignVariant === "alternate"}, "Alternate A, B, A, B"), el("option", {value:"random", selected: config.session.assignVariant === "random"}, "Random"));
+  s.append(el("div", {class:"card stack"},
+    el("span", {class:"eyebrow"}, "Basics"),
+    el("div", {class:"field"}, el("label", {for:"cfgName"}, "Concept name"), name),
+    el("div", {class:"field"}, el("label", {for:"cfgTag"}, "Tagline"), tag),
+    el("div", {class:"row"}, el("div", {class:"field", style:"flex:1"}, el("label", {for:"cfgCards"}, `Profiles per session (max ${PROFILES.length})`), cards), el("div", {class:"field", style:"flex:1"}, el("label", {for:"cfgChance"}, "Match chance on like, %"), chance)),
+    el("div", {class:"field"}, el("label", {for:"cfgAssign"}, "Auto-assign variants"), assign),
+    el("button", {class:"btn primary", onclick: () => {
+      config.concept.name = name.value.trim() || "Concept"; config.concept.tagline = tag.value.trim();
+      config.session.cardsPerSession = Math.max(1, Math.min(PROFILES.length, parseInt(cards.value,10) || 10));
+      config.session.matchChance = Math.max(0, Math.min(1, (parseFloat(chance.value)||0)/100)); config.session.assignVariant = assign.value;
+      saveConfig("Basics saved");
+    }}, "Save basics")));
+
+  const vcards = config.variants.map(v => el("div", {class:"stack", style:"gap:2px"}, el("span", null, el("b", null, v.id), " ", v.label), el("span", {class:"muted", style:"font-size:.8rem"}, variantSummary(v))));
+  s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Variants in play"), vcards, el("p", {class:"muted", style:"font-size:.8rem"}, "Each variant toggles one or more parts of the concept so you can tell which part moves the numbers. Edit them in the full configuration below.")));
+
+  const ta = el("textarea", {class:"code", id:"cfgJson", spellcheck:"false"}); ta.value = JSON.stringify(config, null, 2);
+  const err = el("p", {class:"muted", style:"font-size:.8rem;color:var(--accent)"});
+  s.append(el("div", {class:"card stack"},
+    el("span", {class:"eyebrow"}, "Full configuration"),
+    el("p", {class:"muted", style:"font-size:.85rem"}, "Pitch slides, variants and survey questions live here. Variant options: cardStyle is \"photo-first\" or \"prompt-first\"; showSyncScore true or false; openerStyle \"plan\" or \"blank\". Survey types: likert, nps, text."),
+    ta, err,
+    el("div", {class:"row"},
+      el("button", {class:"btn primary small", onclick: () => { try { const parsed = JSON.parse(ta.value); if (!parsed.variants || !parsed.variants.length) throw new Error("At least one variant is required"); for (const v of parsed.variants) if (!v.id) throw new Error("Every variant needs an id"); config = normalizeConfig(parsed); err.textContent = ""; saveConfig("Configuration applied"); } catch (e) { err.textContent = "Not applied: " + e.message; } }}, "Apply"),
+      el("button", {class:"btn small", onclick: () => copyText(ta.value, "Configuration copied")}, "Copy"),
+      el("button", {class:"btn ghost small", onclick: () => { config = deepClone(DEFAULT_CONFIG); saveConfig("Reset to the example concept"); }}, "Reset to example"))));
+
+  s.append(el("div", {class:"card stack"},
+    el("span", {class:"eyebrow"}, "On your phone"),
+    el("p", {style:"font-size:.9rem"}, "Open this page in Safari or Chrome on the phone, then use Share → Add to Home Screen. It opens full-screen like a native app and works offline once installed."),
+    el("p", {class:"muted", style:"font-size:.8rem"}, "Sessions and configuration are stored in that phone's browser only. Export from Results before clearing browsing data or switching phones.")));
+
+  const danger = el("button", {class:"btn ghost small danger", onclick: () => {
+    const c = el("div", {class:"confirm"}, el("span", null, `Delete all ${sessions.length} sessions from this phone? Export first if you need them.`), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = []; persistSessions(); toast("All sessions deleted"); render(); }}, "Delete everything"), el("button", {class:"btn small ghost", onclick: () => c.replaceWith(danger)}, "Cancel")));
+    danger.replaceWith(c);
+  }}, "Delete all sessions");
+  s.append(el("div", {class:"row between"}, el("span", {class:"muted", style:"font-size:.8rem"}, `${sessions.length} sessions stored`), sessions.length ? danger : null));
+  stage.append(s);
+}
+function saveConfig(msg){ if (!lsSet(LS.cfg, config)) toast("Saved for this visit only; storage is blocked"); else toast(msg); render(); }
+
+/* ---------- Boot ---------- */
+render();
+if ("serviceWorker" in navigator && document.querySelector('link[rel="manifest"]')) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+})();
+</script>
+</body><!-- pwa-only -->
+</html><!-- pwa-only -->

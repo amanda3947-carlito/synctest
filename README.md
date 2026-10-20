@@ -9,6 +9,31 @@ It is a single HTML file plus a manifest and service worker, so it runs in
 any phone browser and installs to the home screen like a native app. No build
 step, no backend, no app store.
 
+## Design source
+
+The UI is built on the **Spades Design System** Figma file
+(`Qrx7kdcMXnddTjPytlIF9x`). The CSS custom properties at the top of
+`index.html` mirror Spades variables one to one:
+
+- **Color**: `Background/Text/Border/Brand/Positive/Danger/Warning` in both the
+  `SDS Light` and `SDS Dark` modes, plus the `Special/Accent` colours.
+- **Size**: `Space/100..1200`, `Radius/100..800 + Full`, `Stroke/Border`.
+- **Effects**: `Drop Shadow/100, 200, 400`, the Liquid glass treatment.
+- **Typography**: DM Sans body scale (Body, Body Strong, Heading, Title Page),
+  DM Mono for captions, Bricolage Grotesque for the Title Hero.
+
+Components follow their Spades counterparts: Button (Primary / Neutral /
+Subtle), Icon Button, Tag and Tag Toggle, Input Field, Textarea, Stats Card,
+Avatar. The swipe deck implements the **Feed Card** family from the Cards
+page (`profile card types`): card header 1 (centered) and card header 2
+(leading with inline UFI), the UFI reaction / heart / save buttons, and the
+seven card modules: Most listened to, Just played, Now playing, Going to,
+Mutuals, In your orbit (places) and the voice-note Audio Widget. Feed Card 2's
+light "shared artists" footer is the `sharedFooter` variant option.
+
+Photos are tinted placeholders because this environment cannot download Figma
+assets. Add a `photo` URL to any profile in Setup to use a real image.
+
 ## Run it on your phone
 
 Pick whichever is easiest:
@@ -35,8 +60,8 @@ offline after the first load.
    auto-assign, tap Start, hand the phone over.
 2. **Pitch.** The tester reads the concept slides. Time spent is recorded.
 3. **Deck.** Swipe right to like, left to pass, or use the buttons. The app
-   records each choice, how long it took, whether the tester expanded the
-   profile, revealed the photo (prompt-first variant) or tapped the Sync score.
+   records each choice, how long it took, which card module was showing, and
+   whether the tester expanded the profile, waved, saved, or tapped the module.
 4. **Match.** Some likes turn into a match. Depending on the variant the
    tester gets a suggested plan or a blank box. Whether they send, edit or skip
    is recorded.
@@ -52,8 +77,8 @@ Export copies or downloads JSON and CSV.
 
 ## Making it your concept
 
-"Sync" (match on how you spend your week) is a placeholder that exercises every
-part of the tool. Replace it in Setup:
+"Sync" (match on what you listen to) is the default concept, built from the
+profile cards in the Spades Figma file. Replace it in Setup:
 
 - **Basics**: name, tagline, profiles per session, match chance, how variants
   are assigned.
@@ -63,16 +88,27 @@ Variant fields:
 
 | field | values | what it changes |
 |---|---|---|
-| `cardStyle` | `photo-first`, `prompt-first` | whether the photo or the written prompt leads the card |
-| `showSyncScore` | `true`, `false` | shows the compatibility score and weekday overlap strip |
-| `openerStyle` | `plan`, `blank` | suggested first message on match, or an empty box |
+| `layout` | `"01"`, `"02"` | centered header with actions at the bottom, or leading header with actions on top |
+| `showSharedCount` | `true`, `false` | shows the "N shared artists" signal |
+| `sharedFooter` | `true`, `false` | Feed Card 2 style: light footer under the photo |
+| `openerStyle` | `track`, `blank` | suggested opener built from a shared artist, or an empty box |
+
+Profile fields: `name`, `age`, `hood`, `dist`, `hue` (placeholder tint),
+`photo` (optional URL), `shared` (shared artist count), `bio`, and `module`
+with a `type` of `mostListened` (`artists`), `justPlayed` / `nowPlaying`
+(`track`, `artist`), `event` (`month`, `day`, `title`, `place`), `mutuals`
+(`count`, `names`), `places` (`places: [{name, note, shared}]`) or `voice`
+(`seconds`).
 
 Survey question types: `likert` (1 to 5), `nps` (0 to 10), `text`.
 
+Results include **like rate by card module**, so you can see which listening
+signal (now playing, going to, mutuals, ...) actually moves people.
+
 To add a mechanic that isn't covered by these toggles, edit `index.html`:
-`buildCard()` renders a card from a variant, `renderMatch()` handles the match
-moment, and `decide()` records what gets stored per swipe. Sample profiles are
-in the `PROFILES` array near the top of the script.
+`buildCard()` and `moduleEl()` render a card from a variant and a profile,
+`renderMatch()` handles the match moment, and `decide()` records what gets
+stored per swipe.
 
 ## Data
 

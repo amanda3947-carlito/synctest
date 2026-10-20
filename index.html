@@ -3,7 +3,7 @@
 <head><!-- pwa-only -->
 <meta charset="utf-8"><!-- pwa-only -->
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><!-- pwa-only -->
-<meta name="theme-color" content="#C8385A"><!-- pwa-only -->
+<meta name="theme-color" content="#2c2c2c"><!-- pwa-only -->
 <meta name="apple-mobile-web-app-capable" content="yes"><!-- pwa-only -->
 <meta name="apple-mobile-web-app-status-bar-style" content="default"><!-- pwa-only -->
 <link rel="manifest" href="manifest.webmanifest"><!-- pwa-only -->
@@ -13,203 +13,287 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap">
 <style>
-/* Layout: one-screen phone app. A slim header, a scrolling stage, and a bottom tab bar.
-   The swipe deck is the hero; everything else (survey, results, setup) is utilitarian. */
+/* Built on the Spades Design System (Figma: Qrx7kdcMXnddTjPytlIF9x).
+   Tokens below mirror Spades variables: Color (SDS Light / SDS Dark), Size (Space, Radius, Depth), Typography.
+   Layout: one-screen phone app. Slim header, scrolling stage, bottom tab bar. The Feed Card deck is the hero. */
 :root{
-  --bg:#FAF6F7; --surface:#FFFFFF; --surface-2:#F2EAEE; --fg:#241B22; --muted:#6E5F69; --line:#E5D9DE;
-  --accent:#C8385A; --accent-fg:#FFFFFF; --accent-soft:#F8E1E7;
-  --like:#1F8A70; --like-soft:#DDF2EC; --pass:#7A6E78; --pass-soft:#ECE6E9; --warn:#B7791F;
-  --shadow:0 12px 32px rgba(70,20,45,.14); --shadow-sm:0 2px 8px rgba(70,20,45,.08);
-  --display:"Fraunces",Georgia,"Times New Roman",serif;
-  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --radius:20px; --radius-sm:12px;
+  /* Color / Background */
+  --bg:#f7f6f3; --bg-hover:#f5f5f5; --bg-2:#f5f5f5; --bg-3:#d9d9d9;
+  /* Color / Text + Icon */
+  --fg:#1e1e1e; --fg-2:#757575; --fg-3:#b3b3b3;
+  /* Color / Border */
+  --border:#d9d9d9; --border-2:#757575;
+  /* Color / Brand */
+  --brand:#2c2c2c; --brand-hover:#1e1e1e; --on-brand:#f5f5f5; --brand-2:#e6e6e6; --brand-3:#f5f5f5; --text-brand:#2c2c2c;
+  /* Color / Positive, Danger, Warning */
+  --pos:#028c43; --pos-bg:#1fce71; --pos-2:#cff7d3; --pos-3:#ebffee;
+  --danger:#900b09; --danger-bg:#ec221f; --danger-2:#fdd3d0; --danger-3:#fee9e7;
+  --warn:#522504; --warn-bg:#e8b931; --warn-2:#fff1c2;
+  /* Color / Utilities + Special accents */
+  --overlay:rgba(0,0,0,.5); --scrim:rgba(255,255,255,.8); --on-photo:#f3f3f3;
+  --accent-green:#b0f48b; --accent-blue:#b3e7ff; --accent-yellow:#fffd70; --accent-purple:#f1a2ff; --accent-teal:#a2ffeb; --accent-chrome:#eaf5ff;
+  /* Size / Space */
+  --sp-100:4px; --sp-150:6px; --sp-200:8px; --sp-300:12px; --sp-400:16px; --sp-600:24px; --sp-800:32px; --sp-1200:48px;
+  /* Size / Radius */
+  --r-100:4px; --r-200:8px; --r-400:16px; --r-600:24px; --r-800:32px; --r-full:9999px;
+  /* Effects / Drop Shadow */
+  --shadow-100:0 1px 4px rgba(12,12,13,.05);
+  --shadow-200:0 1px 4px rgba(12,12,13,.05),0 1px 4px rgba(12,12,13,.1);
+  --shadow-400:0 4px 4px rgba(12,12,13,.05),0 16px 32px rgba(12,12,13,.1);
+  /* Typography */
+  --font-body:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --font-hero:"Bricolage Grotesque","DM Sans",system-ui,sans-serif;
+  --font-mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --gutter-l:max(16px,env(safe-area-inset-left,0px)); --gutter-r:max(16px,env(safe-area-inset-right,0px));
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
-  --bg:#17121A; --surface:#221A26; --surface-2:#2D2331; --fg:#F4ECF0; --muted:#AA9AA3; --line:#3B2F3E;
-  --accent:#E8607E; --accent-fg:#1B0F14; --accent-soft:#3D2130;
-  --like:#43C2A0; --like-soft:#1E3A33; --pass:#A3959E; --pass-soft:#352B38; --warn:#E0A64A;
-  --shadow:0 12px 32px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.3); color-scheme:dark } }
+  --bg:#1e1e1e; --bg-hover:#383838; --bg-2:#2c2c2c; --bg-3:#444444;
+  --fg:#f7f6f3; --fg-2:rgba(247,246,243,.7); --fg-3:rgba(247,246,243,.4);
+  --border:#444444; --border-2:#757575;
+  --brand:#f5f5f5; --brand-hover:#d9d9d9; --on-brand:#1e1e1e; --brand-2:#444444; --brand-3:#444444; --text-brand:#f5f5f5;
+  --pos:#cff7d3; --pos-bg:#06a24f; --pos-2:#028c43; --pos-3:#015328;
+  --danger:#fdd3d0; --danger-bg:#c00f0c; --danger-2:#690807; --danger-3:#4d0b0a;
+  --warn:#fff1c2; --warn-bg:#e8b931; --warn-2:#682d03;
+  --scrim:rgba(0,0,0,.8);
+  --shadow-100:0 1px 4px rgba(0,0,0,.3); --shadow-200:0 1px 4px rgba(0,0,0,.3),0 1px 4px rgba(0,0,0,.4); --shadow-400:0 4px 4px rgba(0,0,0,.3),0 16px 32px rgba(0,0,0,.5);
+  color-scheme:dark } }
 :root[data-theme="dark"]{
-  --bg:#17121A; --surface:#221A26; --surface-2:#2D2331; --fg:#F4ECF0; --muted:#AA9AA3; --line:#3B2F3E;
-  --accent:#E8607E; --accent-fg:#1B0F14; --accent-soft:#3D2130;
-  --like:#43C2A0; --like-soft:#1E3A33; --pass:#A3959E; --pass-soft:#352B38; --warn:#E0A64A;
-  --shadow:0 12px 32px rgba(0,0,0,.45); --shadow-sm:0 2px 8px rgba(0,0,0,.3); color-scheme:dark }
+  --bg:#1e1e1e; --bg-hover:#383838; --bg-2:#2c2c2c; --bg-3:#444444;
+  --fg:#f7f6f3; --fg-2:rgba(247,246,243,.7); --fg-3:rgba(247,246,243,.4);
+  --border:#444444; --border-2:#757575;
+  --brand:#f5f5f5; --brand-hover:#d9d9d9; --on-brand:#1e1e1e; --brand-2:#444444; --brand-3:#444444; --text-brand:#f5f5f5;
+  --pos:#cff7d3; --pos-bg:#06a24f; --pos-2:#028c43; --pos-3:#015328;
+  --danger:#fdd3d0; --danger-bg:#c00f0c; --danger-2:#690807; --danger-3:#4d0b0a;
+  --warn:#fff1c2; --warn-bg:#e8b931; --warn-2:#682d03;
+  --scrim:rgba(0,0,0,.8);
+  --shadow-100:0 1px 4px rgba(0,0,0,.3); --shadow-200:0 1px 4px rgba(0,0,0,.3),0 1px 4px rgba(0,0,0,.4); --shadow-400:0 4px 4px rgba(0,0,0,.3),0 16px 32px rgba(0,0,0,.5);
+  color-scheme:dark }
 
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px;line-height:1.4;-webkit-font-smoothing:antialiased;overscroll-behavior:none;font-optical-sizing:auto}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
 button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer;border:0;background:none;padding:0}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-h1,h2,h3{font-family:var(--display);font-weight:600;line-height:1.15;margin:0;text-wrap:balance}
-h1{font-size:1.9rem} h2{font-size:1.4rem} h3{font-size:1.1rem}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 p{margin:0}
-.muted{color:var(--muted)}
-.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+/* Spades text styles */
+.t-hero{font-family:var(--font-hero);font-weight:700;font-size:48px;line-height:1.05;letter-spacing:-.03em;text-wrap:balance}
+.t-title{font-weight:700;font-size:28px;line-height:1.2;letter-spacing:-.02em;text-wrap:balance}
+.t-heading{font-weight:600;font-size:20px;line-height:1.2;letter-spacing:-.02em;text-wrap:balance}
+.t-subheading{font-weight:400;font-size:16px;line-height:1.2}
+.t-body{font-size:14px;line-height:1.4}
+.t-strong{font-size:14px;font-weight:600;line-height:1.4}
+.t-small{font-size:13px;line-height:1.4}
+.t-xs{font-size:12px;line-height:1.4}
+.t-caption{font-family:var(--font-mono);font-size:12px;line-height:1.1;letter-spacing:.005em;text-transform:uppercase}
+.muted{color:var(--fg-2)}
 .num{font-variant-numeric:tabular-nums}
 [hidden]{display:none!important}
 
 /* App frame */
 .app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto}
-.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding-block:10px;padding-left:var(--gutter-l);padding-right:var(--gutter-r);background:var(--bg)}
-.brand{display:flex;flex-direction:column;line-height:1.1}
-.brand .name{font-family:var(--display);font-weight:700;font-size:1.05rem}
-.brand .sub{font-size:.7rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.topbar .right{display:flex;align-items:center;gap:8px}
-.stage{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-left:var(--gutter-l);padding-right:var(--gutter-r);padding-block:8px 24px;-webkit-overflow-scrolling:touch}
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-300);padding-block:var(--sp-300);padding-left:var(--gutter-l);padding-right:var(--gutter-r);background:var(--bg)}
+.brand{display:flex;align-items:baseline;gap:var(--sp-200)}
+.brand .name{font-family:var(--font-hero);font-weight:700;font-size:20px;letter-spacing:-.03em;line-height:1}
+.brand .sub{font-family:var(--font-mono);font-size:11px;color:var(--fg-2);text-transform:uppercase;letter-spacing:.04em}
+.topbar .right{display:flex;align-items:center;gap:var(--sp-200)}
+.stage{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-left:var(--gutter-l);padding-right:var(--gutter-r);padding-block:var(--sp-200) var(--sp-600);-webkit-overflow-scrolling:touch}
 .stage.locked{overflow:hidden}
-.screen{display:flex;flex-direction:column;gap:16px;min-height:100%}
-.tabbar{display:flex;border-top:1px solid var(--line);background:var(--surface);padding-left:var(--gutter-l);padding-right:var(--gutter-r);padding-bottom:env(safe-area-inset-bottom,0px)}
-.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 4px 8px;font-size:.72rem;font-weight:600;color:var(--muted);letter-spacing:.02em}
-.tabbar button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.tabbar button[aria-selected="true"]{color:var(--accent)}
+.screen{display:flex;flex-direction:column;gap:var(--sp-400);min-height:100%}
+.tabbar{display:flex;border-top:1px solid var(--border);background:var(--bg);padding-left:var(--gutter-l);padding-right:var(--gutter-r);padding-bottom:env(safe-area-inset-bottom,0px)}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:var(--sp-100);padding:var(--sp-200) var(--sp-100) var(--sp-150);font-size:12px;color:var(--fg-2)}
+.tabbar button svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-selected="true"]{color:var(--fg);font-weight:600}
 
-/* Controls */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;border-radius:999px;font-weight:600;font-size:.95rem;background:var(--surface-2);color:var(--fg);transition:transform .08s ease,background .15s ease;min-height:46px}
-.btn:active{transform:scale(.97)}
-.btn.primary{background:var(--accent);color:var(--accent-fg)}
-.btn.ghost{background:transparent;border:1px solid var(--line)}
-.btn.small{padding:8px 14px;min-height:36px;font-size:.85rem}
+/* Spades Button */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-200);padding:var(--sp-300);border-radius:var(--r-600);border:1px solid var(--border);background:var(--bg);color:var(--fg);font-size:14px;line-height:1;min-height:40px;transition:background .15s ease,transform .08s ease}
+.btn:active{transform:scale(.98)}
+.btn:hover{background:var(--bg-hover)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.btn.primary:hover{background:var(--brand-hover);border-color:var(--brand-hover)}
+.btn.subtle{background:transparent;border-color:transparent;color:var(--fg)}
+.btn.subtle:hover{background:var(--bg-2)}
+.btn.danger{background:var(--danger-bg);border-color:var(--danger-bg);color:#fee9e7}
+.btn.danger.subtle{background:transparent;border-color:transparent;color:var(--danger)}
+.btn.small{padding:var(--sp-200) var(--sp-300);min-height:32px;font-size:13px}
 .btn.block{width:100%}
-.btn.danger{color:var(--accent)}
-.btn:disabled{opacity:.5;cursor:default;transform:none}
-.field{display:flex;flex-direction:column;gap:6px}
-.field label{font-size:.85rem;font-weight:600}
-.field .hint{font-size:.8rem;color:var(--muted)}
-input[type=text],input[type=number],textarea,select{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);min-width:0}
-textarea{min-height:90px;resize:vertical}
-textarea.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.78rem;line-height:1.5;min-height:320px;white-space:pre;overflow:auto}
-.seg{display:flex;gap:6px;flex-wrap:wrap}
-.seg button{padding:9px 14px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:.85rem}
-.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn:disabled{background:var(--bg-3);border-color:var(--bg-3);color:var(--fg-3);cursor:default;transform:none}
+.btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn{width:40px;height:40px;border-radius:var(--r-full);display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--bg)}
+.iconbtn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.iconbtn.primary{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+.iconbtn.lg{width:56px;height:56px}
+.iconbtn.lg svg{width:24px;height:24px}
+
+/* Spades Input Field, Select, Textarea */
+.field{display:flex;flex-direction:column;gap:var(--sp-200)}
+.field label{font-size:14px;line-height:1.4}
+.field .hint{font-size:14px;color:var(--fg-2)}
+input[type=text],input[type=number],textarea,select{width:100%;min-width:0;padding:var(--sp-300) var(--sp-400);border:1px solid var(--border);border-radius:var(--r-200);background:var(--bg);color:var(--fg);line-height:1}
+input::placeholder,textarea::placeholder{color:var(--fg-3)}
+textarea{min-height:88px;resize:vertical;line-height:1.4}
+textarea.code{font-family:var(--font-mono);font-size:12px;line-height:1.5;min-height:320px;white-space:pre;overflow:auto}
+
+/* Spades Tag + Tag Toggle */
+.tag{display:inline-flex;align-items:center;gap:var(--sp-200);padding:var(--sp-200);border-radius:var(--r-200);background:var(--brand-2);color:var(--text-brand);font-size:14px;line-height:1}
+.tag.brand{background:var(--brand);color:var(--on-brand)}
+.tag.pos{background:var(--pos-2);color:var(--pos)}
+.tag.danger{background:var(--danger-2);color:var(--danger)}
+.tag.neutral{background:var(--bg-2);color:var(--fg-2)}
+.toggles{display:flex;gap:var(--sp-200);flex-wrap:wrap}
+.toggles button{padding:var(--sp-200) var(--sp-300);border-radius:var(--r-200);border:1px solid var(--border);background:var(--bg);font-size:14px;line-height:1}
+.toggles button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:var(--on-brand)}
+
+/* Spades Card + Stats Card */
+.card{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-200);padding:var(--sp-600);display:flex;flex-direction:column;gap:var(--sp-400);min-width:0}
+.card.tight{padding:var(--sp-400);gap:var(--sp-300)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-200)}
+.stats.two{grid-template-columns:repeat(2,1fr)}
+.stat{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-200);padding:var(--sp-400);display:flex;flex-direction:column;gap:var(--sp-100);align-items:center;text-align:center;min-width:0}
+.stat .v{font-weight:600;font-size:20px;line-height:1.2;letter-spacing:-.02em}
+.stat .k{font-size:13px;color:var(--fg-2)}
+.row{display:flex;gap:var(--sp-200);align-items:center;flex-wrap:wrap}
 .row.between{justify-content:space-between}
-.stack{display:flex;flex-direction:column;gap:12px}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
-.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:.75rem;font-weight:600;background:var(--surface-2);color:var(--fg)}
-.chip.like{background:var(--like-soft);color:var(--like)}
-.chip.pass{background:var(--pass-soft);color:var(--pass)}
-.chip.accent{background:var(--accent-soft);color:var(--accent)}
-.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.85rem;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;max-width:calc(100vw - 32px);text-align:center}
+.stack{display:flex;flex-direction:column;gap:var(--sp-300)}
+.notice{background:var(--bg-2);border-radius:var(--r-200);padding:var(--sp-300) var(--sp-400);font-size:14px;line-height:1.4}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--brand);color:var(--on-brand);padding:var(--sp-300) var(--sp-400);border-radius:var(--r-full);font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:20;max-width:calc(100vw - 32px);text-align:center;box-shadow:var(--shadow-400)}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.notice{background:var(--accent-soft);color:var(--fg);border-radius:var(--radius-sm);padding:12px 14px;font-size:.88rem;line-height:1.4}
-.notice b{color:var(--accent)}
+.confirm{display:flex;flex-direction:column;gap:var(--sp-300);background:var(--bg-2);border-radius:var(--r-200);padding:var(--sp-400)}
 
 /* Home */
-.hero{padding:18px 4px 4px;display:flex;flex-direction:column;gap:8px}
-.hero h1{font-size:2.3rem;font-weight:700;letter-spacing:-.01em}
-.hero .tag{font-size:1.05rem;color:var(--muted);max-width:32ch}
-.statrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.stat .v{font-family:var(--display);font-size:1.5rem;font-weight:600;line-height:1}
-.stat .k{font-size:.72rem;color:var(--muted)}
+.hero{padding-block:var(--sp-600) var(--sp-200);display:flex;flex-direction:column;gap:var(--sp-300)}
+.hero .tag-line{font-size:16px;line-height:1.3;color:var(--fg-2);max-width:30ch}
 
 /* Pitch */
-.pitch{flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px;padding-block:24px}
-.pitch .slide{display:flex;flex-direction:column;gap:14px}
-.pitch .slide h2{font-size:2rem;font-weight:700}
-.pitch .slide p{font-size:1.05rem;color:var(--muted);max-width:36ch}
-.dots{display:flex;gap:6px}
-.dots i{width:8px;height:8px;border-radius:50%;background:var(--line);display:block}
-.dots i.on{background:var(--accent);width:22px;border-radius:4px}
+.pitch{flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--sp-800);padding-block:var(--sp-600)}
+.pitch .slide{display:flex;flex-direction:column;gap:var(--sp-400)}
+.pitch .slide p{font-size:16px;line-height:1.4;color:var(--fg-2);max-width:34ch}
+.dots{display:flex;gap:var(--sp-150)}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--bg-3);display:block}
+.dots i.on{background:var(--brand);width:24px;border-radius:4px}
 
 /* Deck */
-.deckwrap{flex:1;display:flex;flex-direction:column;gap:14px;min-height:0}
-.deck{position:relative;flex:1;min-height:420px;touch-action:none}
-.pcard{position:absolute;inset:0;border-radius:var(--radius);overflow:hidden;background:var(--surface);box-shadow:var(--shadow);transform-origin:50% 100%;will-change:transform;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column}
-.pcard.under{transform:scale(.95) translateY(10px);opacity:.85}
-.pcard.under2{transform:scale(.9) translateY(20px);opacity:.6}
-.pcard.flying{transition:transform .35s cubic-bezier(.2,.7,.3,1),opacity .35s}
-.pcard.snap{transition:transform .25s cubic-bezier(.2,.7,.3,1)}
-.photo{position:relative;flex:1;min-height:0;background:var(--surface-2);display:flex;align-items:flex-end;overflow:hidden}
-.photo .initial{position:absolute;right:-6%;top:-10%;font-family:var(--display);font-size:min(60vw,320px);font-weight:700;line-height:1;color:rgba(255,255,255,.22);pointer-events:none}
-.photo .glow{position:absolute;inset:auto -20% -30% -20%;height:70%;background:radial-gradient(ellipse at center,rgba(255,255,255,.35),transparent 65%);pointer-events:none}
-.photo .shade{position:absolute;inset:0;background:linear-gradient(180deg,transparent 45%,rgba(20,8,14,.78) 100%);pointer-events:none}
-.photo .meta{position:relative;padding:16px 18px 18px;color:#fff;display:flex;flex-direction:column;gap:6px;width:100%}
-.photo .meta h2{font-size:1.9rem;font-weight:700;color:#fff;letter-spacing:-.01em}
-.photo .meta .line{font-size:.9rem;opacity:.9;display:flex;gap:10px;flex-wrap:wrap}
-.stamp{position:absolute;top:22px;padding:6px 12px;border:3px solid;border-radius:8px;font-weight:800;font-size:1.4rem;letter-spacing:.08em;text-transform:uppercase;opacity:0;transform:rotate(-14deg);font-family:var(--body)}
-.stamp.like{left:18px;color:#3DD3A6;border-color:#3DD3A6}
-.stamp.pass{right:18px;color:#FF6B8A;border-color:#FF6B8A;transform:rotate(14deg)}
-.pbody{padding:14px 18px 16px;display:flex;flex-direction:column;gap:10px;background:var(--surface)}
-.prompt{display:flex;flex-direction:column;gap:3px}
-.prompt .q{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
-.prompt .a{font-family:var(--display);font-size:1.1rem;font-weight:500;line-height:1.3}
-.prompt-first .photo .meta h2{font-size:1.3rem}
-.prompt-first .photo .lead{position:relative;padding:22px 20px;color:#fff;display:flex;flex-direction:column;gap:10px;width:100%;margin-top:auto}
-.prompt-first .photo .lead .q{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;opacity:.85;font-weight:600}
-.prompt-first .photo .lead .a{font-family:var(--display);font-size:1.7rem;font-weight:600;line-height:1.2;text-wrap:balance}
-.prompt-first .photo.hidden-photo .initial{display:none}
-.prompt-first .photo.hidden-photo .shade{background:linear-gradient(180deg,rgba(20,8,14,.15),rgba(20,8,14,.55))}
-.reveal{align-self:flex-start;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35);padding:6px 12px;border-radius:999px;font-size:.78rem;font-weight:600;backdrop-filter:blur(6px)}
-.sync{display:flex;align-items:center;gap:10px;background:var(--surface-2);border-radius:var(--radius-sm);padding:8px 10px}
-.sync .pct{font-family:var(--display);font-size:1.35rem;font-weight:700;color:var(--accent);min-width:3.2ch;font-variant-numeric:tabular-nums}
-.sync .lbl{font-size:.75rem;color:var(--muted);line-height:1.2}
-.week{display:flex;gap:3px;margin-left:auto;align-items:flex-end;height:26px}
-.week i{width:9px;border-radius:3px;background:var(--line);display:block}
-.week i.m{background:var(--accent)}
-.week i.h{background:var(--accent);opacity:.45}
-.details{display:flex;flex-direction:column;gap:10px;padding-top:4px;border-top:1px dashed var(--line);margin-top:4px}
-.tags{display:flex;flex-wrap:wrap;gap:6px}
-.actions{display:flex;justify-content:center;align-items:center;gap:18px;padding-block:4px}
-.actions button{width:62px;height:62px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-sm);display:flex;align-items:center;justify-content:center;border:1px solid var(--line);transition:transform .1s}
-.actions button:active{transform:scale(.92)}
-.actions button svg{width:28px;height:28px;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.actions .pass svg{stroke:var(--pass)}
-.actions .like svg{stroke:var(--like)}
-.actions .info{width:48px;height:48px}
-.actions .info svg{width:22px;height:22px;stroke:var(--muted)}
-.progress{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
-.progress i{display:block;height:100%;background:var(--accent);transition:width .3s}
+.deckwrap{flex:1;display:flex;flex-direction:column;gap:var(--sp-300);min-height:0}
+.deck{position:relative;flex:1;min-height:440px;touch-action:none}
+.progress{height:2px;background:var(--bg-3);border-radius:1px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--brand);transition:width .3s}
+.actions{display:flex;justify-content:center;align-items:center;gap:var(--sp-600);padding-block:var(--sp-100)}
+
+/* Feed Card (Spades: Cards / Feed Card, 362x536, radius 32) */
+.fcard{position:absolute;inset:0;border-radius:var(--r-800);overflow:hidden;background:#1a1a1a;box-shadow:var(--shadow-400);transform-origin:50% 100%;will-change:transform;user-select:none;-webkit-user-select:none;display:flex;flex-direction:column;color:var(--on-photo)}
+.fcard.under{transform:scale(.95) translateY(10px);opacity:.85}
+.fcard.under2{transform:scale(.9) translateY(20px);opacity:.6}
+.fcard.flying{transition:transform .35s cubic-bezier(.2,.7,.3,1),opacity .35s}
+.fcard.snap{transition:transform .25s cubic-bezier(.2,.7,.3,1)}
+.fcard .photo{position:absolute;inset:0;background-size:cover;background-position:center}
+.fcard .photo .initial{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);font-family:var(--font-hero);font-weight:700;font-size:min(58vw,260px);line-height:1;color:rgba(255,255,255,.14);letter-spacing:-.04em}
+.fcard .top{position:relative;padding:var(--sp-400);background:linear-gradient(180deg,rgba(26,26,26,.4),rgba(26,26,26,0))}
+.fcard .bottom{position:relative;margin-top:auto;padding:44px var(--sp-400) 26px 20px;background:linear-gradient(180deg,rgba(0,0,0,0) 5%,#000 65%);display:flex;align-items:flex-end;gap:var(--sp-600)}
+.fcard .bottom .module{flex:1;min-width:0}
+.fcard.has-footer .bottom{background:linear-gradient(180deg,rgba(0,0,0,0) 5%,rgba(0,0,0,.6) 65%)}
+.fcard .footer{position:relative;background:var(--bg);color:var(--fg);padding:var(--sp-200) var(--sp-400) var(--sp-200) 20px;display:flex;align-items:center;justify-content:space-between;gap:var(--sp-300);min-height:50px}
+.fcard .footer .ufi{flex-direction:row}
+.fcard .footer .ufi button{background:transparent;border:1px solid var(--border);color:var(--fg)}
+/* card header (Spades: card header 1 = centered, card header 2 = leading with UFI) */
+.chead{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding-block:var(--sp-300)}
+.chead .name{font-size:14px;line-height:1.4;font-weight:600}
+.chead .name span{font-weight:400}
+.chead .loc{font-size:13px;display:flex;align-items:center;gap:var(--sp-100);opacity:.95}
+.chead .loc svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.chead.lead{flex-direction:row;align-items:flex-start;justify-content:space-between;text-align:left;padding-block:0}
+.chead.lead .text{display:flex;flex-direction:column;gap:2px}
+/* UFI (reaction, heart, save) with Spades "Liquid glass" effect */
+.ufi{display:flex;flex-direction:column;gap:var(--sp-200);align-items:flex-end;flex-shrink:0}
+.ufi button{width:36px;height:36px;border-radius:var(--r-full);display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:#fff;transition:transform .1s,background .15s}
+.ufi button:active{transform:scale(.9)}
+.ufi button[aria-pressed="true"]{background:#fff;color:#1e1e1e}
+.ufi button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ufi.row{flex-direction:row}
+/* Modules */
+.mod{display:flex;flex-direction:column;gap:var(--sp-200)}
+.mod .title{display:flex;align-items:center;gap:var(--sp-150);font-size:14px;line-height:1;height:25px}
+.mod .title svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hscroll{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}
+.hscroll::-webkit-scrollbar{display:none}
+.art{width:79px;height:80px;border-radius:var(--r-600);flex-shrink:0;display:flex;align-items:flex-end;padding:8px;font-family:var(--font-hero);font-weight:700;font-size:22px;letter-spacing:-.03em;color:rgba(255,255,255,.9);text-shadow:0 1px 2px rgba(0,0,0,.3);background-size:cover}
+.art.sq{border-radius:var(--r-400)}
+.track{display:flex;align-items:center;gap:var(--sp-300)}
+.track .cover{width:48px;height:48px;border-radius:var(--r-full);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-hero);font-weight:700;font-size:18px;color:rgba(255,255,255,.9)}
+.track .cover.sq{border-radius:var(--r-400)}
+.track .name{font-size:14px;font-weight:600;line-height:1.4}
+.track .artist{font-size:14px;line-height:1}
+.pill{display:flex;align-items:center;gap:var(--sp-300);padding:var(--sp-200) var(--sp-400);border-radius:var(--r-full);background:var(--overlay);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pill .play{margin-left:auto;width:20px;height:20px;flex-shrink:0}
+.pill .play svg{width:20px;height:20px;fill:#fff}
+.datetile{width:64px;flex-shrink:0;border-radius:var(--r-400);padding:8px 0 4px;text-align:center;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.28);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.datetile .m{font-size:14px;line-height:1.4}
+.datetile .d{font-weight:700;font-size:40px;line-height:1.2;letter-spacing:-.02em}
+.badges{display:flex;gap:10px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:-16px;padding-right:16px}
+.badges::-webkit-scrollbar{display:none}
+.badge{flex-shrink:0;padding:6px 12px;border-radius:var(--r-full);border:1px solid rgba(255,255,255,.35);font-size:14px;font-weight:600;line-height:1.4;white-space:nowrap;color:#fff;background:rgba(255,255,255,.04)}
+.badge.shared{background:linear-gradient(164deg,rgba(223,234,242,.05) 20%,rgba(195,206,215,.5) 75%)}
+.badge.shared span{font-weight:400;font-size:13px}
+.voice{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--r-full);background:#f7f6f3;color:#000;box-shadow:-10px -10px 24px rgba(235,253,223,.5),6px 8px 50px rgba(32,106,108,.15),14px 14px 24px rgba(124,221,224,.3),inset -4px -4px 12px rgba(255,255,255,.8),inset 6px 6px 16px rgba(117,203,187,.18);width:max-content;max-width:100%}
+.voice .pbtn{width:32px;height:32px;border-radius:50%;background:#f5f5f5;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.voice .pbtn svg{width:14px;height:14px;fill:#000}
+.voice .wave{display:flex;align-items:center;gap:2px;height:32px;padding-block:8px}
+.voice .wave i{display:block;width:2px;min-height:2px;border-radius:80px;background:#2c2c2c}
+.voice .dur{font-weight:600;font-size:14px;padding-right:6px}
+.shared-count{display:inline-flex;align-items:center;gap:var(--sp-200);padding:var(--sp-200);border-radius:var(--r-full);background:var(--brand-3);color:var(--text-brand);font-size:12px;line-height:1.4;height:28px}
+.shared-count b{font-weight:700}
+.shared-count svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.stamp{position:absolute;top:22px;pointer-events:none;padding:6px 12px;border:2px solid;border-radius:var(--r-200);font-weight:700;font-size:20px;letter-spacing:.06em;text-transform:uppercase;opacity:0;transform:rotate(-12deg);z-index:2}
+.stamp.like{left:18px;color:#cff7d3;border-color:#cff7d3}
+.stamp.pass{right:18px;color:#fdd3d0;border-color:#fdd3d0;transform:rotate(12deg)}
+.details{position:absolute;inset:auto 0 0 0;background:var(--scrim);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);color:var(--fg);padding:var(--sp-400) 20px;display:flex;flex-direction:column;gap:var(--sp-300);border-top:1px solid var(--border);z-index:3}
+.details .close{position:absolute;top:var(--sp-300);right:var(--sp-300)}
+.details .line{font-size:14px;line-height:1.4}
+.details .line b{font-weight:600}
+.details .tags{display:flex;flex-wrap:wrap;gap:var(--sp-150)}
 
 /* Match */
-.match{flex:1;display:flex;flex-direction:column;justify-content:center;gap:22px;text-align:center;padding-block:20px}
-.match h1{font-size:2.6rem;font-weight:700;color:var(--accent)}
-.avatars{display:flex;justify-content:center;gap:-10px}
-.avatar{width:84px;height:84px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--display);font-size:2rem;font-weight:700;color:#fff;border:4px solid var(--bg);box-shadow:var(--shadow-sm)}
-.avatar+.avatar{margin-left:-18px}
-.opener{text-align:left;display:flex;flex-direction:column;gap:10px}
-.opener .suggest{background:var(--accent-soft);border-radius:var(--radius-sm);padding:12px 14px;font-size:.95rem;line-height:1.4}
-.opener .suggest b{display:block;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.match{flex:1;display:flex;flex-direction:column;justify-content:center;gap:var(--sp-600);text-align:center;padding-block:var(--sp-600)}
+.avatars{display:flex;justify-content:center}
+.avatar{width:72px;height:72px;border-radius:var(--r-400);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:600;color:var(--on-brand);background:var(--brand);border:3px solid var(--bg)}
+.avatar+.avatar{margin-left:-14px}
+.opener{text-align:left;display:flex;flex-direction:column;gap:var(--sp-300)}
+.opener .suggest{background:var(--bg-2);border-radius:var(--r-200);padding:var(--sp-300) var(--sp-400);font-size:14px;line-height:1.4;display:flex;flex-direction:column;gap:var(--sp-100)}
+.opener .suggest .lab{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-2)}
 
 /* Survey */
-.q{display:flex;flex-direction:column;gap:10px}
-.q .text{font-weight:600;font-size:1rem}
-.likert{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
-.likert button,.npsrow button{padding:10px 0;border-radius:10px;border:1px solid var(--line);background:var(--surface);font-weight:600;font-size:.9rem}
-.likert button[aria-pressed="true"],.npsrow button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
-.likert .ends{grid-column:1/-1;display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
-.npsrow{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
-.npsrow button{padding:9px 0;font-size:.8rem;border-radius:8px}
+.q{display:flex;flex-direction:column;gap:var(--sp-300)}
+.q .text{font-size:14px;line-height:1.4}
+.likert{display:grid;grid-template-columns:repeat(5,1fr);gap:var(--sp-150)}
+.likert button,.npsrow button{padding:var(--sp-300) 0;border-radius:var(--r-200);border:1px solid var(--border);background:var(--bg);font-size:14px;line-height:1}
+.likert button[aria-pressed="true"],.npsrow button[aria-pressed="true"]{background:var(--brand);color:var(--on-brand);border-color:var(--brand)}
+.likert .ends{grid-column:1/-1;display:flex;justify-content:space-between;font-size:12px;color:var(--fg-2)}
+.npsrow{display:grid;grid-template-columns:repeat(11,1fr);gap:3px}
+.npsrow button{padding:var(--sp-200) 0;font-size:12px;border-radius:var(--r-100)}
 
 /* Results */
-.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.tile{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.tile .v{font-family:var(--display);font-size:1.7rem;font-weight:600;line-height:1.05}
-.tile .k{font-size:.75rem;color:var(--muted)}
-table{width:100%;border-collapse:collapse;font-size:.85rem}
-th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-th{font-size:.72rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:var(--sp-200) var(--sp-150);border-bottom:1px solid var(--border);vertical-align:top}
+th{font-family:var(--font-mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--fg-2);font-weight:500}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 .tablewrap{overflow-x:auto}
-.bars{display:flex;flex-direction:column;gap:8px}
-.bar{display:grid;grid-template-columns:minmax(0,1fr) 3fr auto;gap:10px;align-items:center;font-size:.85rem}
-.bar .track{height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden}
-.bar .fill{height:100%;background:var(--accent);border-radius:6px}
-.bar .fill.like{background:var(--like)}
+.bars{display:flex;flex-direction:column;gap:var(--sp-200)}
+.bar{display:grid;grid-template-columns:minmax(0,1.1fr) 2fr auto;gap:var(--sp-300);align-items:center;font-size:13px}
+.bar .track{height:8px;background:var(--bg-2);border-radius:4px;overflow:hidden;display:block}
+.bar .fill{height:100%;background:var(--brand);border-radius:4px;display:block}
+.bar .fill.pos{background:var(--pos-bg)}
 .bar .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.bar .val{font-variant-numeric:tabular-nums;color:var(--muted);min-width:4ch;text-align:right}
-.sess{display:flex;flex-direction:column;gap:8px}
-.sess summary{cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:center;list-style:none}
+.bar .val{font-variant-numeric:tabular-nums;color:var(--fg-2);min-width:4ch;text-align:right}
+.sess{display:flex;flex-direction:column;gap:var(--sp-200)}
+.sess details{background:var(--bg);border:1px solid var(--border);border-radius:var(--r-200);padding:var(--sp-400)}
+.sess summary{cursor:pointer;display:flex;justify-content:space-between;gap:var(--sp-300);align-items:center;list-style:none}
 .sess summary::-webkit-details-marker{display:none}
-.sess .body{display:flex;flex-direction:column;gap:8px;padding-top:10px;font-size:.88rem}
-.quote{border-left:3px solid var(--accent-soft);padding-left:10px;color:var(--muted);font-style:italic}
-.empty{text-align:center;color:var(--muted);padding:30px 10px;display:flex;flex-direction:column;gap:8px;align-items:center}
-.confirm{display:flex;flex-direction:column;gap:10px;background:var(--surface-2);border-radius:var(--radius-sm);padding:12px 14px}
+.sess .body{display:flex;flex-direction:column;gap:var(--sp-200);padding-top:var(--sp-300);font-size:13px}
+.quote{border-left:2px solid var(--border);padding-left:var(--sp-300);color:var(--fg-2)}
+.empty{text-align:center;color:var(--fg-2);padding:var(--sp-800) var(--sp-300);display:flex;flex-direction:column;gap:var(--sp-200);align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:var(--sp-150)}
 @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
 </style>
 </head><!-- pwa-only -->
@@ -221,9 +305,9 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
   </header>
   <main class="stage" id="stage"></main>
   <nav class="tabbar" id="tabbar" aria-label="Sections">
-    <button data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-9.2-9A5.2 5.2 0 0 1 12 6.3 5.2 5.2 0 0 1 21.2 12C19 16.4 12 21 12 21z"/></svg>Test</button>
+    <button data-tab="home" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="4"/><path d="M8 15h5M8 11h8"/></svg>Test</button>
     <button data-tab="results"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Results</button>
-    <button data-tab="setup"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Setup</button>
+    <button data-tab="setup"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2.5"/><circle cx="8" cy="17" r="2.5"/></svg>Setup</button>
   </nav>
 </div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -232,52 +316,70 @@ td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
 (function(){
 'use strict';
 
+/* ---------- Icons (Spades 16/20/24 line icons, drawn inline) ---------- */
+const ICONS = {
+  repeat: "M17 2l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3",
+  play: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM10 8l6 4-6 4z",
+  calendar: "M3 6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM3 10h18M8 2v4M16 2v4",
+  users: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
+  pin: "M12 22s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12zM12 12.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z",
+  music: "M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM21 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z",
+  mic: "M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zM19 11a7 7 0 0 1-14 0M12 18v4M8 22h8",
+  wave: "M7 11V6a1.5 1.5 0 0 1 3 0v5M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V6a1.5 1.5 0 0 1 3 0v6M16 12v-1.5a1.5 1.5 0 0 1 3 0V15a7 7 0 0 1-7 7h-1a7 7 0 0 1-6-3.4L3 14a1.6 1.6 0 0 1 2.6-1.8L7 14v-3",
+  heart: "M12 21s-7-4.6-9.2-9A5.2 5.2 0 0 1 12 6.3 5.2 5.2 0 0 1 21.2 12C19 16.4 12 21 12 21z",
+  bookmark: "M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1z",
+  x: "M6 6l12 12M18 6L6 18",
+  info: "M12 16v-4M12 8h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z"
+};
+function icon(name, size){ const n = document.createElementNS("http://www.w3.org/2000/svg","svg"); n.setAttribute("viewBox","0 0 24 24"); n.setAttribute("aria-hidden","true"); if (size) { n.setAttribute("width", size); n.setAttribute("height", size); } const p = document.createElementNS("http://www.w3.org/2000/svg","path"); p.setAttribute("d", ICONS[name]); n.append(p); return n; }
+function playGlyph(){ const n = document.createElementNS("http://www.w3.org/2000/svg","svg"); n.setAttribute("viewBox","0 0 24 24"); n.setAttribute("aria-hidden","true"); const p = document.createElementNS("http://www.w3.org/2000/svg","path"); p.setAttribute("d","M7 4.5v15l13-7.5z"); n.append(p); return n; }
+
 /* ---------- Default concept (placeholder: replace in Setup) ---------- */
+const DEFAULT_PROFILES = [
+  { id:"p1", name:"Frankie", age:26, hood:"Bed Stuy", dist:"2 mi", hue:200, shared:7, module:{type:"mostListened", artists:["Kehlani","Daniel Caesar","Sampha","Bryson Tiller"]}, bio:"Record store on Saturdays, bodega cat on Sundays." },
+  { id:"p2", name:"Christopher", age:26, hood:"Bed Stuy", dist:"2 mi", hue:28, shared:7, module:{type:"nowPlaying", track:"Ooh", artist:"Kehlani"}, bio:"Will DJ the car ride whether you asked or not." },
+  { id:"p3", name:"Nia", age:29, hood:"Crown Heights", dist:"3 mi", hue:300, shared:4, module:{type:"justPlayed", track:"Get You", artist:"Daniel Caesar"}, bio:"Jazz on vinyl, rap in the kitchen." },
+  { id:"p4", name:"Theo", age:31, hood:"Williamsburg", dist:"5 mi", hue:210, shared:2, module:{type:"event", month:"Aug", day:7, title:"Chris Brown & Usher", place:"East Rutherford, NJ"}, bio:"Floor tickets or nothing." },
+  { id:"p5", name:"Maya", age:27, hood:"Fort Greene", dist:"1 mi", hue:340, shared:9, module:{type:"mutuals", count:3, names:["Jordan","Sam","Lee"]}, bio:"Friends say I overshare playlists. Correct." },
+  { id:"p6", name:"Marcus", age:33, hood:"Clinton Hill", dist:"2 mi", hue:140, shared:5, module:{type:"places", places:[{name:"Balthazar", note:"weekly", shared:true},{name:"Public Records"},{name:"Mountain Brewing"}]}, bio:"Knows which bar has the best speakers." },
+  { id:"p7", name:"Sofia", age:25, hood:"Bushwick", dist:"4 mi", hue:50, shared:6, module:{type:"voice", seconds:17}, bio:"Sings in the shower, badly, with conviction." },
+  { id:"p8", name:"Daniel", age:30, hood:"Prospect Heights", dist:"3 mi", hue:0, shared:3, module:{type:"mostListened", artists:["Frank Ocean","SZA","Steve Lacy","Tyler"]}, bio:"Album person, not a singles person." },
+  { id:"p9", name:"Amara", age:28, hood:"Park Slope", dist:"4 mi", hue:170, shared:8, module:{type:"nowPlaying", track:"Snooze", artist:"SZA"}, bio:"Headphones on means I'm thinking, not ignoring you." },
+  { id:"p10", name:"Felix", age:32, hood:"Greenpoint", dist:"6 mi", hue:240, shared:1, module:{type:"event", month:"Sep", day:21, title:"Jungle", place:"Forest Hills, NY"}, bio:"Sound engineer. I will notice the mix." },
+  { id:"p11", name:"Hana", age:30, hood:"Carroll Gardens", dist:"3 mi", hue:100, shared:6, module:{type:"mutuals", count:2, names:["Priya","Jonah"]}, bio:"Pub quiz music round champion, three years running." },
+  { id:"p12", name:"Rafael", age:34, hood:"Dumbo", dist:"5 mi", hue:20, shared:4, module:{type:"places", places:[{name:"Nowadays", note:"monthly", shared:true},{name:"Elsewhere"},{name:"Baby's All Right"}]}, bio:"Will suggest a gallery. You're allowed to say no." }
+];
+
 const DEFAULT_CONFIG = {
   concept: {
     name: "Sync",
-    tagline: "Match on how you actually spend your week.",
+    tagline: "Match on what you actually listen to.",
     pitch: [
-      { title: "Your week is your profile", body: "Instead of a photo grid, Sync builds your profile from the rhythm of your week: when you're free, what you do with it, and who you'd want along." },
-      { title: "See the overlap first", body: "Every card opens with a Sync score: how much of your free time lines up with theirs." },
-      { title: "Plans, not small talk", body: "Matches start with a concrete plan for a time you're both free, so the first message is a yes or no, not a 'hey'." }
+      { title: "Your listening is your profile", body: "Instead of a photo grid, Sync shows what someone has on rotation, what they just played, and the shows they're going to." },
+      { title: "See the overlap first", body: "Every card carries the artists you share, the mutual friends you have, and the places you both go." },
+      { title: "Start with a song, not a 'hey'", body: "Matches open with a track you both love, so the first message already has something to say." }
     ]
   },
   variants: [
-    { id: "A", label: "Classic swipe", cardStyle: "photo-first", showSyncScore: false, openerStyle: "blank" },
-    { id: "B", label: "Sync-first", cardStyle: "prompt-first", showSyncScore: true, openerStyle: "plan" }
+    { id: "A", label: "Centered header", layout: "01", showSharedCount: false, sharedFooter: false, openerStyle: "blank" },
+    { id: "B", label: "Leading header + shared", layout: "02", showSharedCount: true, sharedFooter: true, openerStyle: "track" }
   ],
   session: { cardsPerSession: 10, matchChance: 0.4, assignVariant: "alternate" },
   survey: [
     { id: "clear", type: "likert", text: "I understood what makes this app different from the ones I already use." },
-    { id: "useful", type: "likert", text: "The information on each card helped me decide quickly." },
+    { id: "useful", type: "likert", text: "The listening info on each card helped me decide quickly." },
     { id: "trust", type: "likert", text: "I'd trust the matches this app suggests." },
     { id: "nps", type: "nps", text: "How likely are you to recommend this to a friend?" },
     { id: "confusing", type: "text", text: "What, if anything, confused you?" },
     { id: "missing", type: "text", text: "What would make you actually use this?" }
-  ]
+  ],
+  profiles: DEFAULT_PROFILES
 };
-
-/* ---------- Sample profiles (synthetic) ---------- */
-const PROFILES = [
-  { id:"p1", name:"Maya", age:29, dist:"2 km", job:"Pastry chef", hue:340, week:[1,0,0,2,3,3,2], interests:["early mornings","bouldering","farmers' markets"], prompts:[{q:"A perfect Sunday",a:"Market at 8, nap at 2, something slow in the oven by 6."},{q:"I'm free most",a:"Sunday afternoons and Thursday nights, after the kitchen closes."}] },
-  { id:"p2", name:"Theo", age:32, dist:"5 km", job:"Urban planner", hue:210, week:[2,2,1,1,3,0,1], interests:["long walks","city maps","jazz on vinyl"], prompts:[{q:"My week in one line",a:"Meetings till five, then I walk home the long way, every day."},{q:"Best way to spend a Friday",a:"A record shop, then whichever bar has a piano."}] },
-  { id:"p3", name:"Priya", age:27, dist:"1 km", job:"ER nurse", hue:20, week:[3,3,0,0,0,3,3], interests:["night swims","crosswords","spicy food"], prompts:[{q:"Fair warning",a:"My weekends are Monday and Tuesday. Bring snacks."},{q:"Ask me about",a:"The crossword I finished in nine minutes once. Once."}] },
-  { id:"p4", name:"Jonah", age:34, dist:"8 km", job:"Woodworker", hue:95, week:[0,1,1,1,1,3,3], interests:["sawdust","trail runs","making dinner from scratch"], prompts:[{q:"Weekends are for",a:"Being outside until I'm hungry, then cooking too much."},{q:"I'm looking for",a:"Someone who'll argue about the right way to cut an onion."}] },
-  { id:"p5", name:"Lena", age:30, dist:"3 km", job:"Translator", hue:270, week:[2,1,2,1,2,2,2], interests:["languages","foreign films","very long dinners"], prompts:[{q:"My schedule is",a:"Flexible, which is both a gift and a curse. Suggest a time and I'll say yes."},{q:"Last thing I loved",a:"A three-hour Portuguese film I understood about half of."}] },
-  { id:"p6", name:"Marcus", age:36, dist:"6 km", job:"High school teacher", hue:30, week:[1,1,1,1,2,3,3], interests:["Sunday football","grading in cafés","bad puns"], prompts:[{q:"Honest truth",a:"I'm asleep by ten on school nights. Weekends I make up for it."},{q:"Best first date",a:"Coffee that turns into a walk that turns into lunch."}] },
-  { id:"p7", name:"Sofia", age:26, dist:"4 km", job:"Illustrator", hue:180, week:[2,2,2,2,2,1,1], interests:["sketching strangers","thrift stores","karaoke, badly"], prompts:[{q:"My week in one line",a:"Drawing all day, then out most nights, home by eleven."},{q:"Green flag",a:"You pick the karaoke song without checking your phone."}] },
-  { id:"p8", name:"Daniel", age:31, dist:"12 km", job:"Paramedic", hue:0, week:[3,0,0,3,3,0,0], interests:["motorbikes","board games","breakfast for dinner"], prompts:[{q:"Fair warning",a:"Four days on, four days off. The off days are very off."},{q:"I'm free most",a:"Whole weekdays, which is wasted on a city that's at work."}] },
-  { id:"p9", name:"Amara", age:28, dist:"2 km", job:"Product designer", hue:320, week:[1,1,1,2,3,2,1], interests:["ceramics","running clubs","natural wine"], prompts:[{q:"Best way to spend a Friday",a:"A run at six, a shower, and a table outside somewhere loud."},{q:"I'm looking for",a:"Plans, not pen pals."}] },
-  { id:"p10", name:"Felix", age:33, dist:"7 km", job:"Sound engineer", hue:240, week:[1,2,2,2,0,0,2], interests:["live shows","cycling","cooking with the radio on"], prompts:[{q:"My schedule is",a:"Backwards. Weekends I'm working, Monday is my Saturday."},{q:"Ask me about",a:"Which venue in town has the best sound. I have a ranking."}] },
-  { id:"p11", name:"Hana", age:30, dist:"3 km", job:"Veterinarian", hue:140, week:[1,1,1,1,2,3,2], interests:["dogs, obviously","hiking","pub quizzes"], prompts:[{q:"A perfect Sunday",a:"A hill, a dog, a pub at the bottom of the hill."},{q:"Green flag",a:"You greet the dog before you greet me."}] },
-  { id:"p12", name:"Rafael", age:35, dist:"9 km", job:"Architect", hue:50, week:[1,1,2,2,2,2,2], interests:["galleries","swimming","building furniture badly"], prompts:[{q:"Honest truth",a:"I will suggest a gallery. You're allowed to say no."},{q:"Best first date",a:"Something with a start and an end time. Low pressure, easy exit."}] }
-];
-const TESTER_WEEK = [1,1,2,1,3,3,2];
-const DAYS = ["M","T","W","T","F","S","S"];
+const MODULE_LABEL = { mostListened:"Most listened to", justPlayed:"Just played", nowPlaying:"Now playing", event:"Going to", mutuals:"Mutuals", places:"In your orbit", voice:"Voice note" };
+const MODULE_ICON = { mostListened:"repeat", justPlayed:"play", nowPlaying:"play", event:"calendar", mutuals:"users", places:"pin", voice:"mic" };
 
 /* ---------- Storage ---------- */
-const LS = { cfg: "scl.config.v1", sessions: "scl.sessions.v1", counter: "scl.counter.v1" };
+const LS = { cfg: "scl.config.v2", sessions: "scl.sessions.v1", counter: "scl.counter.v1" };
 function lsGet(k, fallback){ try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
 function lsSet(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
@@ -294,6 +396,8 @@ function normalizeConfig(c){
   if (!Array.isArray(out.variants) || !out.variants.length) out.variants = d.variants;
   if (!Array.isArray(out.survey)) out.survey = d.survey;
   if (!Array.isArray(out.concept.pitch)) out.concept.pitch = d.concept.pitch;
+  if (!Array.isArray(out.profiles) || !out.profiles.length) out.profiles = d.profiles;
+  out.profiles = out.profiles.map((p, i) => Object.assign({ id: "p" + (i+1), name: "Someone", age: 0, hood: "", dist: "", hue: (i*47)%360, shared: 0, module: {type:"mostListened", artists:[]}, bio: "" }, p));
   return out;
 }
 
@@ -302,8 +406,8 @@ const stage = document.getElementById("stage");
 const tabbar = document.getElementById("tabbar");
 const topRight = document.getElementById("topRight");
 let tab = "home";
-let session = null;   // active session
-let deck = null;      // {profiles, index, cardStart, expanded, revealed, featureTaps}
+let session = null;
+let deck = null;
 let pendingMatch = null;
 
 /* ---------- Utilities ---------- */
@@ -318,20 +422,19 @@ function el(tag, attrs, ...children){
   for (const c of children.flat()) { if (c === null || c === undefined || c === false) continue; n.append(c.nodeType ? c : document.createTextNode(String(c))); }
   return n;
 }
-function esc(s){ return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
 function toast(msg){ const t = document.getElementById("toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 2200); }
 function median(a){ if (!a.length) return 0; const s = a.slice().sort((x,y)=>x-y); const m = Math.floor(s.length/2); return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; }
 function mean(a){ return a.length ? a.reduce((x,y)=>x+y,0)/a.length : 0; }
 function pct(n, d){ return d ? Math.round(100*n/d) : 0; }
 function fmtMs(ms){ return ms >= 10000 ? (ms/1000).toFixed(0)+"s" : (ms/1000).toFixed(1)+"s"; }
 function fmtDate(iso){ const d = new Date(iso); return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}) + " " + d.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"}); }
-function syncScore(p){ let overlap = 0, total = 0; for (let i=0;i<7;i++){ overlap += Math.min(p.week[i], TESTER_WEEK[i]); total += Math.max(p.week[i], TESTER_WEEK[i]); } return total ? Math.round(100*overlap/total) : 0; }
-function bestSlot(p){ let best = -1, bi = 0; for (let i=0;i<7;i++){ const v = Math.min(p.week[i], TESTER_WEEK[i]); if (v > best) { best = v; bi = i; } } const names = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]; return { day: names[bi], part: p.week[bi] >= 3 ? "afternoon" : "evening" }; }
-function grad(hue){ return `linear-gradient(160deg, hsl(${hue} 62% 72%) 0%, hsl(${(hue+35)%360} 58% 48%) 60%, hsl(${(hue+60)%360} 55% 32%) 100%)`; }
 function shuffle(a){ const s = a.slice(); for (let i = s.length-1; i>0; i--){ const j = Math.floor(Math.random()*(i+1)); [s[i],s[j]] = [s[j],s[i]]; } return s; }
 function variantById(id){ return config.variants.find(v => v.id === id) || config.variants[0]; }
 function nps(scores){ if (!scores.length) return null; const p = scores.filter(s=>s>=9).length, d = scores.filter(s=>s<=6).length; return Math.round(100*(p-d)/scores.length); }
 function persistSessions(){ if (!lsSet(LS.sessions, sessions)) toast("Couldn't save to this browser's storage"); }
+/* Photo placeholder: a muted duotone from the profile's hue (photos can be set per profile in Setup via "photo": "url") */
+function photoStyle(p){ if (p.photo) return `background-image:url("${String(p.photo).replace(/"/g,'%22')}")`; const h = p.hue; return `background:radial-gradient(120% 80% at 50% 20%, hsl(${h} 22% 62%) 0%, hsl(${h} 24% 40%) 55%, hsl(${(h+20)%360} 26% 18%) 100%)`; }
+function artStyle(seed, i){ const h = (seed * 37 + i * 83) % 360; return `background:linear-gradient(150deg, hsl(${h} 45% 55%), hsl(${(h+50)%360} 50% 30%))`; }
 function copyText(text, label){
   const done = () => toast((label || "Copied") + " to clipboard");
   const fail = () => { const ta = el("textarea", {style:"position:fixed;left:-9999px"}); ta.value = text; document.body.append(ta); ta.select(); try { document.execCommand("copy"); done(); } catch(e){ toast("Copy failed. Select the text manually."); } ta.remove(); };
@@ -343,8 +446,7 @@ function download(filename, text, type){
 
 /* ---------- Router ---------- */
 function setTab(t){ tab = t; for (const b of tabbar.querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.tab === t ? "true" : "false"); render(); }
-tabbar.addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (!b) return; if (session && b.dataset.tab !== "home") { if (!confirmEnd) return; } setTab(b.dataset.tab); });
-let confirmEnd = true;
+tabbar.addEventListener("click", e => { const b = e.target.closest("button[data-tab]"); if (b) setTab(b.dataset.tab); });
 
 function render(){
   stage.innerHTML = ""; topRight.innerHTML = "";
@@ -352,7 +454,7 @@ function render(){
   document.getElementById("brandName").textContent = config.concept.name || "Concept";
   tabbar.hidden = !!session;
   if (session) {
-    topRight.append(el("button", {class:"btn ghost small", onclick: () => abandonSession()}, "End session"));
+    topRight.append(el("button", {class:"btn small", onclick: () => abandonSession()}, "End session"));
     if (session.stage === "pitch") renderPitch();
     else if (session.stage === "deck") renderDeck();
     else if (session.stage === "match") renderMatch();
@@ -372,38 +474,37 @@ function renderHome(){
   const c = config.concept;
   const s = el("section", {class:"screen"});
   s.append(el("div", {class:"hero"},
-    el("span", {class:"eyebrow"}, "Testing concept"),
-    el("h1", null, c.name),
-    el("p", {class:"tag"}, c.tagline)));
+    el("span", {class:"t-caption muted"}, "Testing concept"),
+    el("h1", {class:"t-hero", style:"margin:0"}, c.name),
+    el("p", {class:"tag-line"}, c.tagline)));
 
   const likes = sessions.flatMap(x => x.decisions).filter(d => d.choice === "like").length;
   const decs = sessions.flatMap(x => x.decisions).length;
-  s.append(el("div", {class:"statrow"},
+  s.append(el("div", {class:"stats"},
     stat(sessions.length, "sessions"),
     stat(decs ? pct(likes, decs) + "%" : "–", "like rate"),
     stat(npsText(sessions), "NPS")));
 
-  const tester = el("input", {type:"text", id:"testerName", placeholder:"e.g. Tester 4, or a first name", autocomplete:"off", value: homeTester, oninput: e => homeTester = e.target.value});
-  s.append(el("div", {class:"field"}, el("label", {for:"testerName"}, "Who is testing?"), tester, el("span", {class:"hint"}, "Hand the phone over after you tap Start. The tester sees only the concept, never these controls.")));
+  const tester = el("input", {type:"text", id:"testerName", placeholder:"Tester 4, or a first name", autocomplete:"off", value: homeTester, oninput: e => homeTester = e.target.value});
+  s.append(el("div", {class:"field"}, el("label", {for:"testerName"}, "Who is testing?"), tester, el("span", {class:"hint"}, "Hand the phone over after you tap Start. The tester sees only the concept.")));
 
-  const seg = el("div", {class:"seg", role:"group", "aria-label":"Variant"});
+  const seg = el("div", {class:"toggles", role:"group", "aria-label":"Variant"});
   const opts = [["auto","Auto-assign"]].concat(config.variants.map(v => [v.id, v.id + " · " + v.label]));
   for (const [id, label] of opts) seg.append(el("button", {"aria-pressed": homeVariant === id ? "true" : "false", onclick: () => { homeVariant = id; render(); }}, label));
-  s.append(el("div", {class:"field"}, el("label", null, "Variant"), seg, el("span", {class:"hint"}, homeVariant === "auto" ? `Auto alternates variants so each gets a fair share (${config.session.assignVariant}).` : variantSummary(variantById(homeVariant)))));
+  s.append(el("div", {class:"field"}, el("label", null, "Variant"), seg, el("span", {class:"hint"}, homeVariant === "auto" ? `Auto ${config.session.assignVariant === "random" ? "picks a random variant" : "alternates variants"} so each gets a fair share.` : variantSummary(variantById(homeVariant)))));
 
   s.append(el("button", {class:"btn primary block", onclick: startSession}, "Start test session"));
-  s.append(el("p", {class:"muted", style:"font-size:.82rem"}, `Each session shows the pitch, then ${config.session.cardsPerSession} profiles, then a short survey. Takes about three minutes.`));
+  s.append(el("p", {class:"muted t-small"}, `Each session shows the pitch, then ${Math.min(config.session.cardsPerSession, config.profiles.length)} profiles, then a short survey. About three minutes.`));
   stage.append(s);
 }
 function stat(v, k){ return el("div", {class:"stat"}, el("span", {class:"v num"}, v), el("span", {class:"k"}, k)); }
 function npsText(list){ const scores = list.map(s => s.survey && s.survey.nps).filter(v => typeof v === "number"); const n = nps(scores); return n === null ? "–" : (n > 0 ? "+" : "") + n; }
-function variantSummary(v){ const bits = []; bits.push(v.cardStyle === "prompt-first" ? "Prompt shown before the photo" : "Photo-first cards"); bits.push(v.showSyncScore ? "Sync score visible" : "No Sync score"); bits.push(v.openerStyle === "plan" ? "Suggested plan on match" : "Blank message box on match"); return bits.join(" · "); }
+function variantSummary(v){ const bits = []; bits.push(v.layout === "02" ? "Leading header with actions on top" : "Centered header, actions at the bottom"); bits.push(v.showSharedCount ? "Shared-artists count shown" : "No shared count"); bits.push(v.sharedFooter ? "Light footer under the photo" : "Full-bleed photo"); bits.push(v.openerStyle === "track" ? "Suggested track on match" : "Blank message on match"); return bits.join(" · "); }
 
 /* ---------- Session lifecycle ---------- */
 function pickVariant(){
   if (homeVariant !== "auto") return homeVariant;
-  const mode = config.session.assignVariant;
-  if (mode === "random") return config.variants[Math.floor(Math.random()*config.variants.length)].id;
+  if (config.session.assignVariant === "random") return config.variants[Math.floor(Math.random()*config.variants.length)].id;
   const counter = lsGet(LS.counter, 0); lsSet(LS.counter, counter + 1);
   return config.variants[counter % config.variants.length].id;
 }
@@ -417,43 +518,42 @@ function startSession(){
 }
 function logEvent(type, data){ if (!session) return; session.events.push({ t: Date.now(), type, data: data || {} }); }
 function abandonSession(){
+  if (stage.querySelector(".confirm")) return;
   const box = el("div", {class:"confirm"},
-    el("b", null, "End this session?"),
-    el("p", {class:"muted", style:"font-size:.85rem"}, session.decisions.length ? `${session.decisions.length} decisions so far will be saved as an incomplete session.` : "Nothing has been recorded yet, so nothing will be saved."),
+    el("span", {class:"t-strong"}, "End this session?"),
+    el("p", {class:"muted"}, session.decisions.length ? `${session.decisions.length} decisions so far will be saved as an incomplete session.` : "Nothing has been recorded yet, so nothing will be saved."),
     el("div", {class:"row"},
-      el("button", {class:"btn small danger", onclick: () => { finishSession(false); }}, "End session"),
-      el("button", {class:"btn small ghost", onclick: () => box.remove()}, "Keep going")));
+      el("button", {class:"btn small danger", onclick: () => finishSession(false)}, "End session"),
+      el("button", {class:"btn small", onclick: () => box.remove()}, "Keep going")));
   stage.prepend(box);
 }
 function finishSession(completed){
   if (session) {
     session.endedAt = new Date().toISOString(); session.completed = !!completed;
-    delete session._pitchStart; delete session._pitchIndex;
+    delete session._pitchStart; delete session._pitchIndex; delete session._answers;
     if (session.decisions.length || completed) { sessions.push(session); persistSessions(); }
   }
   session = null; deck = null; pendingMatch = null; homeTester = "";
-  setTab(completed ? "home" : "home");
+  setTab("home");
 }
 
 /* ---------- Pitch ---------- */
 function renderPitch(){
-  const slides = config.concept.pitch; const i = session._pitchIndex;
-  const sl = slides[i];
+  const slides = config.concept.pitch; const i = session._pitchIndex; const sl = slides[i];
   const s = el("section", {class:"screen"});
-  const dots = el("div", {class:"dots"}, slides.map((_, k) => el("i", {class: k === i ? "on" : ""})));
   s.append(el("div", {class:"pitch"},
-    el("span", {class:"eyebrow"}, config.concept.name),
-    el("div", {class:"slide"}, el("h2", null, sl.title), el("p", null, sl.body)),
-    dots,
+    el("span", {class:"t-caption muted"}, config.concept.name),
+    el("div", {class:"slide"}, el("h2", {class:"t-title", style:"margin:0"}, sl.title), el("p", null, sl.body)),
+    el("div", {class:"dots"}, slides.map((_, k) => el("i", {class: k === i ? "on" : ""}))),
     el("div", {class:"row"},
       el("button", {class:"btn primary", onclick: () => { logEvent("pitch_next", {index:i}); if (i + 1 < slides.length) { session._pitchIndex++; render(); } else beginDeck(); }}, i + 1 < slides.length ? "Next" : "Start swiping"),
-      i === 0 ? el("button", {class:"btn ghost", onclick: () => { logEvent("pitch_skipped", {index:i}); beginDeck(); }}, "Skip") : null)));
+      i === 0 ? el("button", {class:"btn subtle", onclick: () => { logEvent("pitch_skipped", {index:i}); beginDeck(); }}, "Skip") : null)));
   stage.append(s);
 }
 function beginDeck(){
   session.pitchMs = Math.round(performance.now() - session._pitchStart);
-  const n = Math.max(1, Math.min(PROFILES.length, config.session.cardsPerSession|0 || 10));
-  deck = { profiles: shuffle(PROFILES).slice(0, n), index: 0, cardStart: performance.now(), expanded: false, revealed: false, featureTaps: 0 };
+  const n = Math.max(1, Math.min(config.profiles.length, config.session.cardsPerSession|0 || 10));
+  deck = { profiles: shuffle(config.profiles).slice(0, n), index: 0, cardStart: performance.now(), expanded: false, reacted: false, saved: false, featureTaps: 0 };
   session.stage = "deck"; render();
 }
 
@@ -463,7 +563,7 @@ function renderDeck(){
   const v = variantById(session.variantId);
   const s = el("section", {class:"screen deckwrap"});
   const done = deck.index, total = deck.profiles.length;
-  s.append(el("div", {class:"row between"}, el("span", {class:"eyebrow num"}, `Profile ${Math.min(done+1,total)} of ${total}`), el("span", {class:"chip accent"}, "Variant " + v.id)));
+  s.append(el("div", {class:"row between"}, el("span", {class:"t-caption muted num"}, `Profile ${Math.min(done+1,total)} of ${total}`), el("span", {class:"tag neutral"}, "Variant " + v.id)));
   s.append(el("div", {class:"progress"}, el("i", {style:`width:${pct(done,total)}%`})));
   const deckEl = el("div", {class:"deck", id:"deck"});
   for (let k = Math.min(deck.index + 2, total - 1); k >= deck.index; k--) {
@@ -473,50 +573,77 @@ function renderDeck(){
   }
   s.append(deckEl);
   s.append(el("div", {class:"actions"},
-    el("button", {class:"pass", "aria-label":"Pass", onclick: () => decide("pass", true)}, svg("M6 6l12 12M18 6L6 18")),
-    el("button", {class:"info", "aria-label":"More about this profile", onclick: toggleExpand}, svg("M12 16v-4M12 8h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z")),
-    el("button", {class:"like", "aria-label":"Like", onclick: () => decide("like", true)}, svg("M12 21s-7-4.6-9.2-9A5.2 5.2 0 0 1 12 6.3 5.2 5.2 0 0 1 21.2 12C19 16.4 12 21 12 21z"))));
+    el("button", {class:"iconbtn lg", "aria-label":"Pass", onclick: () => decide("pass", true)}, icon("x")),
+    el("button", {class:"iconbtn", "aria-label":"More about this profile", onclick: toggleExpand}, icon("info")),
+    el("button", {class:"iconbtn lg primary", "aria-label":"Like", onclick: () => decide("like", true)}, icon("heart"))));
   stage.append(s);
-  attachSwipe(deckEl.querySelector(".pcard.top"));
+  attachSwipe(deckEl.querySelector(".fcard.top"));
 }
-function svg(d){ const n = document.createElementNS("http://www.w3.org/2000/svg","svg"); n.setAttribute("viewBox","0 0 24 24"); const p = document.createElementNS("http://www.w3.org/2000/svg","path"); p.setAttribute("d", d); n.append(p); return n; }
 
+function cardHeader(p, lead, ufi){
+  const name = el("div", {class:"name"}, p.name + ", ", el("span", null, p.age));
+  const loc = el("div", {class:"loc"}, el("span", null, p.hood), el("span", null, "•"), icon("pin"), el("span", null, p.dist + " away"));
+  if (!lead) return el("div", {class:"chead"}, name, loc);
+  return el("div", {class:"chead lead"}, el("div", {class:"text"}, name, loc), ufi);
+}
+function ufiButtons(p, top, horizontal){
+  const wrap = el("div", {class:"ufi" + (horizontal ? " row" : "")});
+  const react = el("button", {"aria-label":"Wave", "aria-pressed": top && deck.reacted ? "true" : "false", onclick: e => { e.stopPropagation(); if (!top) return; deck.reacted = !deck.reacted; deck.featureTaps++; logEvent("ufi_wave", {profileId:p.id}); render(); }}, icon("wave"));
+  const heart = el("button", {"aria-label":"Like", onclick: e => { e.stopPropagation(); if (top) decide("like", true); }}, icon("heart"));
+  const save = el("button", {"aria-label":"Save", "aria-pressed": top && deck.saved ? "true" : "false", onclick: e => { e.stopPropagation(); if (!top) return; deck.saved = !deck.saved; deck.featureTaps++; logEvent("ufi_save", {profileId:p.id}); render(); }}, icon("bookmark"));
+  wrap.append(react, heart, save);
+  return wrap;
+}
+function moduleEl(p, top){
+  const m = p.module || {};
+  const title = (label) => el("div", {class:"title"}, icon(MODULE_ICON[m.type] || "music"), el("span", null, label));
+  const tap = (what) => (e) => { e.stopPropagation(); if (!top) return; deck.featureTaps++; logEvent("module_tapped", {profileId:p.id, module:m.type, what}); };
+  const mod = el("div", {class:"mod"});
+  if (m.type === "mostListened") {
+    mod.append(title(MODULE_LABEL[m.type]), el("div", {class:"hscroll"}, (m.artists || []).slice(0,6).map((a, i) => el("div", {class:"art", style:artStyle(p.hue, i), title:a, onclick: tap(a)}, a[0]))));
+  } else if (m.type === "justPlayed" || m.type === "nowPlaying") {
+    const inner = el("div", {class:"track"}, el("div", {class:"cover" + (m.type === "nowPlaying" ? " sq" : ""), style:artStyle(p.hue, 1)}, (m.artist||"?")[0]), el("div", null, el("div", {class:"name"}, m.track), el("div", {class:"artist"}, m.artist)));
+    if (m.type === "nowPlaying") { inner.classList.add("pill"); inner.append(el("span", {class:"play", onclick: tap("play")}, playGlyph())); }
+    mod.append(title(MODULE_LABEL[m.type]), inner);
+  } else if (m.type === "event") {
+    mod.append(title("Going to"), el("div", {class:"track", onclick: tap("event")}, el("div", {class:"datetile"}, el("div", {class:"m"}, m.month), el("div", {class:"d num"}, m.day)), el("div", null, el("div", {class:"name"}, m.title), el("div", {class:"artist"}, m.place))));
+  } else if (m.type === "mutuals") {
+    mod.append(title(`${m.count || (m.names||[]).length} Mutuals`), el("div", {class:"hscroll"}, (m.names || []).slice(0,5).map((n, i) => el("div", {class:"art sq", style:artStyle(p.hue + 90, i), title:n, onclick: tap(n)}, n[0]))));
+  } else if (m.type === "places") {
+    mod.append(title("In your orbit"), el("div", {class:"badges"}, (m.places || []).map(pl => el("span", {class:"badge" + (pl.shared ? " shared" : ""), onclick: tap(pl.name)}, pl.name, pl.note ? el("span", null, " • " + pl.note) : null))));
+  } else if (m.type === "voice") {
+    const bars = [4,10,6,4,2,4,6,10,14,18,14,10,4,2,4,10,14,18,14,10,4,2,4,10,14,10,10,4,2,2,4,6,4,6,14,18,10,4,10,18,14,10,10,18,14,10,10,4,10,18,4,2,12,2,2,4,4,12,14,10,12,14,10,18,16,14,10,4,10,14,12,10,4,4,2,10,6,12,14,18,12,6,4,2,2,2,2,2,4,6,6];
+    const w = el("div", {class:"voice", onclick: tap("play")}, el("span", {class:"pbtn"}, playGlyph()), el("span", {class:"wave"}, bars.map(h => el("i", {style:`height:${h}px`}))), el("span", {class:"dur num"}, (m.seconds || 15) + "s"));
+    mod.append(title("Voice note"), w);
+  }
+  return mod;
+}
 function buildCard(p, v, top){
-  const promptFirst = v.cardStyle === "prompt-first";
-  const card = el("article", {class:"pcard" + (top ? " top" : "") + (promptFirst ? " prompt-first" : ""), "data-id": p.id});
-  const photo = el("div", {class:"photo" + (promptFirst && !(top && deck.revealed) ? " hidden-photo" : ""), style:`background:${grad(p.hue)}`});
-  photo.append(el("span", {class:"initial", "aria-hidden":"true"}, p.name[0]), el("i", {class:"glow"}), el("i", {class:"shade"}));
-  if (promptFirst) {
-    const lead = el("div", {class:"lead"},
-      el("span", {class:"q"}, p.prompts[0].q),
-      el("span", {class:"a"}, p.prompts[0].a),
-      el("div", {class:"row between", style:"margin-top:6px"},
-        el("h2", null, p.name + ", " + p.age),
-        (top && deck.revealed) ? null : el("button", {class:"reveal", onclick: e => { e.stopPropagation(); deck.revealed = true; deck.featureTaps++; logEvent("photo_revealed", {profileId:p.id}); render(); }}, "Reveal photo")));
-    photo.append(lead);
-  } else {
-    photo.append(el("div", {class:"meta"},
-      el("h2", null, p.name + ", " + p.age),
-      el("div", {class:"line"}, el("span", null, p.job), el("span", null, p.dist + " away"))));
+  const lead = v.layout === "02";
+  const card = el("article", {class:"fcard" + (top ? " top" : "") + (v.sharedFooter ? " has-footer" : ""), "data-id": p.id});
+  card.append(el("div", {class:"photo", style: photoStyle(p)}, p.photo ? null : el("span", {class:"initial", "aria-hidden":"true"}, p.name[0])));
+  card.append(el("span", {class:"stamp like"}, "Like"), el("span", {class:"stamp pass"}, "Pass"));
+  card.append(el("div", {class:"top"}, cardHeader(p, lead, lead ? ufiButtons(p, top, true) : null)));
+  const bottom = el("div", {class:"bottom"});
+  const modWrap = el("div", {class:"module"});
+  if (v.showSharedCount && !v.sharedFooter) modWrap.append(el("span", {class:"shared-count", style:"margin-bottom:12px"}, icon("music"), el("span", null, el("b", null, p.shared), " shared artists")));
+  modWrap.append(moduleEl(p, top));
+  bottom.append(modWrap);
+  if (!lead && !v.sharedFooter) bottom.append(ufiButtons(p, top, false));
+  card.append(bottom);
+  if (v.sharedFooter) {
+    card.append(el("div", {class:"footer"},
+      v.showSharedCount ? el("span", {class:"t-small"}, el("b", null, p.shared), " shared artists") : el("span", {class:"t-small muted"}, p.hood),
+      lead ? null : ufiButtons(p, top, true)));
   }
-  photo.append(el("span", {class:"stamp like"}, "Like"), el("span", {class:"stamp pass"}, "Pass"));
-  card.append(photo);
-  const body = el("div", {class:"pbody"});
-  if (v.showSyncScore) {
-    const sc = syncScore(p);
-    body.append(el("button", {class:"sync", onclick: e => { e.stopPropagation(); deck.featureTaps++; logEvent("sync_tapped", {profileId:p.id, score:sc}); toast(`Overlap is highest on ${bestSlot(p).day} ${bestSlot(p).part}`); }},
-      el("span", {class:"pct"}, sc + "%"),
-      el("span", {class:"lbl"}, "in sync", el("br"), "with your week"),
-      el("span", {class:"week", "aria-label":"Free time by weekday"}, p.week.map((w, i) => { const mine = TESTER_WEEK[i]; const both = Math.min(w, mine); return el("i", {class: both >= 2 ? "m" : both === 1 ? "h" : "", style:`height:${6 + w*6}px`, title: DAYS[i]}); }))));
-  }
-  if (!promptFirst) body.append(el("div", {class:"prompt"}, el("span", {class:"q"}, p.prompts[0].q), el("span", {class:"a"}, p.prompts[0].a)));
   if (top && deck.expanded) {
-    body.append(el("div", {class:"details"},
-      el("div", {class:"prompt"}, el("span", {class:"q"}, p.prompts[1].q), el("span", {class:"a"}, p.prompts[1].a)),
-      promptFirst ? el("p", {class:"muted", style:"font-size:.85rem"}, p.job + " · " + p.dist + " away") : null,
-      el("div", {class:"tags"}, p.interests.map(t => el("span", {class:"chip"}, t)))));
+    card.append(el("div", {class:"details"},
+      el("button", {class:"iconbtn", "aria-label":"Close", onclick: e => { e.stopPropagation(); deck.expanded = false; render(); }, style:"width:32px;height:32px"}, icon("x")),
+      el("p", {class:"t-strong"}, p.name + ", " + p.age),
+      el("p", {class:"line"}, p.bio),
+      el("p", {class:"line muted"}, `${p.hood} · ${p.dist} away · `, el("b", null, p.shared), " shared artists"),
+      el("div", {class:"tags"}, el("span", {class:"tag"}, MODULE_LABEL[(p.module||{}).type] || "Music"), el("span", {class:"tag neutral"}, "Variant " + v.id))));
   }
-  card.append(body);
   return card;
 }
 function toggleExpand(){ deck.expanded = !deck.expanded; if (deck.expanded) logEvent("profile_expanded", {profileId: deck.profiles[deck.index].id}); render(); }
@@ -527,15 +654,14 @@ function attachSwipe(card){
   const likeStamp = card.querySelector(".stamp.like"), passStamp = card.querySelector(".stamp.pass");
   const W = () => card.offsetWidth || 300;
   card.addEventListener("pointerdown", e => {
-    if (e.target.closest("button")) return;
+    if (e.target.closest("button, .hscroll, .badges")) return;
     dragging = true; pid = e.pointerId; startX = e.clientX; startY = e.clientY; dx = dy = 0;
     card.classList.remove("snap"); card.setPointerCapture(pid);
   });
   card.addEventListener("pointermove", e => {
     if (!dragging || e.pointerId !== pid) return;
     dx = e.clientX - startX; dy = e.clientY - startY;
-    const rot = dx / W() * 18;
-    card.style.transform = `translate(${dx}px, ${dy*0.4}px) rotate(${rot}deg)`;
+    card.style.transform = `translate(${dx}px, ${dy*0.4}px) rotate(${dx / W() * 16}deg)`;
     const k = Math.min(1, Math.abs(dx) / (W()*0.35));
     likeStamp.style.opacity = dx > 0 ? k : 0; passStamp.style.opacity = dx < 0 ? k : 0;
   });
@@ -555,19 +681,19 @@ function decide(choice, viaButton, dx, dy){
   if (deciding || !deck) return; deciding = true;
   const p = deck.profiles[deck.index];
   const ms = Math.round(performance.now() - deck.cardStart);
-  session.decisions.push({ profileId: p.id, name: p.name, choice, ms, expanded: deck.expanded, revealed: deck.revealed, featureTaps: deck.featureTaps, viaButton: !!viaButton, syncScore: syncScore(p) });
+  session.decisions.push({ profileId: p.id, name: p.name, module: (p.module||{}).type, shared: p.shared, choice, ms, expanded: deck.expanded, reacted: deck.reacted, saved: deck.saved, featureTaps: deck.featureTaps, viaButton: !!viaButton });
   logEvent("decision", { profileId: p.id, choice, ms });
-  const card = stage.querySelector(".pcard.top");
+  const card = stage.querySelector(".fcard.top");
   if (card) {
     const W = card.offsetWidth || 300; const dir = choice === "like" ? 1 : -1;
     card.classList.remove("snap"); card.classList.add("flying");
-    card.style.transform = `translate(${dir * (W*1.5)}px, ${(dy||0)*0.4 + 40}px) rotate(${dir*24}deg)`; card.style.opacity = "0";
+    card.style.transform = `translate(${dir * (W*1.5)}px, ${(dy||0)*0.4 + 40}px) rotate(${dir*22}deg)`; card.style.opacity = "0";
     const st = card.querySelector(".stamp." + choice); if (st) st.style.opacity = "1";
   }
   const matched = choice === "like" && Math.random() < (Number(config.session.matchChance) || 0);
   setTimeout(() => {
     deciding = false;
-    deck.index++; deck.expanded = false; deck.revealed = false; deck.featureTaps = 0; deck.cardStart = performance.now();
+    deck.index++; deck.expanded = false; deck.reacted = false; deck.saved = false; deck.featureTaps = 0; deck.cardStart = performance.now();
     if (matched) { pendingMatch = p; session.stage = "match"; render(); return; }
     if (deck.index >= deck.profiles.length) { session.stage = "survey"; render(); return; }
     render();
@@ -575,30 +701,25 @@ function decide(choice, viaButton, dx, dy){
 }
 
 /* ---------- Match ---------- */
+function sharedTrack(p){ const m = p.module || {}; if (m.track) return { track: m.track, artist: m.artist }; if (m.artists && m.artists.length) return { track: null, artist: m.artists[0] }; return { track: "Ooh", artist: "Kehlani" }; }
 function renderMatch(){
   const p = pendingMatch; const v = variantById(session.variantId);
-  const slot = bestSlot(p);
-  const suggestion = v.openerStyle === "plan" ? `You're both free ${slot.day} ${slot.part}. Coffee at ${slot.part === "afternoon" ? "3" : "6:30"}?` : null;
+  const st = sharedTrack(p);
+  const suggestion = v.openerStyle === "track" ? (st.track ? `You both have ${st.artist} on rotation. Sending you "${st.track}".` : `You both have ${st.artist} on rotation. What's your favourite of theirs?`) : null;
   const s = el("section", {class:"screen"});
-  const ta = el("textarea", {id:"openerText", placeholder: suggestion ? "Edit the plan or write your own" : "Say something", rows: 3});
+  const ta = el("textarea", {id:"openerText", placeholder: suggestion ? "Edit the message or write your own" : "Say something", rows: 3});
   if (suggestion) ta.value = suggestion;
   const openedAt = performance.now();
-  const send = () => {
-    const text = ta.value.trim();
-    session.matches.push({ profileId: p.id, name: p.name, messaged: !!text, usedSuggestion: !!suggestion && text === suggestion, editedSuggestion: !!suggestion && !!text && text !== suggestion, length: text.length, ms: Math.round(performance.now() - openedAt) });
-    logEvent("match_message", {profileId:p.id, sent: !!text});
-    toast(text ? "Sent to " + p.name : "Skipped");
-    continueAfterMatch();
-  };
+  const record = (text) => { session.matches.push({ profileId: p.id, name: p.name, messaged: !!text, usedSuggestion: !!suggestion && text === suggestion, editedSuggestion: !!suggestion && !!text && text !== suggestion, length: text.length, ms: Math.round(performance.now() - openedAt) }); };
   s.append(el("div", {class:"match"},
-    el("div", null, el("span", {class:"eyebrow"}, config.concept.name), el("h1", null, v.openerStyle === "plan" ? "You're in sync" : "It's a match")),
-    el("div", {class:"avatars"}, el("div", {class:"avatar", style:"background:linear-gradient(160deg,#8e7cc3,#4a3a8a)"}, "You"), el("div", {class:"avatar", style:`background:${grad(p.hue)}`}, p.name[0])),
-    el("p", {class:"muted"}, `${p.name} liked you too.`),
+    el("div", null, el("span", {class:"t-caption muted"}, config.concept.name), el("h1", {class:"t-hero", style:"margin:8px 0 0;font-size:40px"}, v.openerStyle === "track" ? "You're in sync" : "It's a match")),
+    el("div", {class:"avatars"}, el("div", {class:"avatar"}, "You"), el("div", {class:"avatar", style:photoStyle(p) + ";color:#fff"}, p.name[0])),
+    el("p", {class:"muted"}, `${p.name} liked you too. ${p.shared} shared artists.`),
     el("div", {class:"opener"},
-      suggestion ? el("div", {class:"suggest"}, el("b", null, "Suggested plan"), suggestion) : null,
+      suggestion ? el("div", {class:"suggest"}, el("span", {class:"lab"}, "Suggested opener"), el("span", null, suggestion)) : null,
       ta,
-      el("button", {class:"btn primary block", onclick: send}, "Send"),
-      el("button", {class:"btn ghost block", onclick: () => { session.matches.push({ profileId: p.id, name: p.name, messaged: false, usedSuggestion: false, editedSuggestion: false, length: 0, ms: Math.round(performance.now()-openedAt) }); logEvent("match_skipped", {profileId:p.id}); continueAfterMatch(); }}, "Keep swiping"))));
+      el("button", {class:"btn primary block", onclick: () => { const text = ta.value.trim(); record(text); logEvent("match_message", {profileId:p.id, sent: !!text}); toast(text ? "Sent to " + p.name : "Skipped"); continueAfterMatch(); }}, "Send"),
+      el("button", {class:"btn block", onclick: () => { record(""); logEvent("match_skipped", {profileId:p.id}); continueAfterMatch(); }}, "Keep swiping"))));
   stage.append(s);
 }
 function continueAfterMatch(){ pendingMatch = null; deck.cardStart = performance.now(); session.stage = deck.index >= deck.profiles.length ? "survey" : "deck"; render(); }
@@ -607,9 +728,9 @@ function continueAfterMatch(){ pendingMatch = null; deck.cardStart = performance
 function renderSurvey(){
   const answers = session._answers || (session._answers = {});
   const s = el("section", {class:"screen"});
-  s.append(el("div", null, el("span", {class:"eyebrow"}, "Almost done"), el("h2", null, "Quick reactions"), el("p", {class:"muted"}, "No right answers. First instinct is best.")));
+  s.append(el("div", {class:"stack", style:"gap:4px"}, el("span", {class:"t-caption muted"}, "Almost done"), el("h2", {class:"t-title", style:"margin:0"}, "Quick reactions"), el("p", {class:"muted"}, "No right answers. First instinct is best.")));
   for (const q of config.survey) {
-    const box = el("div", {class:"card q"}, el("span", {class:"text"}, q.text));
+    const box = el("div", {class:"card tight q"}, el("span", {class:"text"}, q.text));
     if (q.type === "likert") {
       const g = el("div", {class:"likert"});
       for (let i = 1; i <= 5; i++) g.append(el("button", {"aria-pressed": answers[q.id] === i ? "true" : "false", onclick: () => { answers[q.id] = i; refresh(g, i); }}, i));
@@ -618,10 +739,9 @@ function renderSurvey(){
     } else if (q.type === "nps") {
       const g = el("div", {class:"npsrow"});
       for (let i = 0; i <= 10; i++) g.append(el("button", {"aria-pressed": answers[q.id] === i ? "true" : "false", onclick: () => { answers[q.id] = i; refresh(g, i); }}, i));
-      box.append(g, el("div", {class:"row between", style:"font-size:.72rem;color:var(--muted)"}, el("span", null, "Not at all"), el("span", null, "Extremely")));
+      box.append(g, el("div", {class:"row between t-xs muted"}, el("span", null, "Not at all"), el("span", null, "Extremely")));
     } else {
-      box.append(el("textarea", {id:"q_" + q.id, rows:3, placeholder:"Optional", oninput: e => answers[q.id] = e.target.value, value: answers[q.id] || ""}));
-      if (answers[q.id]) box.querySelector("textarea").value = answers[q.id];
+      const ta = el("textarea", {id:"q_" + q.id, rows:3, placeholder:"Optional", oninput: e => answers[q.id] = e.target.value}); ta.value = answers[q.id] || ""; box.append(ta);
     }
     s.append(box);
   }
@@ -640,9 +760,9 @@ function renderDone(){
   const likes = session.decisions.filter(d => d.choice === "like").length;
   const s = el("section", {class:"screen"});
   s.append(el("div", {class:"match"},
-    el("h1", null, "Thanks, " + session.tester),
-    el("p", {class:"muted"}, `${likes} ${likes === 1 ? "like" : "likes"} out of ${session.decisions.length}, median ${fmtMs(median(session.decisions.map(d=>d.ms)))} per decision.`),
-    el("p", {class:"muted", style:"font-size:.85rem"}, "Hand the phone back to the facilitator."),
+    el("h1", {class:"t-title", style:"margin:0"}, "Thanks, " + session.tester),
+    el("p", {class:"muted num"}, `${likes} ${likes === 1 ? "like" : "likes"} out of ${session.decisions.length}, median ${fmtMs(median(session.decisions.map(d=>d.ms)))} per decision.`),
+    el("p", {class:"muted t-small"}, "Hand the phone back to the facilitator."),
     el("button", {class:"btn primary block", onclick: () => finishSession(true)}, "Save session")));
   stage.append(s);
 }
@@ -651,18 +771,18 @@ function renderDone(){
 let resultFilter = "all";
 function renderResults(){
   const s = el("section", {class:"screen"});
-  s.append(el("div", {class:"row between"}, el("h2", null, "Results"), el("span", {class:"muted num", style:"font-size:.85rem"}, sessions.length + (sessions.length === 1 ? " session" : " sessions"))));
+  s.append(el("div", {class:"row between"}, el("h2", {class:"t-title", style:"margin:0"}, "Results"), el("span", {class:"muted num t-small"}, sessions.length + (sessions.length === 1 ? " session" : " sessions"))));
   if (!sessions.length) {
-    s.append(el("div", {class:"empty"}, el("h3", null, "No sessions yet"), el("p", null, "Run a test from the Test tab. Every swipe, decision time and survey answer lands here."), el("button", {class:"btn small", onclick: () => setTab("home")}, "Go to Test")));
+    s.append(el("div", {class:"empty"}, el("span", {class:"t-heading"}, "No sessions yet"), el("p", null, "Run a test from the Test tab. Every swipe, decision time and survey answer lands here."), el("button", {class:"btn small", onclick: () => setTab("home")}, "Go to Test")));
     stage.append(s); return;
   }
-  const seg = el("div", {class:"seg"});
+  const seg = el("div", {class:"toggles"});
   for (const [id, label] of [["all","All"]].concat(config.variants.map(v => [v.id, "Variant " + v.id]))) seg.append(el("button", {"aria-pressed": resultFilter === id ? "true" : "false", onclick: () => { resultFilter = id; render(); }}, label));
   s.append(seg);
   const list = resultFilter === "all" ? sessions : sessions.filter(x => x.variantId === resultFilter);
   const decs = list.flatMap(x => x.decisions), likes = decs.filter(d => d.choice === "like");
   const matches = list.flatMap(x => x.matches || []);
-  s.append(el("div", {class:"tiles"},
+  s.append(el("div", {class:"stats two"},
     tile(decs.length ? pct(likes.length, decs.length) + "%" : "–", "like rate", `${likes.length} of ${decs.length} swipes`),
     tile(decs.length ? fmtMs(median(decs.map(d=>d.ms))) : "–", "median decision", "time per profile"),
     tile(matches.length ? pct(matches.filter(m=>m.messaged).length, matches.length) + "%" : "–", "messaged on match", `${matches.length} ${matches.length === 1 ? "match" : "matches"}`),
@@ -677,121 +797,129 @@ function renderResults(){
     tb.append(el("tr", null, el("td", null, el("b", null, v.id), " ", el("span", {class:"muted"}, v.label)), el("td", {class:"n"}, vs.length), el("td", {class:"n"}, vd.length ? pct(vd.filter(d=>d.choice==="like").length, vd.length) : "–"), el("td", {class:"n"}, vd.length ? fmtMs(median(vd.map(d=>d.ms))) : "–"), el("td", {class:"n"}, vm.length ? pct(vm.filter(m=>m.messaged).length, vm.length) : "–"), el("td", {class:"n"}, npsText(vs)), el("td", {class:"n"}, clear.length ? mean(clear).toFixed(1) : "–")));
   }
   tbl.append(tb);
-  s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Variant comparison"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted", style:"font-size:.75rem"}, "N = sessions. Like and Msg are percentages. Time is the median decision time. Clear = mean agreement (1 to 5) with \"I understood what makes this app different\".")));
+  s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Variant comparison"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted t-xs"}, "N = sessions. Like and Msg are percentages. Time is the median decision time. Clear = mean agreement (1 to 5) with \"I understood what makes this app different\".")));
+
+  /* Like rate by module type: which listening signal drives decisions */
+  const byM = {};
+  for (const d of decs) { if (!d.module) continue; byM[d.module] = byM[d.module] || {n:0, likes:0, ms:[], taps:0}; byM[d.module].n++; if (d.choice === "like") byM[d.module].likes++; byM[d.module].ms.push(d.ms); byM[d.module].taps += d.featureTaps || 0; }
+  const mrows = Object.entries(byM).sort((a,b) => (b[1].likes/b[1].n) - (a[1].likes/a[1].n));
+  if (mrows.length) {
+    const bars = el("div", {class:"bars"});
+    for (const [m, r] of mrows) bars.append(el("div", {class:"bar"}, el("span", {class:"lab", title:MODULE_LABEL[m] || m}, MODULE_LABEL[m] || m), el("span", {class:"track"}, el("span", {class:"fill pos", style:`width:${pct(r.likes,r.n)}%`})), el("span", {class:"val"}, pct(r.likes,r.n) + "%")));
+    s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Like rate by card module"), bars, el("p", {class:"muted t-xs"}, "Which listening signal moves people. Taps on the module itself: " + mrows.map(([m,r]) => `${MODULE_LABEL[m]||m} ${r.taps}`).join(", ") + ".")));
+  }
 
   /* Survey averages */
   const likerts = config.survey.filter(q => q.type === "likert");
   if (likerts.length) {
     const bars = el("div", {class:"bars"});
-    for (const q of likerts) { const vals = list.map(x => x.survey && x.survey[q.id]).filter(n => typeof n === "number"); const m = mean(vals); bars.append(el("div", {class:"bar"}, el("span", {class:"lab", title:q.text}, q.text), el("div", {class:"track"}, el("div", {class:"fill", style:`width:${vals.length ? (m-1)/4*100 : 0}%`})), el("span", {class:"val"}, vals.length ? m.toFixed(1) : "–"))); }
-    s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Survey agreement (1 to 5)"), bars));
+    for (const q of likerts) { const vals = list.map(x => x.survey && x.survey[q.id]).filter(n => typeof n === "number"); const m = mean(vals); bars.append(el("div", {class:"bar"}, el("span", {class:"lab", title:q.text}, q.text), el("span", {class:"track"}, el("span", {class:"fill", style:`width:${vals.length ? (m-1)/4*100 : 0}%`})), el("span", {class:"val"}, vals.length ? m.toFixed(1) : "–"))); }
+    s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Survey agreement (1 to 5)"), bars));
   }
 
   /* Profiles */
   const byP = {};
-  for (const d of decs) { byP[d.profileId] = byP[d.profileId] || {name:d.name, n:0, likes:0, ms:[]}; byP[d.profileId].n++; if (d.choice === "like") byP[d.profileId].likes++; byP[d.profileId].ms.push(d.ms); }
+  for (const d of decs) { byP[d.profileId] = byP[d.profileId] || {name:d.name, n:0, likes:0}; byP[d.profileId].n++; if (d.choice === "like") byP[d.profileId].likes++; }
   const rows = Object.values(byP).sort((a,b) => (b.likes/b.n) - (a.likes/a.n));
   if (rows.length) {
     const bars = el("div", {class:"bars"});
-    for (const r of rows) bars.append(el("div", {class:"bar"}, el("span", {class:"lab"}, r.name), el("div", {class:"track"}, el("div", {class:"fill like", style:`width:${pct(r.likes,r.n)}%`})), el("span", {class:"val"}, pct(r.likes,r.n) + "%")));
-    s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Like rate by profile"), bars, el("p", {class:"muted", style:"font-size:.75rem"}, "A flat spread means the concept, not the sample profiles, is driving decisions.")));
+    for (const r of rows) bars.append(el("div", {class:"bar"}, el("span", {class:"lab"}, r.name), el("span", {class:"track"}, el("span", {class:"fill", style:`width:${pct(r.likes,r.n)}%`})), el("span", {class:"val"}, pct(r.likes,r.n) + "%")));
+    s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Like rate by profile"), bars, el("p", {class:"muted t-xs"}, "A flat spread means the concept, not the sample people, is driving decisions.")));
   }
 
   /* Free text */
   const texts = config.survey.filter(q => q.type === "text");
   const quotes = [];
   for (const x of list) for (const q of texts) if (x.survey && x.survey[q.id] && String(x.survey[q.id]).trim()) quotes.push({tester:x.tester, variant:x.variantId, q:q.text, a:String(x.survey[q.id]).trim()});
-  if (quotes.length) s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "What testers wrote"), quotes.slice(0, 30).map(qq => el("div", {class:"stack", style:"gap:2px"}, el("span", {class:"muted", style:"font-size:.75rem"}, `${qq.tester} · ${qq.variant} · ${qq.q}`), el("p", {class:"quote"}, qq.a)))));
+  if (quotes.length) s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "What testers wrote"), quotes.slice(0, 30).map(qq => el("div", {class:"stack", style:"gap:2px"}, el("span", {class:"muted t-xs"}, `${qq.tester} · ${qq.variant} · ${qq.q}`), el("p", {class:"quote"}, qq.a)))));
 
   /* Export */
-  s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Export"),
+  s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Export"),
     el("div", {class:"row"},
       el("button", {class:"btn small", onclick: () => copyText(JSON.stringify(exportBundle(), null, 2), "JSON copied")}, "Copy JSON"),
       el("button", {class:"btn small", onclick: () => copyText(toCSV(), "CSV copied")}, "Copy CSV"),
       el("button", {class:"btn small", onclick: () => download(`${slug(config.concept.name)}-sessions.json`, JSON.stringify(exportBundle(), null, 2))}, "Download JSON"),
       el("button", {class:"btn small", onclick: () => download(`${slug(config.concept.name)}-decisions.csv`, toCSV(), "text/csv")}, "Download CSV")),
-    el("p", {class:"muted", style:"font-size:.75rem"}, "Data lives only in this phone's browser. Export after each round of testing.")));
+    el("p", {class:"muted t-xs"}, "Data lives only in this phone's browser. Export after each round of testing.")));
 
   /* Sessions */
   const sess = el("div", {class:"sess"});
   for (const x of list.slice().reverse()) {
-    const d = el("details", {class:"card"});
+    const d = el("details");
     const likesN = x.decisions.filter(dd => dd.choice === "like").length;
     d.append(el("summary", null,
-      el("span", null, el("b", null, x.tester), " ", el("span", {class:"chip accent"}, x.variantId), !x.completed ? el("span", {class:"chip", style:"margin-left:6px"}, "incomplete") : null),
-      el("span", {class:"muted num", style:"font-size:.8rem"}, fmtDate(x.startedAt))));
+      el("span", {class:"row", style:"gap:6px"}, el("b", null, x.tester), el("span", {class:"tag neutral"}, x.variantId), !x.completed ? el("span", {class:"tag neutral"}, "incomplete") : null),
+      el("span", {class:"muted num t-xs"}, fmtDate(x.startedAt))));
     const body = el("div", {class:"body"});
     body.append(el("p", {class:"num"}, `${likesN} likes of ${x.decisions.length} · median ${fmtMs(median(x.decisions.map(dd=>dd.ms)))} · pitch read for ${fmtMs(x.pitchMs||0)} · ${(x.matches||[]).filter(m=>m.messaged).length} of ${(x.matches||[]).length} matches messaged`));
     if (x.survey) body.append(el("p", {class:"muted num"}, config.survey.filter(q=>q.type!=="text").map(q => `${q.id} ${x.survey[q.id] ?? "–"}`).join(" · ")));
-    const dl = el("div", {class:"tags"}, x.decisions.map(dd => el("span", {class:"chip " + dd.choice, title: fmtMs(dd.ms)}, `${dd.name} ${fmtMs(dd.ms)}`)));
-    body.append(dl);
-    const delBtn = el("button", {class:"btn small danger", onclick: () => {
-      const c = el("div", {class:"confirm"}, el("span", null, "Delete this session? This can't be undone."), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = sessions.filter(y => y.id !== x.id); persistSessions(); toast("Session deleted"); render(); }}, "Delete"), el("button", {class:"btn small ghost", onclick: () => c.replaceWith(delBtn)}, "Cancel")));
+    body.append(el("div", {class:"chips"}, x.decisions.map(dd => el("span", {class:"tag " + (dd.choice === "like" ? "pos" : "neutral"), title: (MODULE_LABEL[dd.module] || "") + " · " + fmtMs(dd.ms)}, `${dd.name} ${fmtMs(dd.ms)}`))));
+    const delBtn = el("button", {class:"btn small danger subtle", onclick: () => {
+      const c = el("div", {class:"confirm"}, el("span", null, "Delete this session? This can't be undone."), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = sessions.filter(y => y.id !== x.id); persistSessions(); toast("Session deleted"); render(); }}, "Delete"), el("button", {class:"btn small", onclick: () => c.replaceWith(delBtn)}, "Cancel")));
       delBtn.replaceWith(c);
     }}, "Delete session");
     body.append(el("div", null, delBtn));
     d.append(body); sess.append(d);
   }
-  s.append(el("div", {class:"stack"}, el("span", {class:"eyebrow"}, "Sessions"), sess));
+  s.append(el("div", {class:"stack"}, el("span", {class:"t-caption muted"}, "Sessions"), sess));
   stage.append(s);
 }
-function tile(v, k, sub){ return el("div", {class:"tile"}, el("span", {class:"v num"}, v), el("span", {class:"k"}, k), sub ? el("span", {class:"k num"}, sub) : null); }
+function tile(v, k, sub){ return el("div", {class:"stat"}, el("span", {class:"v num"}, v), el("span", {class:"k"}, k), sub ? el("span", {class:"k num muted"}, sub) : null); }
 function slug(s){ return String(s||"concept").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "concept"; }
-function exportBundle(){ return { exportedAt: new Date().toISOString(), concept: config.concept.name, variants: config.variants, survey: config.survey, sessions }; }
+function exportBundle(){ return { exportedAt: new Date().toISOString(), concept: config.concept.name, variants: config.variants, survey: config.survey, profiles: config.profiles.map(p => ({id:p.id, name:p.name, module:(p.module||{}).type, shared:p.shared})), sessions }; }
 function toCSV(){
-  const rows = [["session","tester","variant","started","completed","profile","choice","decision_ms","expanded","revealed","feature_taps","via_button","sync_score"]];
-  for (const x of sessions) for (const d of x.decisions) rows.push([x.id, x.tester, x.variantId, x.startedAt, x.completed ? 1 : 0, d.name, d.choice, d.ms, d.expanded ? 1 : 0, d.revealed ? 1 : 0, d.featureTaps, d.viaButton ? 1 : 0, d.syncScore]);
+  const rows = [["session","tester","variant","started","completed","profile","module","shared_artists","choice","decision_ms","expanded","waved","saved","feature_taps","via_button"]];
+  for (const x of sessions) for (const d of x.decisions) rows.push([x.id, x.tester, x.variantId, x.startedAt, x.completed ? 1 : 0, d.name, d.module || "", d.shared ?? "", d.choice, d.ms, d.expanded ? 1 : 0, d.reacted ? 1 : 0, d.saved ? 1 : 0, d.featureTaps, d.viaButton ? 1 : 0]);
   return rows.map(r => r.map(c => { const s = String(c ?? ""); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(",")).join("\n");
 }
 
 /* ---------- Setup ---------- */
 function renderSetup(){
   const s = el("section", {class:"screen"});
-  s.append(el("h2", null, "Setup"));
-  s.append(el("div", {class:"notice", html: "<b>Make it yours.</b> \"Sync\" and its pitch are placeholders that show what the tool can do. Change the name, tagline, pitch slides, variants and survey below to match your own concept."}));
+  s.append(el("h2", {class:"t-title", style:"margin:0"}, "Setup"));
+  s.append(el("div", {class:"notice"}, el("b", null, "Make it yours. "), "The concept name, pitch, variants, survey and the twelve sample profiles are all editable below. Profiles take an optional ", el("code", null, "photo"), " URL; without one the card shows a tinted placeholder."));
 
   const name = el("input", {type:"text", id:"cfgName", value: config.concept.name});
   const tag = el("input", {type:"text", id:"cfgTag", value: config.concept.tagline});
-  const cards = el("input", {type:"number", id:"cfgCards", min:1, max:PROFILES.length, value: config.session.cardsPerSession});
+  const cards = el("input", {type:"number", id:"cfgCards", min:1, max:config.profiles.length, value: config.session.cardsPerSession});
   const chance = el("input", {type:"number", id:"cfgChance", min:0, max:100, step:5, value: Math.round((Number(config.session.matchChance)||0)*100)});
   const assign = el("select", {id:"cfgAssign"}, el("option", {value:"alternate", selected: config.session.assignVariant === "alternate"}, "Alternate A, B, A, B"), el("option", {value:"random", selected: config.session.assignVariant === "random"}, "Random"));
-  s.append(el("div", {class:"card stack"},
-    el("span", {class:"eyebrow"}, "Basics"),
+  s.append(el("div", {class:"card tight"},
+    el("span", {class:"t-caption muted"}, "Basics"),
     el("div", {class:"field"}, el("label", {for:"cfgName"}, "Concept name"), name),
     el("div", {class:"field"}, el("label", {for:"cfgTag"}, "Tagline"), tag),
-    el("div", {class:"row"}, el("div", {class:"field", style:"flex:1"}, el("label", {for:"cfgCards"}, `Profiles per session (max ${PROFILES.length})`), cards), el("div", {class:"field", style:"flex:1"}, el("label", {for:"cfgChance"}, "Match chance on like, %"), chance)),
+    el("div", {class:"row", style:"align-items:flex-start"}, el("div", {class:"field", style:"flex:1"}, el("label", {for:"cfgCards"}, `Profiles per session (max ${config.profiles.length})`), cards), el("div", {class:"field", style:"flex:1"}, el("label", {for:"cfgChance"}, "Match chance on like, %"), chance)),
     el("div", {class:"field"}, el("label", {for:"cfgAssign"}, "Auto-assign variants"), assign),
-    el("button", {class:"btn primary", onclick: () => {
+    el("div", null, el("button", {class:"btn primary", onclick: () => {
       config.concept.name = name.value.trim() || "Concept"; config.concept.tagline = tag.value.trim();
-      config.session.cardsPerSession = Math.max(1, Math.min(PROFILES.length, parseInt(cards.value,10) || 10));
+      config.session.cardsPerSession = Math.max(1, Math.min(config.profiles.length, parseInt(cards.value,10) || 10));
       config.session.matchChance = Math.max(0, Math.min(1, (parseFloat(chance.value)||0)/100)); config.session.assignVariant = assign.value;
       saveConfig("Basics saved");
-    }}, "Save basics")));
+    }}, "Save basics"))));
 
-  const vcards = config.variants.map(v => el("div", {class:"stack", style:"gap:2px"}, el("span", null, el("b", null, v.id), " ", v.label), el("span", {class:"muted", style:"font-size:.8rem"}, variantSummary(v))));
-  s.append(el("div", {class:"card stack"}, el("span", {class:"eyebrow"}, "Variants in play"), vcards, el("p", {class:"muted", style:"font-size:.8rem"}, "Each variant toggles one or more parts of the concept so you can tell which part moves the numbers. Edit them in the full configuration below.")));
+  s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Variants in play"), config.variants.map(v => el("div", {class:"stack", style:"gap:2px"}, el("span", null, el("b", null, v.id), " ", v.label), el("span", {class:"muted t-small"}, variantSummary(v)))), el("p", {class:"muted t-xs"}, "Each variant toggles parts of the card so you can tell which part moves the numbers. Edit them in the full configuration below.")));
 
   const ta = el("textarea", {class:"code", id:"cfgJson", spellcheck:"false"}); ta.value = JSON.stringify(config, null, 2);
-  const err = el("p", {class:"muted", style:"font-size:.8rem;color:var(--accent)"});
-  s.append(el("div", {class:"card stack"},
-    el("span", {class:"eyebrow"}, "Full configuration"),
-    el("p", {class:"muted", style:"font-size:.85rem"}, "Pitch slides, variants and survey questions live here. Variant options: cardStyle is \"photo-first\" or \"prompt-first\"; showSyncScore true or false; openerStyle \"plan\" or \"blank\". Survey types: likert, nps, text."),
+  const err = el("p", {class:"t-small", style:"color:var(--danger)"});
+  s.append(el("div", {class:"card tight"},
+    el("span", {class:"t-caption muted"}, "Full configuration"),
+    el("p", {class:"muted t-small"}, "Variant options: layout \"01\" (centered header, actions at the bottom) or \"02\" (leading header, actions on top); showSharedCount; sharedFooter (light footer under the photo); openerStyle \"track\" or \"blank\". Profile module types: mostListened, justPlayed, nowPlaying, event, mutuals, places, voice. Survey types: likert, nps, text."),
     ta, err,
     el("div", {class:"row"},
       el("button", {class:"btn primary small", onclick: () => { try { const parsed = JSON.parse(ta.value); if (!parsed.variants || !parsed.variants.length) throw new Error("At least one variant is required"); for (const v of parsed.variants) if (!v.id) throw new Error("Every variant needs an id"); config = normalizeConfig(parsed); err.textContent = ""; saveConfig("Configuration applied"); } catch (e) { err.textContent = "Not applied: " + e.message; } }}, "Apply"),
       el("button", {class:"btn small", onclick: () => copyText(ta.value, "Configuration copied")}, "Copy"),
-      el("button", {class:"btn ghost small", onclick: () => { config = deepClone(DEFAULT_CONFIG); saveConfig("Reset to the example concept"); }}, "Reset to example"))));
+      el("button", {class:"btn small subtle", onclick: () => { config = deepClone(DEFAULT_CONFIG); saveConfig("Reset to the example concept"); }}, "Reset to example"))));
 
-  s.append(el("div", {class:"card stack"},
-    el("span", {class:"eyebrow"}, "On your phone"),
-    el("p", {style:"font-size:.9rem"}, "Open this page in Safari or Chrome on the phone, then use Share → Add to Home Screen. It opens full-screen like a native app and works offline once installed."),
-    el("p", {class:"muted", style:"font-size:.8rem"}, "Sessions and configuration are stored in that phone's browser only. Export from Results before clearing browsing data or switching phones.")));
+  s.append(el("div", {class:"card tight"},
+    el("span", {class:"t-caption muted"}, "On your phone"),
+    el("p", null, "Open this page in Safari or Chrome on the phone, then Share → Add to Home Screen. It opens full screen and works offline once installed."),
+    el("p", {class:"muted t-small"}, "Sessions and configuration are stored in that phone's browser only. Export from Results before clearing browsing data or switching phones.")));
 
-  const danger = el("button", {class:"btn ghost small danger", onclick: () => {
-    const c = el("div", {class:"confirm"}, el("span", null, `Delete all ${sessions.length} sessions from this phone? Export first if you need them.`), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = []; persistSessions(); toast("All sessions deleted"); render(); }}, "Delete everything"), el("button", {class:"btn small ghost", onclick: () => c.replaceWith(danger)}, "Cancel")));
+  const danger = el("button", {class:"btn small danger subtle", onclick: () => {
+    const c = el("div", {class:"confirm"}, el("span", null, `Delete all ${sessions.length} sessions from this phone? Export first if you need them.`), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = []; persistSessions(); toast("All sessions deleted"); render(); }}, "Delete everything"), el("button", {class:"btn small", onclick: () => c.replaceWith(danger)}, "Cancel")));
     danger.replaceWith(c);
   }}, "Delete all sessions");
-  s.append(el("div", {class:"row between"}, el("span", {class:"muted", style:"font-size:.8rem"}, `${sessions.length} sessions stored`), sessions.length ? danger : null));
+  s.append(el("div", {class:"row between"}, el("span", {class:"muted t-small num"}, `${sessions.length} sessions stored`), sessions.length ? danger : null));
   stage.append(s);
 }
 function saveConfig(msg){ if (!lsSet(LS.cfg, config)) toast("Saved for this visit only; storage is blocked"); else toast(msg); render(); }

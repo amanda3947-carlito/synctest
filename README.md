@@ -112,14 +112,24 @@ Then Share → **Add to Home Screen**.
    chat. The tester can send a message.
 7. **Survey** and **Save session**.
 
+**Love it as is (variant C).** If a build already looks right, double-tap
+it. A heart pops and a sheet asks the tester to say something about it (a
+note is required; tapping a part of the build mentions it). It sends untouched.
+The other person can match back (chat opens with the note as the first
+message), make one change first (it becomes a build and comes back as a turn),
+or pass. Three as-is sends per session; remixes are unlimited. Starting to
+change a build removes the option for that build.
+
 Variant B adds a classic like button on profiles. Likes match with a
 configurable chance and open chat directly, so the build path can be measured
-against the path everyone already knows.
+against the path everyone already knows. Variant C is remix or love-as-is.
 
 **Results tab** shows build rate, started-to-sent conversion, aligned rate,
 message rate, the funnel, a table of which builds are offered, chosen, sent and
-aligned (with median rounds and edits), build rate by number of starters on
-the profile, a per-variant table, survey averages, quotes, and every session.
+aligned (with median rounds and edits), a remix versus love-as-is versus like
+table (sent, matched, changed first, passed, messaged), build rate by number
+of starters on the profile, a per-variant table, survey averages, quotes, and
+every session.
 
 ## Configuration
 
@@ -142,8 +152,9 @@ and `builds`: one to three, each `{type, items}` for lists or
 tester's own `library.events` show up in The Plan's picker as "Bring them
 to"; the other person's events as "Go with them to".
 
-Variant fields: `likeButton`, `agreeChance` (0 to 1), `replyDelayMs`, optional
-`pitch`. Session fields: `peoplePerSession`, `likeMatchChance`, `assignVariant`.
+Variant fields: `likeButton`, `asIs`, `agreeChance` (0 to 1), `replyDelayMs`,
+optional `pitch`. Session fields: `peoplePerSession`, `likeMatchChance`,
+`assignVariant`, `asIsPerSession`.
 
 Survey question types: `likert` (1 to 5), `nps` (0 to 10), `text`.
 

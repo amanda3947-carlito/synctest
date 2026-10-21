@@ -191,6 +191,18 @@ textarea.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:
 .locked{display:flex;align-items:center;gap:10px;padding:14px 16px;border-radius:var(--r-12);background:var(--bg-2);color:var(--fg-2);font-size:14px}
 .locked svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8}
 
+/* Love it as is: double-tap heart burst + note sheet */
+.unit{position:relative}
+.heartburst{position:absolute;left:50%;top:50%;width:96px;height:96px;margin:-48px 0 0 -48px;pointer-events:none;z-index:5;animation:burst .7s cubic-bezier(.2,.8,.3,1) forwards}
+.heartburst svg{width:100%;height:100%;fill:var(--rausch);stroke:none;filter:drop-shadow(0 6px 16px rgba(0,0,0,.18))}
+@keyframes burst{0%{transform:scale(.3);opacity:0}30%{transform:scale(1.15);opacity:1}60%{transform:scale(1)}100%{transform:scale(1.1) translateY(-10px);opacity:0}}
+.asis-sum{display:flex;gap:8px;flex-wrap:wrap}
+.asis-sum .part{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:var(--r-pill);border:1px solid var(--line);font-size:14px;font-weight:500;cursor:pointer}
+.asis-sum .part .sw{width:18px;height:18px;border-radius:50%}
+.asis-sum .part:hover{border-color:var(--fg)}
+.lovehint{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--fg-2);justify-content:center}
+.lovehint svg{width:14px;height:14px;stroke:var(--rausch);fill:none;stroke-width:2}
+.quota{font-size:13px;color:var(--fg-2)}
 /* Builds: stack, tray, tiles, finder */
 .build{display:flex;flex-direction:column;gap:14px}
 .build .bhead{display:flex;align-items:center;gap:10px}
@@ -526,15 +538,21 @@ const DEFAULT_CONFIG = {
     ]
   },
   variants: [
-    { id: "A", label: "Build to match", likeButton: false, agreeChance: 0.7, replyDelayMs: 6000 },
-    { id: "B", label: "Like button + optional build", likeButton: true, agreeChance: 0.7, replyDelayMs: 6000,
+    { id: "A", label: "Build to match", likeButton: false, asIs: false, agreeChance: 0.7, replyDelayMs: 6000 },
+    { id: "C", label: "Build, or love it as is", likeButton: false, asIs: true, agreeChance: 0.7, replyDelayMs: 6000,
+      pitch: [
+        { title: "Every profile is a finished thing", body: "A mixtape, a watchlist, a plan for a day out, a dinner. Each person puts their ideal version on their profile, in full." },
+        { title: "Put your spin on it, or love it as is", body: "There's no like button. Pick one of theirs and swap in your picks. Or, if it's already perfect, double-tap it and tell them why. You get three of those a day." },
+        { title: "Align, then talk", body: "Builds match when you both agree it's done. A love-as-is matches when they match back. Either way, that's when the chat opens." }
+      ] },
+    { id: "B", label: "Like button + optional build", likeButton: true, asIs: false, agreeChance: 0.7, replyDelayMs: 6000,
       pitch: [
         { title: "Every profile is a finished thing", body: "A mixtape, a watchlist, a plan for a day out, a dinner. Each person puts their ideal version on their profile, in full." },
         { title: "Like, or put your spin on it", body: "Tap the heart to like someone. Or pick one of theirs, swap in your picks, and send it back." },
         { title: "Align, then talk", body: "Mutual likes match. Builds match when you both agree it's done. Either way, that's when the chat opens." }
       ] }
   ],
-  session: { peoplePerSession: 8, likeMatchChance: 0.4, assignVariant: "alternate" },
+  session: { peoplePerSession: 8, likeMatchChance: 0.4, assignVariant: "alternate", asIsPerSession: 3 },
   survey: [
     { id: "clear", type: "likert", text: "I understood that building something together is how you show interest." },
     { id: "worth", type: "likert", text: "Building felt worth the effort compared with a like." },
@@ -564,7 +582,7 @@ function normalizeConfig(c){
   out.concept = Object.assign({}, d.concept, (c && c.concept) || {});
   out.session = Object.assign({}, d.session, (c && c.session) || {});
   if (!Array.isArray(out.variants) || !out.variants.length) out.variants = d.variants;
-  out.variants = out.variants.map(v => Object.assign({ likeButton:false, agreeChance:0.7, replyDelayMs:6000 }, v));
+  out.variants = out.variants.map(v => Object.assign({ likeButton:false, asIs:false, agreeChance:0.7, replyDelayMs:6000 }, v));
   if (!Array.isArray(out.survey)) out.survey = d.survey;
   if (!Array.isArray(out.concept.pitch)) out.concept.pitch = d.concept.pitch;
   out.buildTypes = Object.assign({}, d.buildTypes, out.buildTypes || {});
@@ -667,7 +685,8 @@ function render(){
     else if (ui.screen === "thread") renderThread();
     else if (ui.screen === "chats") renderChats();
     else if (ui.screen === "chat") renderChat();
-    if (ui.draft && ui.screen === "people" && btype(ui.draft.build.type).kind === "list") renderEditorSheet();
+    if (ui.asis && ui.screen === "people") renderAsIsSheet();
+    else if (ui.draft && ui.screen === "people" && btype(ui.draft.build.type).kind === "list") renderEditorSheet();
     else if (ui.picker) renderPicker();
     stage.scrollTop = keep ? y : 0;
     return;
@@ -696,7 +715,7 @@ function renderHome(){
 }
 function stat(v, k){ return el("div", {class:"stat"}, el("span", {class:"v num"}, v), el("span", {class:"k"}, k)); }
 function npsText(list){ const scores = list.map(s => s.survey && s.survey.nps).filter(v => typeof v === "number"); const n = nps(scores); return n === null ? "–" : (n > 0 ? "+" : "") + n; }
-function variantSummary(v){ return [v.likeButton ? "Like button on profiles, building optional" : "No like button: finishing a build together is the only way to match", `the other person replies after ${Math.round(v.replyDelayMs/1000)}s`, `and agrees it's done ${Math.round(v.agreeChance*100)}% of the time once asked`].join(" · "); }
+function variantSummary(v){ return [v.likeButton ? "Like button on profiles, building optional" : v.asIs ? `No like button, but you can double-tap a build to love it as is (${config.session.asIsPerSession} a session) and ask them to match back` : "No like button: finishing a build together is the only way to match", `the other person replies after ${Math.round(v.replyDelayMs/1000)}s`, `and agrees it's done ${Math.round(v.agreeChance*100)}% of the time once asked`].join(" · "); }
 
 /* ---------- Session lifecycle ---------- */
 function pickVariant(){
@@ -711,8 +730,9 @@ function startSession(){
   session = { id: "s" + Date.now().toString(36), tester: (homeTester || "").trim() || "Anonymous", variantId, startedAt: new Date().toISOString(), stage: "pitch", pitchMs: 0,
     people: shuffle(config.profiles).slice(0, n).map(p => p.id), index: 0, interactions: [], threads: [], survey: null, events: [] };
   session._pitchStart = performance.now(); session._pitchIndex = 0;
-  for (const id of session.people) { const p = profileById(id); session.interactions.push({ profileId: id, name: p.name, nStarters: p.builds.length, starterTypes: p.builds.map(b => b.type), viewed: false, viewedAt: null, profileMs: 0, passed: false, liked: false, buildType: null, started: false, startMs: null, sends: 0, edits: 0, rounds: 0, replies: 0, readyByYou: false, matched: false, matchVia: null, matchMs: null, messaged: false, firstSendMs: null }); }
-  ui = { screen: "people", threadId: null, draft: null, picker: null, keepScroll: false };
+  for (const id of session.people) { const p = profileById(id); session.interactions.push({ profileId: id, name: p.name, nStarters: p.builds.length, starterTypes: p.builds.map(b => b.type), viewed: false, viewedAt: null, profileMs: 0, passed: false, liked: false, buildType: null, started: false, startMs: null, sends: 0, edits: 0, rounds: 0, replies: 0, readyByYou: false, matched: false, matchVia: null, matchMs: null, messaged: false, firstSendMs: null, asIs: false, noteLength: 0, matchBack: null }); }
+  ui = { screen: "people", threadId: null, draft: null, picker: null, keepScroll: false, asis: null };
+  session.asIsUsed = 0;
   logEvent("session_start", { variantId });
   render();
 }
@@ -816,11 +836,12 @@ function aboutEl(p){
   return box;
 }
 function profileBuild(p, b, k, locked){
-  const def = btype(b.type);
+  const def = btype(b.type); const v = variantById(session.variantId);
   const bar = (onOpen) => el("div", {class:"remixbar"}, el("span", {class:"hint"}, locked ? "One build per person at a time" : "Put your own spin on it and send it back"), el("button", {class:"remixbtn", disabled: locked, onclick: onOpen}, icon(def.icon), def.verb));
   const editing = ui.draft && ui.draft.profileId === p.id && ui.draft.k === k;
   const box = el("div", {class:"build"});
   box.append(el("div", {class:"bhead"}, icon(def.icon), el("span", {class:"t"}, p.name + "'s " + def.name.replace(/^The /, "").toLowerCase()), el("span", {class:"kd"}, editing ? `${ui.draft.edits} of ${def.perTurn} changes` : def.kind === "list" ? `${(b.items||[]).length} ${def.unit}s` : `${def.slots.length} parts`)));
+  const loveHint = () => v.asIs && !locked ? el("span", {class:"lovehint"}, icon("heart"), `Double-tap to love it as is`) : null;
   if (def.kind === "slots") {
     if (editing) {
       box.append(trayEditor(ui.draft.build, p, { editable: true, draft: ui.draft }));
@@ -828,15 +849,71 @@ function profileBuild(p, b, k, locked){
         el("button", {class:"btn subtle", onclick: () => { logEvent("build_cancel", {profileId:p.id, type:def.name, edits:ui.draft.edits}); ui.draft = null; ui.keepScroll = true; render(); }}, "Cancel"),
         el("button", {class:"btn primary", disabled: ui.draft.edits === 0, onclick: () => sendBuild(p)}, ui.draft.edits ? `Send it back` : "Change one thing")));
     } else {
-      box.append(stackEl(makeBuild(b.type, b), locked ? null : () => openEditor(p, k)));
-      box.append(bar(() => openEditor(p, k)));
+      const unit = el("div", {class:"unit"}, stackEl(makeBuild(b.type, b), null));
+      doubleTap(unit, () => startAsIs(p, k, unit), locked ? null : () => openEditor(p, k));
+      box.append(unit, loveHint(), bar(() => openEditor(p, k)));
     }
     return box;
   }
   const full = makeBuild(b.type, b);
-  box.append(buildBox(full, p, { title: null, head: false, bare: true, readonly: true }));
-  box.append(bar(() => openEditor(p, k)));
+  const unit = el("div", {class:"unit"}, buildBox(full, p, { title: null, head: false, bare: true, readonly: true }));
+  doubleTap(unit, () => startAsIs(p, k, unit), null);
+  box.append(unit, loveHint(), bar(() => openEditor(p, k)));
   return box;
+}
+/* Double-tap detection that works for touch and mouse; a lone tap runs `single` after a short wait. */
+function doubleTap(target, dbl, single){
+  let last = 0, timer = null;
+  target.addEventListener("pointerup", e => {
+    if (e.target.closest("button, input, textarea, a")) return;
+    const now = performance.now();
+    if (now - last < 320) { clearTimeout(timer); timer = null; last = 0; dbl(); return; }
+    last = now;
+    if (single) timer = setTimeout(() => { timer = null; single(); }, 330);
+  });
+}
+function heartBurst(unit){
+  const h = el("div", {class:"heartburst"}); const n = document.createElementNS("http://www.w3.org/2000/svg","svg"); n.setAttribute("viewBox","0 0 24 24"); const pth = document.createElementNS("http://www.w3.org/2000/svg","path"); pth.setAttribute("d", ICONS.heart); n.append(pth); h.append(n); unit.append(h); setTimeout(() => h.remove(), 750);
+}
+function startAsIs(p, k, unit){
+  const v = variantById(session.variantId); const i = ix(p.id); const b = p.builds[k]; const def = btype(b.type);
+  if (!v.asIs) { toast("In this version you have to change something to send it"); return; }
+  if (session.threads.some(t => t.profileId === p.id)) { toast("You're already building with " + p.name); return; }
+  if (ui.draft && ui.draft.profileId === p.id && ui.draft.edits > 0) { toast("You've started changing it. It's one or the other."); return; }
+  const cap = Number(config.session.asIsPerSession) || 3;
+  if ((session.asIsUsed || 0) >= cap) { toast(`That's your ${cap} for today. Remixes are unlimited.`); return; }
+  if (unit) heartBurst(unit);
+  logEvent("asis_start", {profileId:p.id, type:b.type});
+  setTimeout(() => { ui.asis = { profileId: p.id, k, note: "" }; ui.draft = null; ui.keepScroll = true; render(); }, 380);
+}
+function renderAsIsSheet(){
+  const a = ui.asis; const p = profileById(a.profileId); const b = p.builds[a.k]; const def = btype(b.type); const full = makeBuild(b.type, b);
+  const cap = Number(config.session.asIsPerSession) || 3; const left = cap - (session.asIsUsed || 0);
+  const close = () => { logEvent("asis_cancel", {profileId:p.id, type:b.type, noteLength:(a.note||"").length}); ui.asis = null; ui.keepScroll = true; render(); };
+  const sheet = el("div", {class:"sheet tall", role:"dialog", "aria-label":"Love it as is"});
+  sheet.append(el("div", {class:"shead"}, el("button", {class:"iconbtn", style:"width:32px;height:32px;border:0", "aria-label":"Close", onclick: close}, icon("x")), el("span", {class:"st"}, "Love it as is"), el("span")));
+  const short = def.name.replace(/^The /, "").toLowerCase();
+  sheet.append(el("div", {class:"stack", style:"gap:6px"}, el("span", {class:"t-heading"}, `${p.name}'s ${short}, untouched`), el("span", {class:"muted t-small"}, `Tell ${p.name} what you love about it. They'll see your note and decide whether to match back.`)));
+  const parts = def.kind === "list" ? full.items.map(x => ({ label: primary(x.v), v: x.v })) : def.slots.map(sl => ({ label: `the ${sl.label.toLowerCase()}`, v: full.slots[sl.id] ? full.slots[sl.id].v : null })).filter(x => x.v);
+  const ta = el("textarea", {id:"asisNote", rows:4, placeholder: def.kind === "list" ? `What got you? A track, the order, the whole thing…` : `What got you? The where, the vibe, the whole thing…`, oninput: e => { a.note = e.target.value; btn.disabled = a.note.trim().length < 3; }});
+  ta.value = a.note || "";
+  const sum = el("div", {class:"asis-sum"}, parts.map(x => el("button", {class:"part", title:"Mention this", onclick: () => { const add = def.kind === "list" ? `"${x.label}"` : x.label; a.note = (a.note ? a.note.replace(/\s+$/, "") + " " : "") + add + " "; ta.value = a.note; ta.focus(); btn.disabled = a.note.trim().length < 3; logEvent("asis_part_tapped", {profileId:p.id, part:x.label}); }}, el("span", {class:"sw", style: artStyle(x.v)}), el("span", null, x.label))));
+  sheet.append(el("div", {class:"stack", style:"gap:10px"}, el("span", {class:"t-sub"}, "Say something about it"), ta, el("span", {class:"muted t-xs"}, "Tap a part to mention it"), sum));
+  const btn = el("button", {class:"btn primary", disabled: (a.note || "").trim().length < 3, onclick: () => sendAsIs(p, a.k)}, "Send");
+  sheet.append(el("div", {class:"sfoot pad"}, el("span", {class:"quota num"}, `${left} of ${cap} left today`), btn));
+  stage.append(el("div", {class:"scrim", onclick: close}), sheet);
+  setTimeout(() => ta.focus(), 50);
+}
+function sendAsIs(p, k){
+  const b = p.builds[k]; const i = ix(p.id); const v = variantById(session.variantId); const note = (ui.asis.note || "").trim();
+  const th = { id: "t" + Date.now().toString(36), profileId: p.id, type: b.type, build: makeBuild(b.type, b), asIs: true, note, round: 0, status: "asis", yourReady: true, theirReady: false, unread: false, createdAt: Date.now(), matchedAt: null, messages: [{ who: "you", text: note, pre: true }], log: [{ t: Date.now(), who: "you", asIs: true }] };
+  session.threads.push(th); session.asIsUsed = (session.asIsUsed || 0) + 1;
+  i.asIs = true; i.noteLength = note.length; i.sends = 1; i.buildType = b.type; i.started = true; i.firstSendMs = i.firstSendMs || 0;
+  logEvent("asis_sent", {profileId:p.id, type:b.type, noteLength: note.length});
+  toast(`Sent. ${p.name} can match back, or make a change first.`);
+  scheduleReply(th, v);
+  ui.asis = null; ui.draft = null;
+  advance();
 }
 /* Fanned stack of slot tiles (collapsed) */
 function stackEl(b, onOpen){
@@ -1130,6 +1207,21 @@ function scheduleReply(th, v){
   later(Number(v.replyDelayMs) || 6000, () => {
     if (!session || session.stage !== "live") return;
     const p = profileById(th.profileId); const i = ix(p.id); const b = th.build; const def = btype(b.type);
+    if (th.status === "asis") {
+      const r = Math.random();
+      if (r < Number(v.agreeChance)) { th.theirReady = true; i.matchBack = "matched"; completeBuild(th, "asis"); return; }
+      if (r < Number(v.agreeChance) + 0.2) {
+        // They want to make one change first: it becomes a build with their move in it
+        th.asIs = false; th.status = "yourturn"; th.unread = true; th.yourReady = false; th.round = 1; th.convertedFromAsIs = true; i.matchBack = "changed";
+        const taken = takenKeys(b);
+        if (def.kind === "list") { const pool = otherPool(b.type, null, p).filter(x => !taken.has(key(x))); if (pool.length && b.items.length < def.capacity) b.items.push({ v: pool[0], by: "them", round: 1, isNew: true }); else if (pool.length) { const idx = 0; const old = b.items[idx]; b.items[idx] = { v: pool[0], by: "them", round: 1, isNew: true, replaced: old.v }; } }
+        else { const sl = def.slots[Math.floor(Math.random()*def.slots.length)]; const pool = otherPool(b.type, sl.id, p).filter(x => !taken.has(key(x))); if (pool.length) { const old = b.slots[sl.id]; b.slots[sl.id] = { v: pool[0], by: "them", round: 1, isNew: true, replaced: old ? old.v : undefined }; } }
+        i.replies++; logEvent("asis_changed_first", {profileId:p.id, type:b.type});
+        toast(`${p.name} wants to change one thing first`); renderTabbar(); if (ui.screen === "builds" || (ui.screen === "thread" && ui.threadId === th.id)) render(); return;
+      }
+      th.status = "closed"; th.unread = true; i.matchBack = "declined"; logEvent("asis_declined", {profileId:p.id, type:b.type});
+      toast(`${p.name} passed for now`); renderTabbar(); if (ui.screen === "builds" || (ui.screen === "thread" && ui.threadId === th.id)) render(); return;
+    }
     if (th.yourReady && isComplete(b) && Math.random() < Number(v.agreeChance)) { th.theirReady = true; completeBuild(th); return; }
     let changes = 0; const taken = takenKeys(b);
     if (def.kind === "list") {
@@ -1155,12 +1247,12 @@ function scheduleReply(th, v){
     renderTabbar(); if (ui.screen === "builds" || (ui.screen === "thread" && ui.threadId === th.id)) render();
   });
 }
-function completeBuild(th){
+function completeBuild(th, via){
   const p = profileById(th.profileId); const i = ix(p.id);
-  th.status = "matched"; th.matchedAt = Date.now(); th.unread = true; th.via = "build";
-  i.matched = true; i.matchVia = th.type; i.matchMs = th.matchedAt - th.createdAt;
-  logEvent("match", {profileId:p.id, via:th.type, rounds: th.round});
-  toast(`You and ${p.name} aligned on a ${btype(th.type).name.toLowerCase()}. Chat open.`);
+  th.status = "matched"; th.matchedAt = Date.now(); th.unread = true; th.via = via || "build";
+  i.matched = true; i.matchVia = via === "asis" ? "asis" : th.type; i.matchMs = th.matchedAt - th.createdAt;
+  logEvent("match", {profileId:p.id, via: via || th.type, rounds: th.round});
+  toast(via === "asis" ? `${p.name} matched back. Chat open.` : `You and ${p.name} aligned on a ${btype(th.type).name.toLowerCase()}. Chat open.`);
   renderTabbar(); if (ui.screen === "builds" || (ui.screen === "thread" && ui.threadId === th.id)) go("chat", {threadId: th.id});
 }
 
@@ -1175,8 +1267,8 @@ function renderBuilds(){
   const box = el("div", {class:"card tight", style:"gap:0;padding-block:4px"});
   for (const th of list) {
     const p = profileById(th.profileId); const def = btype(th.type);
-    const st = th.status === "yourturn" ? (th.theirReady ? `${p.name} thinks it's done. Your call.` : `${p.name} sent it back · your turn`) : th.yourReady ? `You said it's done. Waiting for ${p.name}.` : `With ${p.name} · waiting`;
-    box.append(el("button", {class:"mixrow", onclick: () => { th.unread = false; go("thread", {threadId: th.id}); }}, el("span", {class:"av", style: photoStyle(p)}, p.name[0], icon(def.icon)), el("span", {class:"meta"}, el("span", {class:"n"}, p.name, " ", el("span", {class:"roundchip"}, `${def.name} · round ${th.round}`)), el("span", {class:"st"}, st)), th.unread ? el("span", {class:"dot"}) : null));
+    const st = th.status === "asis" ? `You loved it as is · waiting for ${p.name} to match back` : th.status === "closed" ? `${p.name} passed for now` : th.status === "yourturn" ? (th.convertedFromAsIs && th.round === 1 ? `${p.name} changed one thing first · your turn` : th.theirReady ? `${p.name} thinks it's done. Your call.` : `${p.name} sent it back · your turn`) : th.yourReady ? `You said it's done. Waiting for ${p.name}.` : `With ${p.name} · waiting`;
+    box.append(el("button", {class:"mixrow", onclick: () => { th.unread = false; go("thread", {threadId: th.id}); }}, el("span", {class:"av", style: photoStyle(p)}, p.name[0], icon(th.status === "asis" ? "heart" : def.icon)), el("span", {class:"meta"}, el("span", {class:"n"}, p.name, " ", el("span", {class:"roundchip"}, th.status === "asis" ? `${def.name} · as is` : th.status === "closed" ? `${def.name} · closed` : `${def.name} · round ${th.round}`)), el("span", {class:"st"}, st)), th.unread ? el("span", {class:"dot"}) : null));
   }
   s.append(box);
   s.append(el("div", {class:"row between"}, el("button", {class:"btn subtle", onclick: () => go("people")}, icon("back"), "People"), el("button", {class:"btn primary", onclick: toSurvey}, "I'm done")));
@@ -1187,9 +1279,17 @@ function renderThread(){
   th.unread = false;
   if (th.status === "matched") { go("chat", {threadId: th.id}); return; }
   const s = el("section", {class:"screen"});
+  if (th.status === "asis" || th.status === "closed") {
+    s.append(el("div", {class:"backbar"}, el("button", {class:"iconbtn", "aria-label":"Back to builds", onclick: () => go("builds")}, icon("back")), el("span", {class:"t-strong"}, def.name + " with " + p.name), el("span", {class:"roundchip", style:"margin-left:auto"}, th.status === "asis" ? "as is" : "closed")));
+    s.append(el("div", {class:"statusline" + (th.status === "asis" ? "" : "")}, el("i"), th.status === "asis" ? `You loved it as is. Waiting for ${p.name} to match back.` : `${p.name} passed for now. This one's closed.`));
+    s.append(el("div", {class:"chat"}, el("div", {class:"bubble"}, th.note)));
+    if (def.kind === "slots") s.append(trayEditor(b, p, { editable: false })); else s.append(buildBox(b, p, { title: p.name + "'s " + def.name.replace(/^The /, "").toLowerCase(), readonly: true }));
+    s.append(el("div", {class:"locked"}, icon("lock"), th.status === "asis" ? "Chat opens if they match back" : "No chat this time"));
+    stage.append(s); return;
+  }
   s.append(el("div", {class:"backbar"}, el("button", {class:"iconbtn", "aria-label":"Back to builds", onclick: () => { delete th._draft; go("builds"); }}, icon("back")), el("span", {class:"t-strong"}, def.name + " with " + p.name), el("span", {class:"roundchip", style:"margin-left:auto"}, `round ${th.round}`)));
   const yourTurn = th.status === "yourturn"; const d = yourTurn ? threadDraft() : null;
-  s.append(el("div", {class:"statusline" + (yourTurn ? " ready" : "")}, el("i"), yourTurn ? (th.theirReady ? `${p.name} added to it and thinks it's done.` : `${p.name} added to it. ${completionText(b)}.`) : th.yourReady ? `You said it's done. Waiting for ${p.name}.` : `Waiting for ${p.name} to send it back.`));
+  s.append(el("div", {class:"statusline" + (yourTurn ? " ready" : "")}, el("i"), yourTurn ? (th.convertedFromAsIs && th.round === 1 ? `${p.name} loved that you loved it, but changed one thing first. ${completionText(b)}.` : th.theirReady ? `${p.name} added to it and thinks it's done.` : `${p.name} added to it. ${completionText(b)}.`) : th.yourReady ? `You said it's done. Waiting for ${p.name}.` : `Waiting for ${p.name} to send it back.`));
   if (def.kind === "slots") {
     const box = el("div", {class:"buildbox"});
     box.append(el("div", {class:"ptitle"}, el("span", null, "The " + def.name.toLowerCase() + " so far"), yourTurn ? el("span", {class:"roundchip num"}, `${d.edits}/${def.perTurn}`) : null));
@@ -1230,7 +1330,7 @@ function renderChats(){
   s.append(el("div", {class:"peoplehead"}, el("span", {class:"t-heading"}, "Chats"), el("span", {class:"t-caption muted num"}, `${list.length} ${list.length === 1 ? "match" : "matches"}`)));
   if (!list.length) { s.append(el("div", {class:"empty"}, icon("lock", 28), el("span", {class:"t-heading"}, "No chats yet"), el("p", null, "A chat opens when you and someone else finish a build together. That's the match."), el("button", {class:"btn small", onclick: () => go("people")}, "Back to People"))); stage.append(s); return; }
   const box = el("div", {class:"card tight", style:"gap:0;padding-block:4px"});
-  for (const th of list) { const p = profileById(th.profileId); const last = th.messages[th.messages.length-1]; box.append(el("button", {class:"mixrow", onclick: () => { th.unread = false; go("chat", {threadId: th.id}); }}, el("span", {class:"av", style: photoStyle(p)}, p.name[0], icon(th.type ? btype(th.type).icon : "heart")), el("span", {class:"meta"}, el("span", {class:"n"}, p.name, " ", el("span", {class:"roundchip"}, th.type ? btype(th.type).name + " · aligned" : "mutual like")), el("span", {class:"st"}, last ? last.text : "Chat open. Say something.")), th.unread ? el("span", {class:"dot"}) : null)); }
+  for (const th of list) { const p = profileById(th.profileId); const last = th.messages[th.messages.length-1]; box.append(el("button", {class:"mixrow", onclick: () => { th.unread = false; go("chat", {threadId: th.id}); }}, el("span", {class:"av", style: photoStyle(p)}, p.name[0], icon(th.type ? btype(th.type).icon : "heart")), el("span", {class:"meta"}, el("span", {class:"n"}, p.name, " ", el("span", {class:"roundchip"}, th.via === "asis" ? btype(th.type).name + " · as is" : th.type ? btype(th.type).name + " · aligned" : "mutual like")), el("span", {class:"st"}, last ? last.text : "Chat open. Say something.")), th.unread ? el("span", {class:"dot"}) : null)); }
   s.append(box);
   s.append(el("div", {class:"row between"}, el("button", {class:"btn subtle", onclick: () => go("people")}, icon("back"), "People"), el("button", {class:"btn primary", onclick: toSurvey}, "I'm done")));
   stage.append(s);
@@ -1244,7 +1344,7 @@ function renderChat(){
     s.append(el("div", {class:"mixtape"},
       el("div", {class:"okmark"}, icon("check")),
       el("div", {class:"cover-grid"}, items.slice(0,4).map(it => el("i", {style: artStyle(it.v)}))),
-      el("div", null, el("span", {class:"t-caption muted"}, "You both agreed"), el("h2", {class:"t-hero", style:"margin:6px 0 0;font-size:34px"}, def.doneTitle || ("It's a " + def.name.toLowerCase()))),
+      el("div", null, el("span", {class:"t-caption muted"}, th.via === "asis" ? "You loved it as is. They matched back." : "You both agreed"), el("h2", {class:"t-hero", style:"margin:6px 0 0;font-size:34px"}, def.doneTitle || ("It's a " + def.name.toLowerCase()))),
       el("p", {class:"muted num"}, `${items.length} ${def.kind === "list" ? def.unit + "s" : "slots"} · ${items.filter(x=>x.by==="you").length} from you · ${items.filter(x=>x.by!=="you").length} from ${p.name} · ${th.round} ${th.round === 1 ? "round" : "rounds"}`)));
     if (def.kind === "slots") { const box = el("div", {class:"buildbox"}); box.append(el("div", {class:"ptitle"}, el("span", null, p.name + " × you"))); box.append(trayEditor(b, p, { editable: false })); s.append(box); }
     else s.append(buildBox(b, p, { title: p.name + " × you" }));
@@ -1252,9 +1352,10 @@ function renderChat(){
     s.append(el("div", {class:"mixtape"}, el("div", {class:"avatars"}, el("div", {class:"avatar"}, "You"), el("div", {class:"avatar", style:photoStyle(p) + ";color:#fff"}, p.name[0])), el("div", null, el("span", {class:"t-caption muted"}, "You liked each other"), el("h2", {class:"t-hero", style:"margin:6px 0 0;font-size:34px"}, "It's a match"))));
   }
   const chat = el("div", {class:"chat"}); chat.append(el("span", {class:"t-caption muted"}, "Chat open"));
-  const opener = th.type ? (() => { const def = btype(th.type); const b = th.build; const yours = def.kind === "list" ? b.items.find(x => x.by === "you") : Object.values(b.slots).find(x => x && x.by === "you"); return yours ? `okay "${primary(yours.v)}" was a good call` : "that came together fast"; })() : "hey :)";
+  const opener = th.via === "asis" ? "ha, okay that made my day. hi." : th.type ? (() => { const def = btype(th.type); const b = th.build; const yours = def.kind === "list" ? b.items.find(x => x.by === "you") : Object.values(b.slots).find(x => x && x.by === "you"); return yours ? `okay "${primary(yours.v)}" was a good call` : "that came together fast"; })() : "hey :)";
+  for (const m of th.messages.filter(m => m.pre)) chat.append(el("div", {class:"bubble"}, m.text));
   chat.append(el("div", {class:"bubble them"}, opener));
-  for (const m of th.messages) chat.append(el("div", {class:"bubble" + (m.who === "them" ? " them" : "")}, m.text));
+  for (const m of th.messages.filter(m => !m.pre)) chat.append(el("div", {class:"bubble" + (m.who === "them" ? " them" : "")}, m.text));
   const ta = el("textarea", {id:"chatText", rows:2, placeholder:"Say something"});
   chat.append(ta, el("button", {class:"btn primary block", onclick: () => { const text = ta.value.trim(); if (!text) { toast("Write something first"); return; } th.messages.push({who:"you", text}); i.messaged = true; logEvent("message_sent", {profileId:p.id, length:text.length}); ui.keepScroll = true; render(); }}, "Send"));
   s.append(el("div", {class:"card tight"}, chat));
@@ -1317,6 +1418,15 @@ function renderResults(){
     const tb = el("tbody"); for (const [t, r] of trows) tb.append(el("tr", null, el("td", null, (btype(t)||{name:t}).name), el("td", {class:"n"}, r.offered), el("td", {class:"n"}, r.started), el("td", {class:"n"}, r.sent), el("td", {class:"n"}, r.sent ? pct(r.aligned, r.sent) + "%" : "–"), el("td", {class:"n"}, r.rounds.length ? median(r.rounds).toFixed(0) : "–"), el("td", {class:"n"}, r.edits.length ? median(r.edits).toFixed(0) : "–"))); tbl.append(tb);
     s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Which builds people choose and finish"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted t-xs"}, "Offered = profiles seen that carried that starter. Chosen = starts. Aligned = of sent. Rounds and edits are medians per build.")));
   }
+  /* Path: remix vs love-as-is vs like */
+  const paths = [["Remixed", all.filter(i => i.sends > 0 && !i.asIs)], ["Loved as is", all.filter(i => i.asIs)], ["Liked", all.filter(i => i.liked && !i.sends)]].filter(([k, a]) => a.length);
+  if (paths.length > 1 || all.some(i => i.asIs)) {
+    const tbl = el("table", null, el("thead", null, el("tr", null, el("th", null, "Path"), el("th", {class:"n"}, "Sent"), el("th", {class:"n"}, "Matched"), el("th", {class:"n"}, "Changed first"), el("th", {class:"n"}, "Passed"), el("th", {class:"n"}, "Messaged"))));
+    const tb = el("tbody");
+    for (const [k, a] of paths) tb.append(el("tr", null, el("td", null, k), el("td", {class:"n"}, a.length), el("td", {class:"n"}, pct(a.filter(i=>i.matched).length, a.length) + "%"), el("td", {class:"n"}, k === "Loved as is" ? a.filter(i=>i.matchBack === "changed").length : "–"), el("td", {class:"n"}, k === "Loved as is" ? a.filter(i=>i.matchBack === "declined").length : "–"), el("td", {class:"n"}, a.filter(i=>i.matched).length ? pct(a.filter(i=>i.messaged).length, a.filter(i=>i.matched).length) + "%" : "–")));
+    tbl.append(tb);
+    s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Remix vs love-as-is vs like"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted t-xs"}, "Does the cheap path convert and message as well as the effortful one? Changed first = they turned an as-is into a build before matching.")));
+  }
   /* Starter count effect */
   const byN = {};
   for (const i of all) { const k = i.nStarters || 0; byN[k] = byN[k] || {n:0, sent:0}; byN[k].n++; if (i.sends > 0 || i.liked) byN[k].sent++; }
@@ -1324,16 +1434,16 @@ function renderResults(){
   if (nrows.length > 1) { const bars = el("div", {class:"bars"}); for (const [k, r] of nrows) bars.append(el("div", {class:"bar"}, el("span", {class:"lab"}, `${k} ${k === "1" ? "starter" : "starters"} on profile`), el("span", {class:"trk"}, el("span", {class:"fill pos", style:`width:${pct(r.sent,r.n)}%`})), el("span", {class:"val"}, pct(r.sent,r.n) + "%"))); s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Build rate by starters on the profile"), bars, el("p", {class:"muted t-xs"}, "Does giving people more ways in get more builds started?"))); }
 
   /* Variant comparison */
-  const tbl = el("table", null, el("thead", null, el("tr", null, el("th", null, "Variant"), el("th", {class:"n"}, "N"), el("th", {class:"n"}, "Build"), el("th", {class:"n"}, "Like"), el("th", {class:"n"}, "Match"), el("th", {class:"n"}, "Msg"), el("th", {class:"n"}, "Rounds"), el("th", {class:"n"}, "NPS"), el("th", {class:"n"}, "Knew"))));
+  const tbl = el("table", null, el("thead", null, el("tr", null, el("th", null, "Variant"), el("th", {class:"n"}, "N"), el("th", {class:"n"}, "Build"), el("th", {class:"n"}, "As is"), el("th", {class:"n"}, "Like"), el("th", {class:"n"}, "Match"), el("th", {class:"n"}, "Msg"), el("th", {class:"n"}, "Rounds"), el("th", {class:"n"}, "NPS"), el("th", {class:"n"}, "Knew"))));
   const tb = el("tbody");
   for (const v of config.variants) {
     const vs = sessions.filter(x => x.variantId === v.id); const a = vs.flatMap(x => x.interactions || []).filter(i => i.viewed);
     const vsent = a.filter(i=>i.sends>0), vl = a.filter(i=>i.liked), vint = a.filter(i=>i.sends>0||i.liked), vm = a.filter(i=>i.matched), vmsg = a.filter(i=>i.messaged);
     const knew = vs.map(x => x.survey && x.survey.knew).filter(n => typeof n === "number");
-    tb.append(el("tr", null, el("td", null, el("b", null, v.id), " ", el("span", {class:"muted"}, v.label)), el("td", {class:"n"}, vs.length), el("td", {class:"n"}, a.length ? pct(vsent.length, a.length) : "–"), el("td", {class:"n"}, v.likeButton ? (a.length ? pct(vl.length, a.length) : "–") : "n/a"), el("td", {class:"n"}, vint.length ? pct(vm.length, vint.length) : "–"), el("td", {class:"n"}, vm.length ? pct(vmsg.length, vm.length) : "–"), el("td", {class:"n"}, vsent.length ? median(vsent.map(i=>i.rounds)).toFixed(0) : "–"), el("td", {class:"n"}, npsText(vs)), el("td", {class:"n"}, knew.length ? mean(knew).toFixed(1) : "–")));
+    tb.append(el("tr", null, el("td", null, el("b", null, v.id), " ", el("span", {class:"muted"}, v.label)), el("td", {class:"n"}, vs.length), el("td", {class:"n"}, a.length ? pct(vsent.filter(i=>!i.asIs).length, a.length) : "–"), el("td", {class:"n"}, v.asIs ? (a.length ? pct(a.filter(i=>i.asIs).length, a.length) : "–") : "n/a"), el("td", {class:"n"}, v.likeButton ? (a.length ? pct(vl.length, a.length) : "–") : "n/a"), el("td", {class:"n"}, vint.length ? pct(vm.length, vint.length) : "–"), el("td", {class:"n"}, vm.length ? pct(vmsg.length, vm.length) : "–"), el("td", {class:"n"}, vsent.length ? median(vsent.map(i=>i.rounds)).toFixed(0) : "–"), el("td", {class:"n"}, npsText(vs)), el("td", {class:"n"}, knew.length ? mean(knew).toFixed(1) : "–")));
   }
   tbl.append(tb);
-  s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Variant comparison"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted t-xs"}, "Build and Like = of people seen. Match = of builds sent or likes. Msg = of matches. Rounds = median per build. Knew = mean agreement (1 to 5) with \"I already knew something about them\".")));
+  s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Variant comparison"), el("div", {class:"tablewrap"}, tbl), el("p", {class:"muted t-xs"}, "Build, As is and Like = of people seen. Match = of builds sent, as-is sends or likes. Msg = of matches. Rounds = median per build. Knew = mean agreement (1 to 5) with \"I already knew something about them\".")));
 
   /* Survey */
   const likerts = config.survey.filter(q => q.type === "likert");
@@ -1353,7 +1463,7 @@ function renderResults(){
     const body = el("div", {class:"body"});
     body.append(el("p", {class:"num"}, `${a.length} seen · ${a.filter(i=>i.passed).length} passed · ${a.filter(i=>i.sends>0).length} built · ${a.filter(i=>i.liked).length} liked · ${a.filter(i=>i.matched).length} aligned · ${a.filter(i=>i.messaged).length} messaged · pitch read for ${fmtMs(x.pitchMs||0)}`));
     if (x.survey) body.append(el("p", {class:"muted num"}, config.survey.filter(q=>q.type!=="text").map(q => `${q.id} ${x.survey[q.id] ?? "–"}`).join(" · ")));
-    body.append(el("div", {class:"chips"}, a.map(i => el("span", {class:"tag " + (i.matched ? "pos" : (i.sends>0||i.liked) ? "" : "neutral")}, `${i.name}${i.buildType ? " · " + (btype(i.buildType)||{name:i.buildType}).name : ""}${i.sends ? " · " + i.edits + " edits" : ""}${i.liked ? " · liked" : ""}${i.matched ? " · aligned" : i.passed ? " · passed" : ""}`))));
+    body.append(el("div", {class:"chips"}, a.map(i => el("span", {class:"tag " + (i.matched ? "pos" : (i.sends>0||i.liked) ? "" : "neutral")}, `${i.name}${i.buildType ? " · " + (btype(i.buildType)||{name:i.buildType}).name : ""}${i.asIs ? " · as is" : i.sends ? " · " + i.edits + " edits" : ""}${i.liked ? " · liked" : ""}${i.matched ? " · aligned" : i.passed ? " · passed" : ""}`))));
     const delBtn = el("button", {class:"btn small danger subtle", onclick: () => { const c = el("div", {class:"confirm"}, el("span", null, "Delete this session? This can't be undone."), el("div", {class:"row"}, el("button", {class:"btn small danger", onclick: () => { sessions = sessions.filter(y => y.id !== x.id); persistSessions(); toast("Session deleted"); render(); }}, "Delete"), el("button", {class:"btn small", onclick: () => c.replaceWith(delBtn)}, "Cancel"))); delBtn.replaceWith(c); }}, "Delete session");
     body.append(el("div", null, delBtn)); d.append(body); sess.append(d);
   }
@@ -1364,8 +1474,8 @@ function tile(v, k, sub){ return el("div", {class:"stat"}, el("span", {class:"v 
 function slug(s){ return String(s||"concept").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"") || "concept"; }
 function exportBundle(){ return { exportedAt: new Date().toISOString(), concept: config.concept.name, variants: config.variants, survey: config.survey, buildTypes: config.buildTypes, profiles: config.profiles.map(p => ({id:p.id, name:p.name, module:(p.module||{}).type, starters:p.builds.map(b=>b.type)})), sessions }; }
 function toCSV(){
-  const rows = [["session","tester","variant","started","completed","profile","starters","viewed","profile_ms","passed","liked","build_type","build_started","start_ms","sends","edits","rounds","replies","ready_by_you","matched","match_via","match_ms","messaged"]];
-  for (const x of sessions) for (const i of (x.interactions||[])) rows.push([x.id, x.tester, x.variantId, x.startedAt, x.completed ? 1 : 0, i.name, (i.starterTypes||[]).join("+"), i.viewed ? 1 : 0, i.profileMs, i.passed ? 1 : 0, i.liked ? 1 : 0, i.buildType || "", i.started ? 1 : 0, i.startMs ?? "", i.sends, i.edits, i.rounds, i.replies, i.readyByYou ? 1 : 0, i.matched ? 1 : 0, i.matchVia || "", i.matchMs ?? "", i.messaged ? 1 : 0]);
+  const rows = [["session","tester","variant","started","completed","profile","starters","viewed","profile_ms","passed","liked","build_type","build_started","start_ms","sends","edits","rounds","replies","ready_by_you","matched","match_via","match_ms","messaged","as_is","note_length","match_back"]];
+  for (const x of sessions) for (const i of (x.interactions||[])) rows.push([x.id, x.tester, x.variantId, x.startedAt, x.completed ? 1 : 0, i.name, (i.starterTypes||[]).join("+"), i.viewed ? 1 : 0, i.profileMs, i.passed ? 1 : 0, i.liked ? 1 : 0, i.buildType || "", i.started ? 1 : 0, i.startMs ?? "", i.sends, i.edits, i.rounds, i.replies, i.readyByYou ? 1 : 0, i.matched ? 1 : 0, i.matchVia || "", i.matchMs ?? "", i.messaged ? 1 : 0, i.asIs ? 1 : 0, i.noteLength || 0, i.matchBack || ""]);
   return rows.map(r => r.map(c => { const s = String(c ?? ""); return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s; }).join(",")).join("\n");
 }
 
@@ -1389,7 +1499,7 @@ function renderSetup(){
   const ta = el("textarea", {class:"code", id:"cfgJson", spellcheck:"false"}); ta.value = JSON.stringify(config, null, 2);
   const err = el("p", {class:"t-small", style:"color:var(--danger)"});
   s.append(el("div", {class:"card tight"}, el("span", {class:"t-caption muted"}, "Full configuration"),
-    el("p", {class:"muted t-small"}, "buildTypes: kind \"list\" (capacity, min, minEach, perTurn, unit) or \"slots\" (slots [{id,label}], perTurn). library: what the tester can add (tracks, titles, plan.{when,vibe,place,do}, dinner.{beverage,...}). otherPools: what the other side replies with. Profiles carry orbit (places) and builds: [{type, items}] for lists or [{type, slots:{id:value}}] for slot builds, one to three each. Variants: likeButton, agreeChance, replyDelayMs, optional pitch."),
+    el("p", {class:"muted t-small"}, "buildTypes: kind \"list\" (capacity, min, minEach, perTurn, unit) or \"slots\" (slots [{id,label}], perTurn). library: what the tester can add (tracks, titles, plan.{when,vibe,place,do}, dinner.{beverage,...}). otherPools: what the other side replies with. Profiles carry orbit (places) and builds: [{type, items}] for lists or [{type, slots:{id:value}}] for slot builds, one to three each. Variants: likeButton, asIs (double-tap to love it as is), agreeChance, replyDelayMs, optional pitch. session.asIsPerSession caps as-is sends."),
     ta, err,
     el("div", {class:"row"},
       el("button", {class:"btn primary small", onclick: () => { try { const parsed = JSON.parse(ta.value); if (!parsed.variants || !parsed.variants.length) throw new Error("At least one variant is required"); for (const v of parsed.variants) if (!v.id) throw new Error("Every variant needs an id"); config = normalizeConfig(parsed); err.textContent = ""; saveConfig("Configuration applied"); } catch (e) { err.textContent = "Not applied: " + e.message; } }}, "Apply"),

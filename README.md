@@ -2,19 +2,30 @@
 
 A phone app for testing a dating app concept before you build the real thing.
 
-The concept under test: **profiles are playlists**. There is no like button.
-To show interest you remix someone's playlist (add a track from your library,
-or swap one of theirs for yours) and send it back. The two of you go back and
-forth, and when you both agree it's ready it becomes a **mixtape**. Only then
-does the chat unlock. The hypothesis is that interactivity through music
-builds mutual interest *before* a match, so conversations start warmer.
+The concept under test: **you build something together before you match**.
+Every profile carries one to three half-finished starter builds. There is no
+like button. To show interest you pick one of someone's builds, add your part
+or counter theirs, and send it back. The two of you go back and forth, and
+when you both agree it's done, that's the match. Only then does the chat open.
 
-Hand your phone to a tester. They read a short pitch, browse a feed of profile
-cards, open profiles, remix playlists, get simulated replies, agree on a
-mixtape, send a first message, and answer a short survey. You get the funnel
-(seen → opened → remixed → replied → ready → mixtape → messaged), edit counts,
-rounds, timings and survey scores, split by variant and exportable as JSON or
-CSV.
+Four build types ship, all driven by one engine:
+
+| build | kind | slots / rules |
+|---|---|---|
+| **Mixtape** | list | up to 8 tracks, at least 2 from each person, 2 changes a turn |
+| **Watchlist** | list | up to 6 films or shows, at least 2 each, 2 changes a turn |
+| **The Plan** | slots | When, Vibe, Where, What we'll do. Where draws from both people's orbit (places) |
+| **Dinner** | slots | Beverage, Appetizer, Main, Sides, Dessert |
+
+Slot builds are done when every slot is filled and both people filled at
+least one. List builds are done at the minimum length with the minimum from
+each side. Either way both people have to say it's done before it aligns.
+
+Hand your phone to a tester. They read a short pitch, go through people one at
+a time (full profile, global Pass), start a build or pass, get simulated
+replies in Builds, align, and chat. Results give you the funnel, which builds
+people choose and finish, rounds and edits per build, the effect of how many
+starters a profile has, and survey scores, split by variant.
 
 It is a single HTML file plus a manifest and service worker, so it runs in any
 phone browser and installs to the home screen like a native app. No build
@@ -30,12 +41,11 @@ Shadow, Liquid glass) and Typography (DM Sans scale, DM Mono captions,
 Bricolage Grotesque for the Title Hero).
 
 Components follow their Spades counterparts: Button, Icon Button, Tag and Tag
-Toggle, Input Field, Textarea, Stats Card, Avatar. The feed uses the **Feed
-Card** family from the Cards page (card header, UFI wave / remix / save
-buttons, and the seven modules: Most listened to, Just played, Now playing,
-Going to, Mutuals, In your orbit, voice note). The playlist and its Remix
-button follow the `playlist full` frame ("Put your own spin on it and send it
-back"), and the "shared" / "you added" badges follow `badge micro`.
+Toggle, Input Field, Textarea, Stats Card, Avatar. Profiles use the Feed Card modules from the Cards page (Most listened to,
+Just played, Now playing, Going to, Mutuals, In your orbit, voice note). The
+build editor follows the `playlist full` frame (rows with cover, title,
+artist, and the "shared" / "yours" micro badges), and the starter cards and
+slot chips use Tag and Card.
 
 Photos are tinted placeholders because this environment cannot download Figma
 assets. Add a `photo` URL to any profile in Setup to use a real image.
@@ -57,48 +67,51 @@ Then Share → **Add to Home Screen**.
 1. **Test tab.** Type the tester's name, pick a variant or leave it on
    auto-assign, tap Start, hand the phone over.
 2. **Pitch.** Three slides. Time spent is recorded.
-3. **Feed.** A scrolling list of Feed Cards. Cards count as seen when half
-   visible. Tapping a card, or its remix button, opens the full profile.
-4. **Profile.** Photo, bio, listening module, shared-artist count, and the
-   playlist. **Remix** turns the playlist editable: add a track from the
-   tester's library, or swap one of theirs. **Send it back** creates a mix.
-5. **Mixes.** The other person replies after a configurable delay, adding one
-   or two tracks of their own. The tester can add more and send another round,
-   or say **It's ready**. When both agree, it's a mixtape and the chat unlocks.
-   The tester can send one message.
-6. **Survey** and **Save session**.
+3. **People.** One full profile at a time: photo, bio, listening module, their
+   orbit (places, with the ones in the tester's orbit marked), shared counts,
+   and their starter builds. **Pass** moves on. Tapping a starter's action
+   (Remix, Curate, Plan, Cook) opens the editor.
+4. **Editor.** Fill open slots, counter theirs, add to a list or swap, within
+   the per-turn limit. **Send it back** creates the build and moves to the
+   next person. One build per person at a time.
+5. **Builds.** The other person replies after a delay: fills slots, adds
+   items, occasionally counters. The tester makes changes and sends another
+   round, or says **It's done** once the rules are met. When both agree, it
+   aligns.
+6. **Chats.** Aligned builds live here with the finished artifact and an open
+   chat. The tester can send a message.
+7. **Survey** and **Save session**.
 
-Variant B adds a classic like button on cards and profiles. Likes match with a
-configurable chance and unlock chat directly, so you can compare the remix path
+Variant B adds a classic like button on profiles. Likes match with a
+configurable chance and open chat directly, so the build path can be measured
 against the path everyone already knows.
 
-**Results tab** shows remix rate, edits per remix, mixtape rate, message rate,
-the funnel, a per-variant table (open, remix, like, match, message rates,
-median rounds, NPS, and the "I already knew something about them" score), open
-rate by card module, the tracks testers reach for most, survey averages,
-quotes, and every session with a delete button.
+**Results tab** shows build rate, started-to-sent conversion, aligned rate,
+message rate, the funnel, a table of which builds are offered, chosen, sent and
+aligned (with median rounds and edits), build rate by number of starters on
+the profile, a per-variant table, survey averages, quotes, and every session.
 
 ## Configuration
 
 Everything is editable in Setup, as a form for the basics and JSON for the rest.
 
-Variant fields:
+Build types (`buildTypes`): `kind` is `list` (`capacity`, `min`, `minEach`,
+`perTurn`, `unit`) or `slots` (`slots: [{id, label}]`, `perTurn`), plus
+`name`, `verb`, `icon`, `startHint`, `editTitle`, `doneTitle`. Add a type here
+and give profiles starters of that type and it works end to end.
 
-| field | what it does |
-|---|---|
-| `likeButton` | `true` adds a classic like to cards and profiles |
-| `readyAfterRounds` | replies needed before "It's ready" unlocks (default 1) |
-| `agreeChance` | 0 to 1, how often the other person agrees once asked |
-| `replyDelayMs` | how long the other person takes to send the mix back |
-| `pitch` | optional pitch override for this variant |
-
-Session fields: `cardsPerSession` (feed length), `likeMatchChance` (like
-variants), `assignVariant` (`alternate` or `random`).
+`library` is what the tester can add: `tracks`, `titles`, `plan.{when, vibe,
+place, do}`, `dinner.{beverage, appetizer, main, sides, dessert}`. The Plan's
+Where picker also offers the other person's `orbit`, grouped by whose orbit
+it is. `otherPools` is what the simulated other side replies with.
 
 Profiles carry `name`, `age`, `hood`, `dist`, `hue`, optional `photo`, `bio`,
-a `module` for the card, a `playlist` (the four tracks on their profile) and
-`more` (the tracks they add in replies). `library` is the tester's own tracks,
-which is what the Add and Swap sheets offer.
+a `module`, an `orbit` (places) and `builds`: one to three starters, each
+`{type, items}` for lists or `{type, slots: {id: value}}` for slot builds.
+Leave slots open for the other person to fill.
+
+Variant fields: `likeButton`, `agreeChance` (0 to 1), `replyDelayMs`, optional
+`pitch`. Session fields: `peoplePerSession`, `likeMatchChance`, `assignVariant`.
 
 Survey question types: `likert` (1 to 5), `nps` (0 to 10), `text`.
 
@@ -108,7 +121,8 @@ Everything is stored in the phone browser's local storage. Nothing leaves the
 device unless you export it. Export after each round of testing.
 
 - **JSON**: full bundle, including config, every session's interactions,
-  threads (each round's tracks and who added them) and the event log.
-- **CSV**: one row per profile the tester saw, with viewed / opened / open
-  source / time in profile / liked / sends / tracks added / swapped / rounds /
-  replies / ready / matched / match via / time to match / messaged.
+  builds (every slot or item and who contributed it, by round) and the event
+  log.
+- **CSV**: one row per person the tester saw, with starters offered, time on
+  profile, passed, liked, build type, started, time to start, sends, edits,
+  rounds, replies, ready, aligned, aligned via, time to align, messaged.

@@ -40,6 +40,18 @@ step, no backend, no app store.
 
 ## Design source
 
+The current look is modelled on the Airbnb app rather than Spades: a single
+light theme, Figtree standing in for Airbnb Cereal, Rausch (#FF385C) only on
+primary actions and the active tab, #222 text with #717171 secondary, #DDD
+hairlines, 8px buttons, 12px cards, a pill search field with a soft layered
+shadow, a listing-style profile (edge-to-edge photo, sections split by
+hairlines, sticky bottom bar) and Airbnb-style modals with an X at the top
+left and a footer with a text link and a primary button. The Spades tokens
+and components described below were the previous iteration and remain the
+source for the Feed Card modules.
+
+### Previous source: Spades
+
 The UI is built on the **Spades Design System** Figma file
 (`Qrx7kdcMXnddTjPytlIF9x`). The CSS custom properties at the top of
 `index.html` mirror Spades variables one to one: Color (SDS Light and SDS Dark
@@ -82,13 +94,13 @@ Then Share → **Add to Home Screen**.
 4. **Editing.** Two patterns, by build kind.
    - **Slot builds (The Plan, Dinner) edit inline.** On the profile they sit
      as a fanned stack of tiles. Tap the stack or the verb and it fans out in
-     place into a tray, one tile per slot, with a finder underneath: search
-     plus your options. Tap a tile and tap a result, or drag a result onto
-     its tile, and it drops in. Drop it on the wrong tile and it shakes it
-     off. Your tiles get a green edge; tap one to put the original back.
-   - **List builds (Mixtape, Watchlist) edit in a bottom sheet.** Swap or add
-     from your library; picking a value swaps the sheet to the library view
-     and back.
+     place into a tray, one tile per slot, with a search-first finder under
+     it: a search pill and three suggestions. Tap a tile then a suggestion,
+     type to see up to six matches, or drag a suggestion onto its tile, and
+     it drops in. Drop it on the wrong tile and it shakes it off. Tap one of
+     yours to put the original back.
+   - **List builds (Mixtape, Watchlist) edit in a sheet.** Swap or add; the
+     picker is the same search pill with three suggestions.
 
    Both respect the per-turn change limit. **Send it back** creates the build
    and moves to the next person. One build per person at a time.

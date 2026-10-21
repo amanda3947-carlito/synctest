@@ -1,5 +1,5 @@
 /* Offline shell for Sync Concept Lab. Bump CACHE when you change the app. */
-const CACHE = "scl-v6";
+const CACHE = "scl-v7";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {

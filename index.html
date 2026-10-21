@@ -229,6 +229,30 @@ textarea.code{font-family:var(--font-mono);font-size:12px;line-height:1.5;min-he
 .shared-count b{font-weight:700}
 .shared-count svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 
+/* About section (events, orbit, mutuals) */
+.about{display:flex;flex-direction:column;gap:var(--sp-400);padding:var(--sp-400) 20px;border-radius:var(--r-800);background:#2c2c2c;color:#f3f3f3}
+.about .facet{display:flex;flex-direction:column;gap:var(--sp-200)}
+.about .facet .title{display:flex;align-items:center;gap:var(--sp-150);font-size:14px;line-height:1;height:20px;color:rgba(243,243,243,.85)}
+.about .facet .title svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.about .events{display:flex;flex-direction:column;gap:var(--sp-300)}
+.about .mutual{display:flex;align-items:center;gap:var(--sp-300)}
+.about .mutual .faces{display:flex}
+.about .mutual .faces i{width:36px;height:36px;border-radius:var(--r-200);border:2px solid #2c2c2c;display:flex;align-items:center;justify-content:center;font-family:var(--font-hero);font-weight:700;color:rgba(255,255,255,.9);font-size:14px}
+.about .mutual .faces i+i{margin-left:-8px}
+.about .mutual .names{font-size:14px;line-height:1.4}
+.about .mutual .names span{color:rgba(243,243,243,.7)}
+/* Profile builds shown in full, with the remix bar from the Figma playlist */
+.remixbar{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-400);padding-top:var(--sp-200)}
+.remixbar .hint{font-size:12px;line-height:1.4;color:var(--fg);max-width:18ch}
+.remixbtn{display:inline-flex;align-items:center;gap:var(--sp-200);height:34px;padding:0 var(--sp-400);border-radius:18px;background:rgba(0,0,0,.7);color:#f5f5f5;font-size:14px;font-weight:600;border:1px solid #fff;box-shadow:-3px -3px 24px var(--accent-chrome),6px 8px 50px rgba(128,122,158,.15),3px 5px 28px rgba(186,240,178,.2),inset -4px -4px 12px rgba(0,0,0,.7),inset 3px 3px 12px rgba(140,133,178,.08);white-space:nowrap}
+.remixbtn:disabled{opacity:.45;box-shadow:none}
+.remixbtn svg{width:18px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.buildbox .bhead{display:flex;align-items:center;gap:var(--sp-200)}
+.buildbox .bhead svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.buildbox .bhead .kd{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--fg-2);margin-left:auto}
+.sheet.tall{max-height:88%;padding-bottom:0}
+.sheet .sfoot{position:sticky;bottom:0;background:var(--bg);padding:var(--sp-300) 0 calc(var(--sp-400) + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:var(--sp-200)}
+.sheet .plist .pitem{min-height:68px}
 /* Starter builds on a profile */
 .starters{display:flex;flex-direction:column;gap:var(--sp-300)}
 .starter{border:1px solid var(--border);border-radius:var(--r-600);padding:var(--sp-400);display:flex;flex-direction:column;gap:var(--sp-300);background:var(--bg);box-shadow:var(--shadow-100)}
@@ -409,11 +433,11 @@ function playGlyph(){ const n = document.createElementNS("http://www.w3.org/2000
    Every type: `perTurn` changes per turn; the other side replies from `pool` (their options). */
 const T = (t, a) => ({ t, a });
 const BUILD_TYPES = {
-  mixtape:   { name:"Mixtape",   verb:"Remix",  icon:"music", kind:"list",  unit:"track", capacity:8, min:4, minEach:2, perTurn:2, startHint:"Add a track or swap one of theirs", editTitle:"Remixing {name}'s mixtape", doneTitle:"It's a mixtape" },
-  watchlist: { name:"Watchlist", verb:"Curate", icon:"film",  kind:"list",  unit:"title", capacity:6, min:4, minEach:2, perTurn:2, startHint:"Add a film or show, or swap one of theirs", editTitle:"Curating {name}'s watchlist", doneTitle:"It's a watchlist" },
-  plan:      { name:"The Plan",  verb:"Plan",   icon:"map",   kind:"slots", perTurn:2, startHint:"Fill what's open, or counter what's there", editTitle:"Planning a day with {name}", doneTitle:"It's a plan",
+  mixtape:   { name:"Mixtape",   verb:"Remix",  icon:"music", kind:"list",  unit:"track", capacity:8, min:4, minEach:2, perTurn:2, startHint:"Swap in yours or add to it", editTitle:"Remixing {name}'s mixtape", doneTitle:"It's a mixtape" },
+  watchlist: { name:"Watchlist", verb:"Curate", icon:"film",  kind:"list",  unit:"title", capacity:6, min:4, minEach:2, perTurn:2, startHint:"Swap in yours or add to it", editTitle:"Curating {name}'s watchlist", doneTitle:"It's a watchlist" },
+  plan:      { name:"The Plan",  verb:"Plan",   icon:"map",   kind:"slots", perTurn:2, startHint:"Counter any part of it", editTitle:"Planning a day with {name}", doneTitle:"It's a plan",
                slots:[{id:"when", label:"When"}, {id:"vibe", label:"Vibe"}, {id:"place", label:"Where"}, {id:"do", label:"What we'll do"}] },
-  dinner:    { name:"Dinner",    verb:"Cook",   icon:"fork",  kind:"slots", perTurn:2, startHint:"Fill a course, or counter one of theirs", editTitle:"Cooking dinner with {name}", doneTitle:"It's a dinner",
+  dinner:    { name:"Dinner",    verb:"Cook",   icon:"fork",  kind:"slots", perTurn:2, startHint:"Counter any course", editTitle:"Cooking dinner with {name}", doneTitle:"It's a dinner",
                slots:[{id:"beverage", label:"Beverage"}, {id:"appetizer", label:"Appetizer"}, {id:"main", label:"Main"}, {id:"sides", label:"Sides"}, {id:"dessert", label:"Dessert"}] }
 };
 
@@ -421,6 +445,7 @@ const BUILD_TYPES = {
 const DEFAULT_LIBRARY = {
   tracks: [T("Ooh","Kehlani"),T("Snooze","SZA"),T("Pink + White","Frank Ocean"),T("Get You","Daniel Caesar"),T("Blood On Me","Sampha"),T("Redbone","Childish Gambino"),T("Bad Habit","Steve Lacy"),T("Exchange","Bryson Tiller"),T("Electric Feel","MGMT"),T("Essence","Wizkid"),T("Water","Tyla"),T("Cruel Summer","Taylor Swift"),T("Glory Box","Portishead"),T("Back On 74","Jungle"),T("Nights","Frank Ocean"),T("Kiss Me More","Doja Cat")],
   titles: [T("Do the Right Thing","film"),T("Past Lives","film"),T("The Bear","TV"),T("Russian Doll","TV"),T("Moonlight","film"),T("Atlanta","TV"),T("Frances Ha","film"),T("Severance","TV"),T("Spider-Verse","film"),T("Succession","TV"),T("Everything Everywhere All at Once","film"),T("Girls","TV"),T("Uncut Gems","film"),T("Abbott Elementary","TV")],
+  events: [{month:"Sep", day:21, title:"Jungle", place:"Forest Hills Stadium"},{month:"Oct", day:4, title:"First Saturday", place:"Brooklyn Museum"}],
   plan: {
     when: ["Saturday morning","Weekday after work","Golden hour","Late night","Sunday afternoon"],
     vibe: ["Low-key","Loud","Nostalgic","Fancy for no reason","Sweaty","Cozy","Competitive","Spontaneous"],
@@ -456,44 +481,56 @@ const OTHER_POOLS = {
 
 /* ---------- Sample profiles. Each has 1 to 3 starter builds (partial, for the other person to finish). ---------- */
 const DEFAULT_PROFILES = [
-  { id:"p1", name:"Frankie", age:26, hood:"Bed Stuy", dist:"2 mi", hue:200, bio:"Record store on Saturdays, bodega cat on Sundays.", module:{type:"mostListened", artists:["Kehlani","Daniel Caesar","Sampha","Bryson Tiller"]}, orbit:["Balthazar","Public Records","Mountain Brewing"],
-    builds:[{type:"mixtape", items:[T("Ooh","Kehlani"),T("Get You","Daniel Caesar"),T("Blood On Me","Sampha"),T("Exchange","Bryson Tiller")]},
-            {type:"plan", slots:{when:"Golden hour", place:"Public Records"}},
-            {type:"watchlist", items:[T("Do the Right Thing","film"),T("Atlanta","TV"),T("Crooklyn","film")]}] },
-  { id:"p2", name:"Christopher", age:26, hood:"Bed Stuy", dist:"2 mi", hue:28, bio:"Will DJ the car ride whether you asked or not.", module:{type:"nowPlaying", track:"Ooh", artist:"Kehlani"}, orbit:["Baby's All Right","Nitehawk Prospect Park","Rough Trade"],
-    builds:[{type:"mixtape", items:[T("Ooh","Kehlani"),T("Snooze","SZA"),T("Pink + White","Frank Ocean"),T("Bad Habit","Steve Lacy")]},
-            {type:"dinner", slots:{main:"A Lucali-style pie", dessert:"Spumoni from L&B"}}] },
-  { id:"p3", name:"Nia", age:29, hood:"Crown Heights", dist:"3 mi", hue:300, bio:"Jazz on vinyl, rap in the kitchen.", module:{type:"justPlayed", track:"Get You", artist:"Daniel Caesar"}, orbit:["Bar Great Harry","Prospect Park","Di Fara"],
-    builds:[{type:"dinner", slots:{beverage:"A proper martini", main:"Braised oxtail", sides:"Rice and peas"}},
-            {type:"mixtape", items:[T("Get You","Daniel Caesar"),T("Cranes in the Sky","Solange"),T("Redbone","Childish Gambino"),T("Location","Khalid")]}] },
-  { id:"p4", name:"Theo", age:31, hood:"Williamsburg", dist:"5 mi", hue:210, bio:"Floor tickets or nothing.", module:{type:"event", month:"Aug", day:7, title:"Chris Brown & Usher", place:"East Rutherford, NJ"}, orbit:["Elsewhere","The Commodore","Union Pool"],
-    builds:[{type:"plan", slots:{vibe:"Loud", do:"Catch a set"}}] },
-  { id:"p5", name:"Maya", age:27, hood:"Fort Greene", dist:"1 mi", hue:340, bio:"Friends say I overshare playlists. Correct.", module:{type:"mutuals", count:3, names:["Jordan","Sam","Lee"]}, orbit:["Smorgasburg","Brooklyn Bridge Park","Nowadays"],
+  { id:"p1", name:"Frankie", age:26, hood:"Bed Stuy", dist:"2 mi", hue:200, bio:"Record store on Saturdays, bodega cat on Sundays.",
+    events:[{month:"Aug", day:7, title:"Chris Brown & Usher", place:"East Rutherford, NJ"}], orbit:["Balthazar","Public Records","Mountain Brewing"], mutuals:["Jordan","Sam","Lee"],
+    builds:[{type:"mixtape", items:[T("Ooh","Kehlani"),T("Get You","Daniel Caesar"),T("Blood On Me","Sampha"),T("Exchange","Bryson Tiller"),T("After Hours","Kehlani"),T("Best Part","Daniel Caesar")]},
+            {type:"plan", slots:{when:"Golden hour", vibe:"Low-key", place:"Public Records", do:"Catch a set"}},
+            {type:"watchlist", items:[T("Do the Right Thing","film"),T("Atlanta","TV"),T("Crooklyn","film"),T("Insecure","TV")]}] },
+  { id:"p2", name:"Christopher", age:26, hood:"Bed Stuy", dist:"2 mi", hue:28, bio:"Will DJ the car ride whether you asked or not.",
+    events:[{month:"Sep", day:21, title:"Jungle", place:"Forest Hills Stadium"}], orbit:["Baby's All Right","Nitehawk Prospect Park","Rough Trade"], mutuals:["Priya"],
+    builds:[{type:"mixtape", items:[T("Ooh","Kehlani"),T("Snooze","SZA"),T("Pink + White","Frank Ocean"),T("Bad Habit","Steve Lacy"),T("Kill Bill","SZA"),T("Nights","Frank Ocean")]},
+            {type:"dinner", slots:{beverage:"Brooklyn Lager", appetizer:"Garlic knots from Lucali", main:"A Lucali-style pie", sides:"Caesar salad", dessert:"Spumoni from L&B"}}] },
+  { id:"p3", name:"Nia", age:29, hood:"Crown Heights", dist:"3 mi", hue:300, bio:"Jazz on vinyl, rap in the kitchen.",
+    events:[{month:"Oct", day:4, title:"First Saturday", place:"Brooklyn Museum"}], orbit:["Bar Great Harry","Prospect Park","Di Fara"], mutuals:[],
+    builds:[{type:"dinner", slots:{beverage:"A proper martini", appetizer:"Shrimp cocktail", main:"Braised oxtail", sides:"Rice and peas", dessert:"Rice pudding"}},
+            {type:"mixtape", items:[T("Get You","Daniel Caesar"),T("Cranes in the Sky","Solange"),T("Redbone","Childish Gambino"),T("Location","Khalid"),T("Japanese Denim","Daniel Caesar"),T("Losing You","Solange")]}] },
+  { id:"p4", name:"Theo", age:31, hood:"Williamsburg", dist:"5 mi", hue:210, bio:"Floor tickets or nothing.",
+    events:[{month:"Aug", day:7, title:"Chris Brown & Usher", place:"East Rutherford, NJ"},{month:"Sep", day:13, title:"Burna Boy", place:"Barclays Center"}], orbit:["Elsewhere","The Commodore","Union Pool"], mutuals:["Sam"],
+    builds:[{type:"plan", slots:{when:"Friday after work", vibe:"Loud", place:"Elsewhere", do:"Catch a set"}}] },
+  { id:"p5", name:"Maya", age:27, hood:"Fort Greene", dist:"1 mi", hue:340, bio:"Friends say I overshare playlists. Correct.",
+    events:[], orbit:["Smorgasburg","Brooklyn Bridge Park","Nowadays"], mutuals:["Jordan","Sam","Lee"],
     builds:[{type:"watchlist", items:[T("Past Lives","film"),T("Insecure","TV"),T("Aftersun","film"),T("Beef","TV")]},
-            {type:"mixtape", items:[T("Snooze","SZA"),T("Kiss Me More","Doja Cat"),T("Water","Tyla"),T("Boy's a liar Pt. 2","PinkPantheress")]},
-            {type:"plan", slots:{when:"Sunday brunch", place:"Smorgasburg", do:"Dumplings and a walk"}}] },
-  { id:"p6", name:"Marcus", age:33, hood:"Clinton Hill", dist:"2 mi", hue:140, bio:"Knows which bar has the best speakers.", module:{type:"places", places:[{name:"Balthazar", note:"weekly", shared:true},{name:"Public Records"},{name:"Mountain Brewing"}]}, orbit:["Balthazar","Public Records","Mountain Brewing"],
-    builds:[{type:"plan", slots:{when:"Friday after work", vibe:"Low-key", place:"Public Records"}},
-            {type:"dinner", slots:{beverage:"Natural wine from Four Horsemen", appetizer:"Oysters, a dozen"}}] },
-  { id:"p7", name:"Sofia", age:25, hood:"Bushwick", dist:"4 mi", hue:50, bio:"Sings in the shower, badly, with conviction.", module:{type:"voice", seconds:17}, orbit:["Roberta's","Elsewhere","Nowadays"],
-    builds:[{type:"mixtape", items:[T("Pink + White","Frank Ocean"),T("Cruel Summer","Taylor Swift"),T("Espresso","Sabrina Carpenter"),T("Good Luck, Babe!","Chappell Roan")]},
-            {type:"watchlist", items:[T("Girls","TV"),T("Lady Bird","film"),T("High Maintenance","TV")]},
-            {type:"dinner", slots:{main:"Pasta alla vodka", dessert:"Affogato"}}] },
-  { id:"p8", name:"Daniel", age:30, hood:"Prospect Heights", dist:"3 mi", hue:0, bio:"Album person, not a singles person.", module:{type:"mostListened", artists:["Frank Ocean","SZA","Steve Lacy","Tyler"]}, orbit:["Academy Records, Greenpoint","Prospect Park","Bar Great Harry"],
-    builds:[{type:"mixtape", items:[T("Nights","Frank Ocean"),T("Good Days","SZA"),T("Dark Red","Steve Lacy"),T("See You Again","Tyler, The Creator")]}] },
-  { id:"p9", name:"Amara", age:28, hood:"Park Slope", dist:"4 mi", hue:170, bio:"Headphones on means I'm thinking, not ignoring you.", module:{type:"nowPlaying", track:"Snooze", artist:"SZA"}, orbit:["Nitehawk Prospect Park","Prospect Park","Union Hall"],
-    builds:[{type:"plan", slots:{when:"Saturday afternoon", vibe:"Competitive", do:"Bocce at Union Hall"}},
+            {type:"mixtape", items:[T("Snooze","SZA"),T("Kiss Me More","Doja Cat"),T("Water","Tyla"),T("Boy's a liar Pt. 2","PinkPantheress"),T("Good Days","SZA"),T("Houdini","Dua Lipa")]},
+            {type:"plan", slots:{when:"Sunday brunch", vibe:"Low-key", place:"Smorgasburg", do:"Dumplings and a walk"}}] },
+  { id:"p6", name:"Marcus", age:33, hood:"Clinton Hill", dist:"2 mi", hue:140, bio:"Knows which bar has the best speakers.",
+    events:[{month:"Sep", day:27, title:"Public Records 5th birthday", place:"Public Records"}], orbit:["Balthazar","Public Records","Mountain Brewing"], mutuals:["Lee"],
+    builds:[{type:"plan", slots:{when:"Friday after work", vibe:"Low-key", place:"Public Records", do:"Oysters and a spritz"}},
+            {type:"dinner", slots:{beverage:"Natural wine from Four Horsemen", appetizer:"Oysters, a dozen", main:"Grilled branzino", sides:"Charred broccolini", dessert:"Affogato"}}] },
+  { id:"p7", name:"Sofia", age:25, hood:"Bushwick", dist:"4 mi", hue:50, bio:"Sings in the shower, badly, with conviction.",
+    events:[{month:"Oct", day:18, title:"Chappell Roan", place:"Forest Hills Stadium"}], orbit:["Roberta's","Elsewhere","Nowadays"], mutuals:[],
+    builds:[{type:"mixtape", items:[T("Pink + White","Frank Ocean"),T("Cruel Summer","Taylor Swift"),T("Espresso","Sabrina Carpenter"),T("Good Luck, Babe!","Chappell Roan"),T("Sweet Nothing","Taylor Swift"),T("Pink Pony Club","Chappell Roan")]},
+            {type:"watchlist", items:[T("Girls","TV"),T("Lady Bird","film"),T("High Maintenance","TV"),T("Frances Ha","film")]},
+            {type:"dinner", slots:{beverage:"Aperol spritz", appetizer:"Burrata and peaches", main:"Pasta alla vodka", sides:"Grilled corn", dessert:"Affogato"}}] },
+  { id:"p8", name:"Daniel", age:30, hood:"Prospect Heights", dist:"3 mi", hue:0, bio:"Album person, not a singles person.",
+    events:[], orbit:["Academy Records, Greenpoint","Prospect Park","Bar Great Harry"], mutuals:["Priya","Jonah"],
+    builds:[{type:"mixtape", items:[T("Nights","Frank Ocean"),T("Good Days","SZA"),T("Dark Red","Steve Lacy"),T("See You Again","Tyler, The Creator"),T("White Ferrari","Frank Ocean"),T("Earfquake","Tyler, The Creator")]}] },
+  { id:"p9", name:"Amara", age:28, hood:"Park Slope", dist:"4 mi", hue:170, bio:"Headphones on means I'm thinking, not ignoring you.",
+    events:[{month:"Oct", day:4, title:"First Saturday", place:"Brooklyn Museum"}], orbit:["Nitehawk Prospect Park","Prospect Park","Union Hall"], mutuals:["Jonah"],
+    builds:[{type:"plan", slots:{when:"Saturday afternoon", vibe:"Competitive", place:"Union Hall", do:"Bocce at Union Hall"}},
             {type:"watchlist", items:[T("Severance","TV"),T("Columbus","film"),T("Reservation Dogs","TV"),T("Minari","film")]}] },
-  { id:"p10", name:"Felix", age:32, hood:"Greenpoint", dist:"6 mi", hue:240, bio:"Sound engineer. I will notice the mix.", module:{type:"event", month:"Sep", day:21, title:"Jungle", place:"Forest Hills, NY"}, orbit:["Academy Records, Greenpoint","Baby's All Right","Rough Trade"],
-    builds:[{type:"mixtape", items:[T("Back On 74","Jungle"),T("Busy Earnin'","Jungle"),T("Dreams","Fleetwood Mac"),T("Get Lucky","Daft Punk")]},
-            {type:"plan", slots:{vibe:"Nostalgic", place:"Academy Records, Greenpoint", do:"Record digging"}}] },
-  { id:"p11", name:"Hana", age:30, hood:"Carroll Gardens", dist:"3 mi", hue:100, bio:"Pub quiz music round champion, three years running.", module:{type:"mutuals", count:2, names:["Priya","Jonah"]}, orbit:["Bar Great Harry","Sunny's Bar, Red Hook","Court Pastry"],
-    builds:[{type:"dinner", slots:{appetizer:"Clams casino", main:"Grilled branzino", dessert:"Lemon ice from Court Pastry"}},
-            {type:"watchlist", items:[T("The Sopranos","TV"),T("Uncut Gems","film"),T("Mo","TV")]}] },
-  { id:"p12", name:"Rafael", age:34, hood:"Dumbo", dist:"5 mi", hue:20, bio:"Will suggest a gallery. You're allowed to say no.", module:{type:"places", places:[{name:"Nowadays", note:"monthly", shared:true},{name:"Elsewhere"},{name:"Baby's All Right"}]}, orbit:["Nowadays","Dumbo waterfront","Elsewhere"],
-    builds:[{type:"plan", slots:{when:"Golden hour", place:"Dumbo waterfront", do:"A gallery, then drinks"}},
-            {type:"dinner", slots:{beverage:"Pét-nat", main:"Mushroom risotto", sides:"Charred broccolini"}},
-            {type:"mixtape", items:[T("Glory Box","Portishead"),T("Teardrop","Massive Attack"),T("Breathe","Télépopmusik"),T("Porcelain","Moby")]}] }
+  { id:"p10", name:"Felix", age:32, hood:"Greenpoint", dist:"6 mi", hue:240, bio:"Sound engineer. I will notice the mix.",
+    events:[{month:"Sep", day:21, title:"Jungle", place:"Forest Hills Stadium"}], orbit:["Academy Records, Greenpoint","Baby's All Right","Rough Trade"], mutuals:[],
+    builds:[{type:"mixtape", items:[T("Back On 74","Jungle"),T("Busy Earnin'","Jungle"),T("Dreams","Fleetwood Mac"),T("Get Lucky","Daft Punk"),T("Keep Moving","Jungle"),T("Instant Crush","Daft Punk")]},
+            {type:"plan", slots:{when:"Saturday morning", vibe:"Nostalgic", place:"Academy Records, Greenpoint", do:"Record digging"}}] },
+  { id:"p11", name:"Hana", age:30, hood:"Carroll Gardens", dist:"3 mi", hue:100, bio:"Pub quiz music round champion, three years running.",
+    events:[{month:"Sep", day:9, title:"Trivia finals", place:"Bar Great Harry"}], orbit:["Bar Great Harry","Sunny's Bar, Red Hook","Court Pastry"], mutuals:["Sam","Lee"],
+    builds:[{type:"dinner", slots:{beverage:"Sancerre", appetizer:"Clams casino", main:"Grilled branzino", sides:"Roast potatoes", dessert:"Lemon ice from Court Pastry"}},
+            {type:"watchlist", items:[T("The Sopranos","TV"),T("Uncut Gems","film"),T("Mo","TV"),T("Paterson","film")]}] },
+  { id:"p12", name:"Rafael", age:34, hood:"Dumbo", dist:"5 mi", hue:20, bio:"Will suggest a gallery. You're allowed to say no.",
+    events:[{month:"Oct", day:11, title:"Nowadays Nonstop", place:"Nowadays"}], orbit:["Nowadays","Dumbo waterfront","Elsewhere"], mutuals:["Priya"],
+    builds:[{type:"plan", slots:{when:"Golden hour", vibe:"Fancy for no reason", place:"Dumbo waterfront", do:"A gallery, then drinks"}},
+            {type:"dinner", slots:{beverage:"Pét-nat", appetizer:"Padron peppers", main:"Mushroom risotto", sides:"Charred broccolini", dessert:"Tiramisu"}},
+            {type:"mixtape", items:[T("Glory Box","Portishead"),T("Teardrop","Massive Attack"),T("Breathe","Télépopmusik"),T("Porcelain","Moby"),T("Unfinished Sympathy","Massive Attack"),T("Sour Times","Portishead")]}] }
 ];
 
 const DEFAULT_CONFIG = {
@@ -501,8 +538,8 @@ const DEFAULT_CONFIG = {
     name: "Sync",
     tagline: "Build something together before you ever say hi.",
     pitch: [
-      { title: "Every profile starts something", body: "A mixtape, a watchlist, a plan for a day out, a dinner. Each person leaves one to three builds half-finished on their profile." },
-      { title: "Build to say hi", body: "There's no like button. Pick one of their builds, add your part or counter theirs, and send it back." },
+      { title: "Every profile is a finished thing", body: "A mixtape, a watchlist, a plan for a day out, a dinner. Each person puts their ideal version on their profile, in full." },
+      { title: "Put your spin on it to say hi", body: "There's no like button. Pick one of theirs, swap in your picks or counter a course, and send it back." },
       { title: "Align, then talk", body: "Go back and forth. When you both agree it's done, that's the match, and the chat opens." }
     ]
   },
@@ -510,8 +547,8 @@ const DEFAULT_CONFIG = {
     { id: "A", label: "Build to match", likeButton: false, agreeChance: 0.7, replyDelayMs: 6000 },
     { id: "B", label: "Like button + optional build", likeButton: true, agreeChance: 0.7, replyDelayMs: 6000,
       pitch: [
-        { title: "Every profile starts something", body: "A mixtape, a watchlist, a plan for a day out, a dinner. Each person leaves one to three builds half-finished on their profile." },
-        { title: "Like, or build to say more", body: "Tap the heart to like someone. Or pick one of their builds, add your part, and send it back." },
+        { title: "Every profile is a finished thing", body: "A mixtape, a watchlist, a plan for a day out, a dinner. Each person puts their ideal version on their profile, in full." },
+        { title: "Like, or put your spin on it", body: "Tap the heart to like someone. Or pick one of theirs, swap in your picks, and send it back." },
         { title: "Align, then talk", body: "Mutual likes match. Builds match when you both agree it's done. Either way, that's when the chat opens." }
       ] }
   ],
@@ -552,7 +589,7 @@ function normalizeConfig(c){
   out.library = Object.assign({}, d.library, out.library || {});
   out.otherPools = Object.assign({}, d.otherPools, out.otherPools || {});
   if (!Array.isArray(out.profiles) || !out.profiles.length) out.profiles = d.profiles;
-  out.profiles = out.profiles.map((p, i) => Object.assign({ id: "p" + (i+1), name: "Someone", age: 0, hood: "", dist: "", hue: (i*47)%360, bio: "", module: {type:"mostListened", artists:[]}, orbit: [], builds: [] }, p));
+  out.profiles = out.profiles.map((p, i) => Object.assign({ id: "p" + (i+1), name: "Someone", age: 0, hood: "", dist: "", hue: (i*47)%360, bio: "", events: [], orbit: [], mutuals: [], builds: [] }, p));
   for (const p of out.profiles) p.builds = (p.builds || []).filter(b => out.buildTypes[b.type]).slice(0, 3);
   return out;
 }
@@ -619,13 +656,13 @@ function go(screen, extra){ ui.screen = screen; Object.assign(ui, extra || {}); 
 function renderTabbar(){
   tabbar.innerHTML = "";
   if (session) {
-    if (!["people","build","builds","thread","chats","chat"].includes(ui.screen) || session.stage !== "live") { tabbar.hidden = true; return; }
+    if (!["people","builds","thread","chats","chat"].includes(ui.screen) || session.stage !== "live") { tabbar.hidden = true; return; }
     tabbar.hidden = false;
     const inflight = session.threads.filter(t => t.status !== "matched"), done = session.threads.filter(t => t.status === "matched");
     const unreadB = inflight.filter(t => t.unread).length, unreadC = done.filter(t => t.unread).length;
     const mk = (id, label, ic, selected, badge, fn) => el("button", {"aria-selected": selected ? "true" : "false", onclick: fn}, icon(ic), label, badge ? el("span", {class:"pbadge num"}, badge) : null);
     tabbar.append(
-      mk("people", "People", "people", ["people","build"].includes(ui.screen), 0, () => { ui.draft = null; go("people"); }),
+      mk("people", "People", "people", ui.screen === "people", 0, () => { ui.draft = null; go("people"); }),
       mk("builds", "Builds", "builds", ["builds","thread"].includes(ui.screen), unreadB, () => go("builds")),
       mk("chats", "Chats", "chat", ["chats","chat"].includes(ui.screen), unreadC, () => go("chats")));
     return;
@@ -644,12 +681,12 @@ function render(){
     else if (session.stage === "survey") renderSurvey();
     else if (session.stage === "done") renderDone();
     else if (ui.screen === "people") renderPeople();
-    else if (ui.screen === "build") renderBuildEditor();
     else if (ui.screen === "builds") renderBuilds();
     else if (ui.screen === "thread") renderThread();
     else if (ui.screen === "chats") renderChats();
     else if (ui.screen === "chat") renderChat();
-    if (ui.picker) renderPicker();
+    if (ui.draft && ui.screen === "people") renderEditorSheet();
+    else if (ui.picker) renderPicker();
     stage.scrollTop = keep ? y : 0;
     return;
   }
@@ -692,7 +729,7 @@ function startSession(){
   session = { id: "s" + Date.now().toString(36), tester: (homeTester || "").trim() || "Anonymous", variantId, startedAt: new Date().toISOString(), stage: "pitch", pitchMs: 0,
     people: shuffle(config.profiles).slice(0, n).map(p => p.id), index: 0, interactions: [], threads: [], survey: null, events: [] };
   session._pitchStart = performance.now(); session._pitchIndex = 0;
-  for (const id of session.people) { const p = profileById(id); session.interactions.push({ profileId: id, name: p.name, module: (p.module||{}).type, nStarters: p.builds.length, starterTypes: p.builds.map(b => b.type), viewed: false, viewedAt: null, profileMs: 0, passed: false, liked: false, buildType: null, started: false, startMs: null, sends: 0, edits: 0, rounds: 0, replies: 0, readyByYou: false, matched: false, matchVia: null, matchMs: null, messaged: false, firstSendMs: null }); }
+  for (const id of session.people) { const p = profileById(id); session.interactions.push({ profileId: id, name: p.name, nStarters: p.builds.length, starterTypes: p.builds.map(b => b.type), viewed: false, viewedAt: null, profileMs: 0, passed: false, liked: false, buildType: null, started: false, startMs: null, sends: 0, edits: 0, rounds: 0, replies: 0, readyByYou: false, matched: false, matchVia: null, matchMs: null, messaged: false, firstSendMs: null }); }
   ui = { screen: "people", threadId: null, draft: null, picker: null, keepScroll: false };
   logEvent("session_start", { variantId });
   render();
@@ -768,17 +805,14 @@ function renderPeople(){
   head.append(el("div", {class:"bottom"}, el("div", {class:"big"}, p.name + ", ", el("span", null, p.age)), el("div", {class:"loc"}, el("span", null, p.hood), el("span", null, "•"), icon("pin"), el("span", null, p.dist + " away"))));
   s.append(head);
   s.append(el("p", {class:"bio"}, p.bio));
-  s.append(el("div", {class:"pmods"}, moduleEl(p), orbitEl(p)));
+  s.append(aboutEl(p));
   const sa = sharedArtists(p), sp = sharedPlaces(p).length;
   s.append(el("div", {class:"row"}, el("span", {class:"shared-count"}, icon("music"), el("span", null, el("b", null, sa), sa === 1 ? " shared artist" : " shared artists")), el("span", {class:"shared-count"}, icon("pin"), el("span", null, el("b", null, sp), sp === 1 ? " place in both orbits" : " places in both orbits"))));
 
-  /* Starter builds */
+  /* Their builds, in full */
   const st = el("div", {class:"starters"});
-  st.append(el("div", {class:"row between"}, el("span", {class:"t-heading"}, th ? "Your build with " + p.name : "Start a build"), el("span", {class:"t-caption muted"}, `${p.builds.length} ${p.builds.length === 1 ? "starter" : "starters"}`)));
-  if (th) {
-    st.append(el("div", {class:"notice row between"}, el("span", null, th.status === "matched" ? "You aligned. The chat is open." : th.status === "yourturn" ? `${p.name} sent it back.` : `Your ${btype(th.type).name.toLowerCase()} is with ${p.name}.`), el("button", {class:"btn small", onclick: () => th.status === "matched" ? go("chat", {threadId: th.id}) : go("thread", {threadId: th.id})}, "Open")));
-  }
-  p.builds.forEach((b, k) => st.append(starterCard(p, b, k, !!th)));
+  if (th) st.append(el("div", {class:"notice row between"}, el("span", null, th.status === "matched" ? "You aligned. The chat is open." : th.status === "yourturn" ? `${p.name} sent it back.` : `Your ${btype(th.type).name.toLowerCase()} is with ${p.name}.`), el("button", {class:"btn small", onclick: () => th.status === "matched" ? go("chat", {threadId: th.id}) : go("thread", {threadId: th.id})}, "Open")));
+  p.builds.forEach((b, k) => st.append(profileBuild(p, b, k, !!th)));
   s.append(st);
   s.append(el("div", {class:"locked"}, icon("lock"), th && th.status === "matched" ? "Chat unlocked" : "Chat unlocks once you've finished a build together"));
   s.append(el("div", {class:"passbar"},
@@ -786,35 +820,19 @@ function renderPeople(){
     v.likeButton && !th ? el("span", {class:"lbl"}, el("button", {class:"iconbtn lg primary", "aria-label":"Like", onclick: () => like(p)}, icon("heart")), i.liked ? "Liked" : "Like") : null));
   stage.append(s);
 }
-function orbitEl(p){ if (!p.orbit || !p.orbit.length) return null; const mine = config.library.plan.place; return el("div", {class:"mod"}, el("div", {class:"title"}, icon("pin"), el("span", null, "In their orbit")), el("div", {class:"badges"}, p.orbit.map(x => el("span", {class:"badge" + (mine.includes(x) ? " shared" : "")}, x, mine.includes(x) ? el("span", null, " • you too") : null)))); }
-function starterCard(p, b, k, locked){
-  const def = btype(b.type);
-  const card = el("div", {class:"starter" + (locked ? " locked" : "")});
-  card.append(el("div", {class:"head"}, icon(def.icon), el("span", {class:"nm"}, def.name), el("span", {class:"kd"}, def.kind === "list" ? `${(b.items||[]).length} of ${def.capacity} ${def.unit}s` : `${Object.keys(b.slots||{}).length} of ${def.slots.length} filled`)));
-  const pv = el("div", {class:"preview"});
-  if (def.kind === "list") { for (const it of (b.items||[]).slice(0,6)) pv.append(el("span", {class:"cv", style: artStyle(it), title: primary(it) + " · " + secondary(it)}, initialOf(it))); pv.append(el("span", {class:"slotchip open"}, "+ yours")); }
-  else { for (const sl of def.slots) { const val = (b.slots||{})[sl.id]; pv.append(val ? el("span", {class:"slotchip"}, el("span", {class:"k"}, sl.label), val) : el("span", {class:"slotchip open"}, el("span", {class:"k"}, sl.label), "you pick")); } }
-  card.append(pv);
-  card.append(el("div", {class:"cta"}, el("span", {class:"hint"}, locked ? "One build per person at a time" : def.startHint), el("button", {class:"btn primary small", disabled: locked, onclick: () => startBuild(p, k)}, icon(def.icon), def.verb)));
-  return card;
+function aboutEl(p){
+  const box = el("div", {class:"about"});
+  if ((p.events || []).length) box.append(el("div", {class:"facet"}, el("div", {class:"title"}, icon("calendar"), el("span", null, "Going to")), el("div", {class:"events"}, p.events.map(e => el("div", {class:"track"}, el("div", {class:"datetile"}, el("div", {class:"m"}, e.month), el("div", {class:"d num"}, e.day)), el("div", null, el("div", {class:"name"}, e.title), el("div", {class:"artist"}, e.place)))))));
+  if ((p.orbit || []).length) { const mine = config.library.plan.place; box.append(el("div", {class:"facet"}, el("div", {class:"title"}, icon("pin"), el("span", null, "In their orbit")), el("div", {class:"badges"}, p.orbit.map(x => el("span", {class:"badge" + (mine.includes(x) ? " shared" : "")}, x, mine.includes(x) ? el("span", null, " • you too") : null))))); }
+  if ((p.mutuals || []).length) box.append(el("div", {class:"facet"}, el("div", {class:"title"}, icon("users"), el("span", null, `${p.mutuals.length} ${p.mutuals.length === 1 ? "mutual" : "mutuals"}`)), el("div", {class:"mutual"}, el("div", {class:"faces"}, p.mutuals.slice(0,4).map((n, i) => el("i", {style: seedArt(p.hue + 90, i), title:n}, n[0]))), el("div", {class:"names"}, p.mutuals.slice(0,3).join(", "), el("span", null, " from your contacts")))));
+  if (!box.children.length) box.append(el("p", {class:"t-small", style:"color:rgba(243,243,243,.7)"}, "Nothing shared here yet."));
+  return box;
 }
-function moduleEl(p){
-  const m = p.module || {};
-  const title = (label) => el("div", {class:"title"}, icon(MODULE_ICON[m.type] || "music"), el("span", null, label));
-  const mod = el("div", {class:"mod"});
-  if (m.type === "mostListened") mod.append(title(MODULE_LABEL[m.type]), el("div", {class:"hscroll"}, (m.artists || []).slice(0,6).map((a, i) => el("div", {class:"art", style:seedArt(p.hue, i), title:a}, a[0]))));
-  else if (m.type === "justPlayed" || m.type === "nowPlaying") {
-    const inner = el("div", {class:"track"}, el("div", {class:"cover" + (m.type === "nowPlaying" ? " sq" : ""), style:seedArt(p.hue, 1)}, (m.artist||"?")[0]), el("div", null, el("div", {class:"name"}, m.track), el("div", {class:"artist"}, m.artist)));
-    if (m.type === "nowPlaying") { inner.classList.add("pill"); inner.append(el("span", {class:"play"}, playGlyph())); }
-    mod.append(title(MODULE_LABEL[m.type]), inner);
-  } else if (m.type === "event") mod.append(title("Going to"), el("div", {class:"track"}, el("div", {class:"datetile"}, el("div", {class:"m"}, m.month), el("div", {class:"d num"}, m.day)), el("div", null, el("div", {class:"name"}, m.title), el("div", {class:"artist"}, m.place))));
-  else if (m.type === "mutuals") mod.append(title(`${m.count || (m.names||[]).length} Mutuals`), el("div", {class:"hscroll"}, (m.names || []).slice(0,5).map((n, i) => el("div", {class:"art sq", style:seedArt(p.hue + 90, i), title:n}, n[0]))));
-  else if (m.type === "places") mod.append(title("Regulars at"), el("div", {class:"badges"}, (m.places || []).map(pl => el("span", {class:"badge" + (pl.shared ? " shared" : "")}, pl.name, pl.note ? el("span", null, " • " + pl.note) : null))));
-  else if (m.type === "voice") {
-    const bars = [4,10,6,4,2,4,6,10,14,18,14,10,4,2,4,10,14,18,14,10,4,2,4,10,14,10,10,4,2,2,4,6,4,6,14,18,10,4,10,18,14,10,10,18,14,10,10,4,10,18,4,2,12,2,2,4,4,12,14,10,12,14,10,18,16,14,10,4,10,14,12,10,4,4,2,10,6,12,14,18,12,6,4,2,2,2,2,2,4,6,6];
-    mod.append(title("Voice note"), el("div", {class:"voice"}, el("span", {class:"pbtn"}, playGlyph()), el("span", {class:"wave"}, bars.map(h => el("i", {style:`height:${h}px`}))), el("span", {class:"dur num"}, (m.seconds || 15) + "s")));
-  }
-  return mod;
+function profileBuild(p, b, k, locked){
+  const def = btype(b.type); const full = makeBuild(b.type, b);
+  const box = buildBox(full, p, { title: null, head: true, readonly: true,
+    footer: el("div", {class:"remixbar"}, el("span", {class:"hint"}, locked ? "One build per person at a time" : "Put your own spin on it and send it back"), el("button", {class:"remixbtn", disabled: locked, onclick: () => openEditor(p, k)}, icon(def.icon), def.verb)) });
+  return box;
 }
 function like(p){
   const i = ix(p.id); if (i.liked) return; i.liked = true; logEvent("like", {profileId:p.id});
@@ -849,6 +867,10 @@ function poolFor(type, slotId, p){
     const both = mine.filter(x => theirs.includes(x)); const onlyMine = mine.filter(x => !both.includes(x)); const onlyTheirs = theirs.filter(x => !both.includes(x));
     return { groups: [["In both your orbits", both], ["In your orbit", onlyMine], ["In " + p.name + "'s orbit", onlyTheirs]] };
   }
+  if (type === "plan" && slotId === "do") {
+    const evLabel = e => `${e.title} · ${e.month} ${e.day}`;
+    return { groups: [["Go with them to", (p.events || []).map(evLabel)], ["Bring them to", (config.library.events || []).map(evLabel)], ["What we'll do", lib.do || []]] };
+  }
   return { groups: [[btype(type).slots.find(s => s.id === slotId).label, lib[slotId] || []]] };
 }
 function otherPool(type, slotId, p){
@@ -859,27 +881,32 @@ function otherPool(type, slotId, p){
 function takenKeys(b){ const def = btype(b.type); return new Set(def.kind === "list" ? b.items.map(x => key(x.v)) : Object.values(b.slots).filter(Boolean).map(x => key(x.v))); }
 
 /* Draft = the build being edited this turn; edits counted against perTurn */
-function startBuild(p, k){
+function openEditor(p, k){
   const i = ix(p.id); const b = p.builds[k];
   ui.draft = { profileId: p.id, build: makeBuild(b.type, b), edits: 0, startedAt: performance.now(), log: [] };
   i.started = true; i.buildType = b.type; i.startMs = i.startMs || Math.round(performance.now() - (i._enter || performance.now()));
   logEvent("build_start", {profileId:p.id, type:b.type, starterIndex:k});
-  go("build");
+  ui.keepScroll = true; render();
 }
-function renderBuildEditor(){
+function renderEditorSheet(){
   const d = ui.draft; const p = profileById(d.profileId); const def = btype(d.build.type);
-  const s = el("section", {class:"screen"});
-  s.append(el("div", {class:"backbar"}, el("button", {class:"iconbtn", "aria-label":"Back to profile", onclick: () => { logEvent("build_cancel", {profileId:p.id, type:d.build.type, edits:d.edits}); ui.draft = null; go("people"); }}, icon("back")), el("span", {class:"t-strong"}, def.name + " with " + p.name), el("span", {class:"roundchip", style:"margin-left:auto"}, `${d.edits} / ${def.perTurn} changes`)));
-  s.append(buildBox(d.build, p, { editable: true, draft: d, title: (def.editTitle || "Building with {name}").replace("{name}", p.name) }));
-  s.append(el("div", {class:"sticky-actions"}, el("button", {class:"btn primary block", disabled: d.edits === 0, onclick: () => sendBuild(p)}, d.edits ? `Send it back · ${d.edits} ${d.edits === 1 ? "change" : "changes"}` : "Make a change to send it back")));
-  stage.append(s);
+  const close = () => { logEvent("build_cancel", {profileId:p.id, type:d.build.type, edits:d.edits}); ui.draft = null; ui.picker = null; ui.keepScroll = true; render(); };
+  const sheet = el("div", {class:"sheet tall", role:"dialog", "aria-label": def.name}, el("div", {class:"grab"}));
+  if (ui.picker) { sheet.append(pickerView(d, p, () => { ui.picker = null; ui.keepScroll = true; render(); })); }
+  else {
+    sheet.append(el("div", {class:"row between"}, el("span", {class:"t-strong"}, (def.editTitle || "Building with {name}").replace("{name}", p.name)), el("div", {class:"row", style:"gap:6px"}, el("span", {class:"roundchip"}, `${d.edits} / ${def.perTurn}`), el("button", {class:"iconbtn", style:"width:32px;height:32px", "aria-label":"Close", onclick: close}, icon("x")))));
+    sheet.append(buildBox(d.build, p, { editable: true, draft: d, title: def.startHint }));
+    sheet.append(el("div", {class:"sfoot"}, el("button", {class:"btn primary block", disabled: d.edits === 0, onclick: () => sendBuild(p)}, d.edits ? `Send it back · ${d.edits} ${d.edits === 1 ? "change" : "changes"}` : "Make a change to send it back")));
+  }
+  stage.append(el("div", {class:"scrim", onclick: close}), sheet);
 }
 function rulesLine(def){ return def.kind === "list" ? [`${def.capacity} ${def.unit}s max`, `at least ${def.minEach} each`, `${def.perTurn} changes a turn`] : [`${def.slots.length} slots`, `both must fill one`, `${def.perTurn} changes a turn`]; }
 function buildBox(b, p, opts){
   opts = opts || {}; const def = btype(b.type);
   const box = el("div", {class:"buildbox"});
-  box.append(el("div", {class:"ptitle"}, el("span", null, opts.title || def.name), opts.right || null));
-  box.append(el("div", {class:"rules"}, rulesLine(def).map(r => el("span", null, r))));
+  if (opts.head) box.append(el("div", {class:"bhead"}, icon(def.icon), el("span", {class:"t-heading", style:"font-size:18px"}, def.name), el("span", {class:"kd"}, def.kind === "list" ? `${b.items.length} ${def.unit}s` : `${def.slots.length} slots`)));
+  else box.append(el("div", {class:"ptitle"}, el("span", null, opts.title || def.name), opts.right || null));
+  if (!opts.readonly) box.append(el("div", {class:"rules"}, rulesLine(def).map(r => el("span", null, r))));
   const list = el("div", {class:"plist"});
   if (def.kind === "list") {
     b.items.forEach((it, idx) => list.append(itemRow(b, it, idx, null, opts)));
@@ -914,7 +941,7 @@ function itemRow(b, it, idx, slot, opts){
   return row;
 }
 function byBadge(b, it, opts){
-  if (it.by === "you") return el("span", {class:"micro you"}, it.replaced ? "your counter" : "yours");
+  if (it.by === "you") return el("span", {class:"micro you"}, it.accepted ? "yours · accepted" : it.replaced ? "your counter" : "yours");
   if (opts.showNew && it.isNew) return el("span", {class:"micro new"}, "new");
   if (b.type === "plan" && typeof it.v === "string" && config.library.plan.place.includes(it.v)) return el("span", {class:"micro both"}, "both orbits");
   if (inLibrary(b.type, it.v)) return el("span", {class:"micro"}, "shared");
@@ -931,17 +958,22 @@ function openPicker(pk){ ui.picker = pk; ui.keepScroll = true; render(); }
 function currentDraft(){ return ui.draft || threadDraft(); }
 function renderPicker(){
   const d = currentDraft(); if (!d) { ui.picker = null; return; }
-  const p = profileById(d.profileId); const b = d.build; const def = btype(b.type); const pk = ui.picker;
-  const taken = takenKeys(b); const pool = poolFor(b.type, pk.slotId, p);
+  const p = profileById(d.profileId);
   const close = () => { ui.picker = null; ui.keepScroll = true; render(); };
+  const sheet = el("div", {class:"sheet", role:"dialog", "aria-label":"Pick"}, el("div", {class:"grab"}), pickerView(d, p, close));
+  stage.append(el("div", {class:"scrim", onclick: close}), sheet);
+}
+function pickerView(d, p, back){
+  const b = d.build; const def = btype(b.type); const pk = ui.picker;
+  const taken = takenKeys(b); const pool = poolFor(b.type, pk.slotId, p);
   const titleTxt = pk.mode === "add" ? `Add a ${def.unit}` : pk.mode === "swap" ? `Swap in one of yours` : pk.mode === "fill" ? `Fill: ${def.slots.find(s => s.id === pk.slotId).label}` : `Counter: ${def.slots.find(s => s.id === pk.slotId).label}`;
   const sub = pk.mode === "swap" ? `Replacing "${primary(b.items[pk.index].v)}".` : pk.mode === "counter" ? `Replacing "${primary(b.slots[pk.slotId].v)}". They'll see both.` : "Pick one. Anything already in the build is hidden.";
-  const sheet = el("div", {class:"sheet", role:"dialog", "aria-label":titleTxt}, el("div", {class:"grab"}), el("div", {class:"row between"}, el("span", {class:"t-strong"}, titleTxt), el("button", {class:"iconbtn", style:"width:32px;height:32px", "aria-label":"Close", onclick: close}, icon("x"))), el("p", {class:"muted t-small"}, sub));
+  const wrap = el("div", {class:"stack"}, el("div", {class:"row between"}, el("div", {class:"row", style:"gap:8px"}, el("button", {class:"iconbtn", style:"width:32px;height:32px", "aria-label":"Back", onclick: back}, icon("back")), el("span", {class:"t-strong"}, titleTxt))), el("p", {class:"muted t-small"}, sub));
   const list = el("div", {class:"plist"}); let any = false;
   for (const [g, vals] of pool.groups) { const opts = vals.filter(v => !taken.has(key(v))); if (!opts.length) continue; any = true; if (pool.groups.length > 1) list.append(el("div", {class:"grp"}, g)); for (const v of opts) list.append(el("div", {class:"pitem", role:"button", tabindex:"0", onclick: () => pick(v)}, el("div", {class:"cover", style: artStyle(v)}, initialOf(v)), el("div", {class:"meta"}, el("div", {class:"song"}, primary(v)), secondary(v) ? el("div", {class:"artist"}, secondary(v)) : null), el("div", {class:"act"}, icon("plus", 18)))); }
   if (!any) list.append(el("p", {class:"muted"}, "Nothing left to add here."));
-  sheet.append(list);
-  stage.append(el("div", {class:"scrim", onclick: close}), sheet);
+  wrap.append(list);
+  return wrap;
   function pick(v){
     const d2 = currentDraft(); const bb = d2.build; const round = d2.round || 1;
     if (pk.mode === "add") { bb.items.push({ v, by: "you", round: 0 }); logEvent("edit", {type:bb.type, mode:"add", v}); }
@@ -961,7 +993,7 @@ function sendBuild(p){
   logEvent("build_sent", {profileId:p.id, type:d.build.type, edits:d.edits, ms:i.firstSendMs});
   toast(`Sent to ${p.name}. It'll show up in Builds.`);
   scheduleReply(th, v);
-  ui.draft = null;
+  ui.draft = null; ui.picker = null;
   advance();
 }
 
@@ -981,7 +1013,10 @@ function scheduleReply(th, v){
     } else {
       const open = def.slots.filter(sl => !b.slots[sl.id]);
       for (const sl of shuffle(open).slice(0, 2)) { const pool = otherPool(b.type, sl.id, p).filter(x => !taken.has(key(x))); if (pool.length) { b.slots[sl.id] = { v: pool[Math.floor(Math.random()*pool.length)], by: "them", round: th.round, isNew: true }; changes++; } }
-      if (changes < 1) { const yours = def.slots.filter(sl => b.slots[sl.id] && b.slots[sl.id].by === "you"); if (yours.length && Math.random() < 0.4) { const sl = yours[Math.floor(Math.random()*yours.length)]; const pool = otherPool(b.type, sl.id, p).filter(x => !taken.has(key(x))); if (pool.length) { const old = b.slots[sl.id]; b.slots[sl.id] = { v: pool[0], by: "them", round: th.round, isNew: true, replaced: old.v }; changes++; } } }
+      // Their build was complete to begin with, so a reply usually means accepting your counters; sometimes they counter one back.
+      const yours = def.slots.filter(sl => b.slots[sl.id] && b.slots[sl.id].by === "you" && !b.slots[sl.id].accepted);
+      if (yours.length && Math.random() < 0.35) { const sl = yours[Math.floor(Math.random()*yours.length)]; const pool = otherPool(b.type, sl.id, p).filter(x => !taken.has(key(x))); if (pool.length) { const old = b.slots[sl.id]; b.slots[sl.id] = { v: pool[0], by: "them", round: th.round, isNew: true, replaced: old.v }; changes++; } }
+      for (const sl of def.slots) if (b.slots[sl.id] && b.slots[sl.id].by === "you") b.slots[sl.id].accepted = true;
     }
     th.log.push({ t: Date.now(), who: "them", edits: changes });
     th.status = "yourturn"; th.unread = true; th.yourReady = false;

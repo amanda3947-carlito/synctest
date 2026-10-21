@@ -3,10 +3,17 @@
 A phone app for testing a dating app concept before you build the real thing.
 
 The concept under test: **you build something together before you match**.
-Every profile carries one to three half-finished starter builds. There is no
-like button. To show interest you pick one of someone's builds, add your part
-or counter theirs, and send it back. The two of you go back and forth, and
+Every profile shows one to three of the person's builds in full: their ideal
+mixtape, watchlist, plan for a day out, or dinner. There is no like button. To
+show interest you put your own spin on one of them (swap in your picks, add to
+it, counter a course) and send it back. The two of you go back and forth, and
 when you both agree it's done, that's the match. Only then does the chat open.
+
+Alongside the builds, every profile has an about section with three facets
+instead of prompts: **Going to** (events, user-entered), **In their orbit**
+(places, user-entered, with the ones in your orbit marked) and **Mutuals**
+(from contacts). Each one does a job: events and places feed The Plan's
+"what we'll do" and "where" pickers, and mutuals are the trust signal.
 
 Four build types ship, all driven by one engine:
 
@@ -67,13 +74,16 @@ Then Share → **Add to Home Screen**.
 1. **Test tab.** Type the tester's name, pick a variant or leave it on
    auto-assign, tap Start, hand the phone over.
 2. **Pitch.** Three slides. Time spent is recorded.
-3. **People.** One full profile at a time: photo, bio, listening module, their
-   orbit (places, with the ones in the tester's orbit marked), shared counts,
-   and their starter builds. **Pass** moves on. Tapping a starter's action
-   (Remix, Curate, Plan, Cook) opens the editor.
-4. **Editor.** Fill open slots, counter theirs, add to a list or swap, within
-   the per-turn limit. **Send it back** creates the build and moves to the
-   next person. One build per person at a time.
+3. **People.** One full profile at a time: photo, bio, the about section
+   (going to, in their orbit, mutuals), shared counts, and their builds shown
+   in full. **Pass** moves on. Each build ends with the Figma remix bar: "Put
+   your own spin on it and send it back" and the verb (Remix, Curate, Plan,
+   Cook).
+4. **Editor sheet.** The verb opens a bottom sheet over the profile. Swap or
+   add on list builds, counter any slot on slot builds, within the per-turn
+   limit. Picking a value swaps the sheet to the library view and back.
+   **Send it back** creates the build and moves to the next person. One build
+   per person at a time.
 5. **Builds.** The other person replies after a delay: fills slots, adds
    items, occasionally counters. The tester makes changes and sends another
    round, or says **It's done** once the rules are met. When both agree, it
@@ -106,9 +116,11 @@ Where picker also offers the other person's `orbit`, grouped by whose orbit
 it is. `otherPools` is what the simulated other side replies with.
 
 Profiles carry `name`, `age`, `hood`, `dist`, `hue`, optional `photo`, `bio`,
-a `module`, an `orbit` (places) and `builds`: one to three starters, each
-`{type, items}` for lists or `{type, slots: {id: value}}` for slot builds.
-Leave slots open for the other person to fill.
+`events` (`{month, day, title, place}`), `orbit` (places), `mutuals` (names)
+and `builds`: one to three, each `{type, items}` for lists or
+`{type, slots: {id: value}}` for slot builds, filled out in full. The
+tester's own `library.events` show up in The Plan's picker as "Bring them
+to"; the other person's events as "Go with them to".
 
 Variant fields: `likeButton`, `agreeChance` (0 to 1), `replyDelayMs`, optional
 `pitch`. Session fields: `peoplePerSession`, `likeMatchChance`, `assignVariant`.

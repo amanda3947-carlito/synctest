@@ -1345,7 +1345,7 @@ function renderChat(){
       el("div", {class:"okmark"}, icon("check")),
       el("div", {class:"cover-grid"}, items.slice(0,4).map(it => el("i", {style: artStyle(it.v)}))),
       el("div", null, el("span", {class:"t-caption muted"}, th.via === "asis" ? "You loved it as is. They matched back." : "You both agreed"), el("h2", {class:"t-hero", style:"margin:6px 0 0;font-size:34px"}, def.doneTitle || ("It's a " + def.name.toLowerCase()))),
-      el("p", {class:"muted num"}, `${items.length} ${def.kind === "list" ? def.unit + "s" : "slots"} · ${items.filter(x=>x.by==="you").length} from you · ${items.filter(x=>x.by!=="you").length} from ${p.name} · ${th.round} ${th.round === 1 ? "round" : "rounds"}`)));
+      el("p", {class:"muted num"}, th.via === "asis" ? `${p.name}'s ${def.name.replace(/^The /, "").toLowerCase()}, exactly as they made it` : `${items.length} ${def.kind === "list" ? def.unit + "s" : "parts"} · ${items.filter(x=>x.by==="you").length} from you · ${items.filter(x=>x.by!=="you").length} from ${p.name} · ${th.round} ${th.round === 1 ? "round" : "rounds"}`)));
     if (def.kind === "slots") { const box = el("div", {class:"buildbox"}); box.append(el("div", {class:"ptitle"}, el("span", null, p.name + " × you"))); box.append(trayEditor(b, p, { editable: false })); s.append(box); }
     else s.append(buildBox(b, p, { title: p.name + " × you" }));
   } else {

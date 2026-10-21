@@ -253,6 +253,45 @@ textarea.code{font-family:var(--font-mono);font-size:12px;line-height:1.5;min-he
 .sheet.tall{max-height:88%;padding-bottom:0}
 .sheet .sfoot{position:sticky;bottom:0;background:var(--bg);padding:var(--sp-300) 0 calc(var(--sp-400) + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:var(--sp-200)}
 .sheet .plist .pitem{min-height:68px}
+/* Inline slot builder: fanned stack (collapsed) → tray of tiles (open) with a finder underneath */
+.stack{position:relative;height:156px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stack .tile{position:absolute;left:50%;top:12px;margin-left:-58px;transform:rotate(var(--r)) translateX(var(--x)) translateY(var(--y));transition:transform .3s cubic-bezier(.2,.8,.3,1)}
+.stack:hover .tile,.stack:focus-visible .tile{transform:rotate(calc(var(--r) * 1.4)) translateX(calc(var(--x) * 1.25)) translateY(var(--y))}
+.stack .hint{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:12px;color:var(--fg-2)}
+.tile{width:116px;height:128px;border-radius:20px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;box-shadow:var(--shadow-200);text-align:left;border:0;position:relative;overflow:hidden;flex:0 0 116px;background:var(--bg-3)}
+.tile .lab{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.85;line-height:1.2}
+.tile .big{font-family:var(--font-hero);font-weight:700;font-size:34px;line-height:1;letter-spacing:-.03em;opacity:.35;position:absolute;right:8px;top:6px}
+.tile .val{font-size:13px;font-weight:600;line-height:1.25;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.tile .mk{position:absolute;left:8px;bottom:8px;font-size:10px;padding:3px 7px;border-radius:var(--r-full);background:var(--accent-green);color:#1e1e1e;font-weight:600}
+.tile .mk.new{background:var(--accent-yellow)}
+.tile .mk.both{background:var(--accent-blue)}
+.tile.empty{background:transparent;border:1.5px dashed var(--border-2);color:var(--fg-2);box-shadow:none}
+.tile.mine::after{content:"";position:absolute;inset:0;border-radius:20px;box-shadow:inset 0 0 0 2px var(--accent-green);pointer-events:none}
+.tray{display:flex;gap:10px;overflow-x:auto;padding:8px 4px 12px;scroll-snap-type:x proximity;scrollbar-width:none;margin-inline:-4px}
+.tray::-webkit-scrollbar{display:none}
+.tray .tile{scroll-snap-align:start;cursor:pointer;transition:transform .15s,outline-color .15s;outline:3px solid transparent;outline-offset:2px;animation:fanout .35s cubic-bezier(.2,.8,.3,1) both;animation-delay:calc(var(--i) * 40ms)}
+.tray .tile.sel{outline-color:var(--brand);transform:translateY(-4px)}
+.tray .tile.over{outline-color:var(--accent-green);outline-style:dashed;transform:scale(1.04)}
+.tray .tile.drop{animation:dropin .4s cubic-bezier(.2,.8,.3,1.2)}
+.tray .tile.shake{animation:shake .3s}
+.tray .tile:disabled{cursor:default;opacity:.7}
+@keyframes fanout{from{transform:translateX(-30px) rotate(-4deg);opacity:.4}to{transform:none;opacity:1}}
+@keyframes dropin{0%{transform:scale(1.2) translateY(-6px)}60%{transform:scale(.96)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.finder{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:var(--r-400);background:var(--bg-2)}
+.finder .fhead{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;color:var(--fg-2)}
+.finder .fhead b{color:var(--fg)}
+.finder input{background:var(--bg);padding:10px 12px}
+.results{display:flex;flex-direction:column;gap:8px;max-height:230px;overflow:auto}
+.results .grp{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--fg-2);padding-top:4px}
+.results .chips{gap:8px}
+.chipr{display:inline-flex;align-items:center;gap:7px;padding:7px 10px 7px 7px;border-radius:12px;background:var(--bg);border:1px solid var(--border);font-size:13px;line-height:1.2;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;max-width:100%}
+.chipr:active{cursor:grabbing}
+.chipr .sw{width:20px;height:20px;border-radius:6px;flex-shrink:0}
+.chipr span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chipr.undo{background:var(--accent-yellow);color:#1e1e1e;border-color:transparent}
+.ghost{position:fixed;left:0;top:0;pointer-events:none;z-index:60;transform:translate(-50%,-50%) scale(1.06) rotate(-2deg);box-shadow:var(--shadow-400);opacity:.96}
+.trayfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:4px}
 /* Starter builds on a profile */
 .starters{display:flex;flex-direction:column;gap:var(--sp-300)}
 .starter{border:1px solid var(--border);border-radius:var(--r-600);padding:var(--sp-400);display:flex;flex-direction:column;gap:var(--sp-300);background:var(--bg);box-shadow:var(--shadow-100)}
@@ -685,7 +724,7 @@ function render(){
     else if (ui.screen === "thread") renderThread();
     else if (ui.screen === "chats") renderChats();
     else if (ui.screen === "chat") renderChat();
-    if (ui.draft && ui.screen === "people") renderEditorSheet();
+    if (ui.draft && ui.screen === "people" && btype(ui.draft.build.type).kind === "list") renderEditorSheet();
     else if (ui.picker) renderPicker();
     stage.scrollTop = keep ? y : 0;
     return;
@@ -829,10 +868,135 @@ function aboutEl(p){
   return box;
 }
 function profileBuild(p, b, k, locked){
-  const def = btype(b.type); const full = makeBuild(b.type, b);
-  const box = buildBox(full, p, { title: null, head: true, readonly: true,
-    footer: el("div", {class:"remixbar"}, el("span", {class:"hint"}, locked ? "One build per person at a time" : "Put your own spin on it and send it back"), el("button", {class:"remixbtn", disabled: locked, onclick: () => openEditor(p, k)}, icon(def.icon), def.verb)) });
-  return box;
+  const def = btype(b.type);
+  const bar = (onOpen) => el("div", {class:"remixbar"}, el("span", {class:"hint"}, locked ? "One build per person at a time" : "Put your own spin on it and send it back"), el("button", {class:"remixbtn", disabled: locked, onclick: onOpen}, icon(def.icon), def.verb));
+  if (def.kind === "slots") {
+    const editing = ui.draft && ui.draft.profileId === p.id && ui.draft.k === k;
+    const box = el("div", {class:"buildbox"});
+    box.append(el("div", {class:"bhead"}, icon(def.icon), el("span", {class:"t-heading", style:"font-size:18px"}, def.name), el("span", {class:"kd"}, editing ? `${ui.draft.edits} / ${def.perTurn} changes` : `${def.slots.length} slots`)));
+    if (editing) {
+      box.append(trayEditor(ui.draft.build, p, { editable: true, draft: ui.draft }));
+      box.append(el("div", {class:"trayfoot"},
+        el("button", {class:"btn small subtle", onclick: () => { logEvent("build_cancel", {profileId:p.id, type:def.name, edits:ui.draft.edits}); ui.draft = null; ui.keepScroll = true; render(); }}, "Cancel"),
+        el("button", {class:"btn primary", disabled: ui.draft.edits === 0, onclick: () => sendBuild(p)}, ui.draft.edits ? `Send it back · ${ui.draft.edits}` : "Change something to send")));
+    } else {
+      const full = makeBuild(b.type, b);
+      box.append(stackEl(full, locked ? null : () => openEditor(p, k)));
+      box.append(bar(() => openEditor(p, k)));
+    }
+    return box;
+  }
+  const full = makeBuild(b.type, b);
+  return buildBox(full, p, { title: null, head: true, readonly: true, footer: bar(() => openEditor(p, k)) });
+}
+/* Fanned stack of slot tiles (collapsed) */
+function stackEl(b, onOpen){
+  const def = btype(b.type); const n = def.slots.length;
+  const st = el("div", {class:"stack", role:"button", tabindex:"0", "aria-label":"Open " + def.name, onclick: onOpen || null, onkeydown: e => { if (onOpen && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(); } }});
+  def.slots.forEach((sl, i) => { const t = (i - (n-1)/2); const tile = tileEl(sl, b.slots[sl.id], {}); tile.style.setProperty("--r", (t * 6) + "deg"); tile.style.setProperty("--x", (t * 26) + "px"); tile.style.setProperty("--y", (Math.abs(t) * 3) + "px"); tile.style.zIndex = String(10 - Math.abs(t)); st.append(tile); });
+  st.append(el("span", {class:"hint"}, onOpen ? "Tap to open it up" : ""));
+  return st;
+}
+function tileEl(sl, it, opts){
+  const tile = el(opts.button ? "button" : "div", {class:"tile" + (it ? "" : " empty") + (it && it.by === "you" ? " mine" : "") + (opts.sel ? " sel" : "") + (opts.drop ? " drop" : ""), "data-slot": sl.id, type: opts.button ? "button" : null, disabled: opts.disabled ? true : null, onclick: opts.onclick || null});
+  if (it) tile.setAttribute("style", artStyle(it.v));
+  tile.append(el("span", {class:"lab"}, sl.label));
+  if (it) tile.append(el("span", {class:"big", "aria-hidden":"true"}, initialOf(it.v)), el("span", {class:"val"}, primary(it.v)));
+  else tile.append(el("span", {class:"val", style:"opacity:.8"}, "Open"));
+  if (it && it.by === "you") tile.append(el("span", {class:"mk"}, it.accepted ? "accepted" : it.replaced ? "your counter" : "yours"));
+  else if (it && opts.showNew && it.isNew) tile.append(el("span", {class:"mk new"}, "new"));
+  else if (it && opts.type === "plan" && sl.id === "place" && config.library.plan.place.includes(it.v)) tile.append(el("span", {class:"mk both"}, "both orbits"));
+  return tile;
+}
+/* Tray of tiles + finder with search and drag-to-drop */
+function trayEditor(b, p, opts){
+  const def = btype(b.type); const d = opts.draft; const editable = !!opts.editable;
+  const spent = editable && d.edits >= def.perTurn;
+  const wrap = el("div", {class:"stack-wrap", style:"display:flex;flex-direction:column;gap:10px"});
+  const tray = el("div", {class:"tray"});
+  def.slots.forEach((sl, i) => {
+    const it = b.slots[sl.id];
+    const canSel = editable && (!spent || (it && it.by === "you"));
+    const tile = tileEl(sl, it, { button: editable, sel: editable && d.sel === sl.id, drop: editable && d.lastDrop === sl.id, showNew: opts.showNew, type: b.type, disabled: editable && !canSel,
+      onclick: editable ? () => { d.sel = d.sel === sl.id ? null : sl.id; d.lastDrop = null; refreshFinder(); for (const t of tray.querySelectorAll(".tile")) t.classList.toggle("sel", t.dataset.slot === d.sel); } : null });
+    tile.style.setProperty("--i", i);
+    tray.append(tile);
+  });
+  wrap.append(tray);
+  if (editable) d.lastDrop = null;
+  if (!editable) return wrap;
+  const finder = el("div", {class:"finder"});
+  wrap.append(finder);
+  let input;
+  function refreshFinder(){
+    finder.innerHTML = "";
+    const sel = d.sel ? def.slots.find(x => x.id === d.sel) : null;
+    if (spent && !(sel && b.slots[sel.id] && b.slots[sel.id].by === "you")) { finder.append(el("div", {class:"fhead"}, el("span", null, el("b", null, "No changes left this turn."), " Tap one of yours to change it back."))); return; }
+    finder.append(el("div", {class:"fhead"}, el("span", null, sel ? el("span", null, "Replacing ", el("b", null, sel.label.toLowerCase()), b.slots[sel.id] ? `: ${primary(b.slots[sel.id].v)}` : "") : el("span", null, "Tap a tile, or drag anything onto it")), sel ? el("button", {class:"btn small subtle", onclick: () => { d.sel = null; refreshFinder(); for (const t of tray.querySelectorAll(".tile")) t.classList.remove("sel"); }}, "Any slot") : null));
+    input = el("input", {type:"search", id:"finderQ", placeholder: sel ? `Search ${sel.label.toLowerCase()} options` : "Search your options", value: d.q || "", autocomplete:"off", oninput: e => { d.q = e.target.value; renderResults(); }});
+    finder.append(input);
+    const res = el("div", {class:"results"}); finder.append(res);
+    renderResults();
+    function renderResults(){
+      res.innerHTML = "";
+      const q = (d.q || "").trim().toLowerCase(); const taken = takenKeys(b);
+      const slots = sel ? [sel] : def.slots;
+      if (sel && b.slots[sel.id] && b.slots[sel.id].by === "you") res.append(el("div", {class:"chips"}, el("button", {class:"chipr undo", onclick: () => undoSlot(d, sel.id)}, icon("x", 14), el("span", null, b.slots[sel.id].replaced ? `Put back "${primary(b.slots[sel.id].replaced)}"` : "Clear this"))));
+      let any = false;
+      for (const sl of slots) {
+        const pool = poolFor(b.type, sl.id, p);
+        const vals = pool.groups.flatMap(([g, vs]) => vs.map(v => ({ v, g }))).filter(x => !taken.has(key(x.v))).filter(x => !q || primary(x.v).toLowerCase().includes(q) || secondary(x.v).toLowerCase().includes(q) || x.g.toLowerCase().includes(q));
+        if (!vals.length) continue; any = true;
+        if (!sel) res.append(el("div", {class:"grp"}, sl.label));
+        res.append(el("div", {class:"chips"}, vals.slice(0, sel ? 40 : 8).map(x => chipEl(x.v, sl.id, x.g))));
+      }
+      if (!any) res.append(el("p", {class:"muted t-small"}, q ? `Nothing matches "${d.q}".` : "Nothing left to add here."));
+    }
+  }
+  function chipEl(v, slotId, group){
+    const c = el("button", {class:"chipr", title: group, onclick: () => { if (c._dragged) { c._dragged = false; return; } place(slotId, v); }}, el("span", {class:"sw", style: artStyle(v)}), el("span", null, primary(v)));
+    attachDrag(c, slotId, v);
+    return c;
+  }
+  function place(slotId, v){
+    const target = def.slots.find(x => x.id === slotId); if (!target) return;
+    placeValue(d, slotId, v);
+    logEvent("edit", {type:b.type, mode:"inline", slot:slotId, v});
+    ui.keepScroll = true; render();
+  }
+  function attachDrag(chip, slotId, v){
+    let ghost = null, startX = 0, startY = 0, active = false, over = null;
+    chip.addEventListener("pointerdown", e => { startX = e.clientX; startY = e.clientY; active = false; chip.setPointerCapture(e.pointerId); });
+    chip.addEventListener("pointermove", e => {
+      if (!chip.hasPointerCapture(e.pointerId)) return;
+      if (!active) { if (Math.hypot(e.clientX - startX, e.clientY - startY) < 8) return; active = true; chip._dragged = true; ghost = chip.cloneNode(true); ghost.classList.add("ghost"); document.body.append(ghost); }
+      ghost.style.left = e.clientX + "px"; ghost.style.top = e.clientY + "px";
+      const elAt = document.elementFromPoint(e.clientX, e.clientY); const tile = elAt && elAt.closest(".tray .tile");
+      if (over && over !== tile) over.classList.remove("over");
+      over = tile && !tile.disabled ? tile : null; if (over) over.classList.add("over");
+    });
+    const end = e => {
+      if (!active) return; active = false;
+      if (ghost) { ghost.remove(); ghost = null; }
+      if (over) { const t = over; over.classList.remove("over"); over = null; if (t.dataset.slot === slotId || !d.sel && def.slots.some(x => x.id === t.dataset.slot && poolHas(b.type, t.dataset.slot, p, v))) place(t.dataset.slot, v); else { t.classList.add("shake"); setTimeout(() => t.classList.remove("shake"), 350); toast(`That's not a ${def.slots.find(x => x.id === t.dataset.slot).label.toLowerCase()}`); } }
+      setTimeout(() => { chip._dragged = false; }, 50);
+    };
+    chip.addEventListener("pointerup", end); chip.addEventListener("pointercancel", end);
+  }
+  refreshFinder();
+  return wrap;
+}
+function poolHas(type, slotId, p, v){ return poolFor(type, slotId, p).groups.some(([g, vs]) => vs.some(x => sameVal(x, v))); }
+function placeValue(d, slotId, v){
+  const b = d.build; const cur = b.slots[slotId];
+  if (cur && cur.by === "you") b.slots[slotId] = { v, by: "you", round: 0, replaced: cur.replaced, replacedRound: cur.replacedRound };
+  else { b.slots[slotId] = { v, by: "you", round: 0, replaced: cur ? cur.v : undefined, replacedRound: cur ? cur.round : undefined }; d.edits++; }
+  d.lastDrop = slotId; d.sel = null; d.q = ""; d.log.push({ mode: "inline", slot: slotId, v });
+}
+function undoSlot(d, slotId){
+  const b = d.build; const cur = b.slots[slotId]; if (!cur || cur.by !== "you") return;
+  b.slots[slotId] = cur.replaced ? { v: cur.replaced, by: "them", round: cur.replacedRound || 0 } : null;
+  d.edits--; d.sel = null; d.q = ""; ui.keepScroll = true; render();
 }
 function like(p){
   const i = ix(p.id); if (i.liked) return; i.liked = true; logEvent("like", {profileId:p.id});
@@ -883,9 +1047,9 @@ function takenKeys(b){ const def = btype(b.type); return new Set(def.kind === "l
 /* Draft = the build being edited this turn; edits counted against perTurn */
 function openEditor(p, k){
   const i = ix(p.id); const b = p.builds[k];
-  ui.draft = { profileId: p.id, build: makeBuild(b.type, b), edits: 0, startedAt: performance.now(), log: [] };
+  ui.draft = { profileId: p.id, k, build: makeBuild(b.type, b), edits: 0, startedAt: performance.now(), log: [], sel: null, q: "" };
   i.started = true; i.buildType = b.type; i.startMs = i.startMs || Math.round(performance.now() - (i._enter || performance.now()));
-  logEvent("build_start", {profileId:p.id, type:b.type, starterIndex:k});
+  logEvent("build_start", {profileId:p.id, type:b.type, starterIndex:k, inline: btype(b.type).kind === "slots"});
   ui.keepScroll = true; render();
 }
 function renderEditorSheet(){
@@ -1038,7 +1202,7 @@ function completeBuild(th){
 
 /* ---------- Builds (in flight) ---------- */
 function threadById(id){ return session.threads.find(t => t.id === id); }
-function threadDraft(){ const th = threadById(ui.threadId); if (!th || th.status !== "yourturn") return null; if (!th._draft) th._draft = { profileId: th.profileId, build: th.build, edits: 0, startedAt: performance.now(), log: [], round: th.round + 1 }; return th._draft; }
+function threadDraft(){ const th = threadById(ui.threadId); if (!th || th.status !== "yourturn") return null; if (!th._draft) th._draft = { profileId: th.profileId, build: th.build, edits: 0, startedAt: performance.now(), log: [], round: th.round + 1, sel: null, q: "" }; return th._draft; }
 function renderBuilds(){
   const list = session.threads.filter(t => t.status !== "matched").slice().reverse();
   const s = el("section", {class:"screen"});
@@ -1062,7 +1226,12 @@ function renderThread(){
   s.append(el("div", {class:"backbar"}, el("button", {class:"iconbtn", "aria-label":"Back to builds", onclick: () => { delete th._draft; go("builds"); }}, icon("back")), el("span", {class:"t-strong"}, def.name + " with " + p.name), el("span", {class:"roundchip", style:"margin-left:auto"}, `round ${th.round}`)));
   const yourTurn = th.status === "yourturn"; const d = yourTurn ? threadDraft() : null;
   s.append(el("div", {class:"statusline" + (yourTurn ? " ready" : "")}, el("i"), yourTurn ? (th.theirReady ? `${p.name} added to it and thinks it's done.` : `${p.name} added to it. ${completionText(b)}.`) : th.yourReady ? `You said it's done. Waiting for ${p.name}.` : `Waiting for ${p.name} to send it back.`));
-  s.append(buildBox(b, p, { editable: yourTurn, draft: d, showNew: true, title: "The " + def.name.toLowerCase() + " so far", right: yourTurn ? el("span", {class:"roundchip"}, `${d.edits} / ${def.perTurn}`) : null }));
+  if (def.kind === "slots") {
+    const box = el("div", {class:"buildbox"});
+    box.append(el("div", {class:"ptitle"}, el("span", null, "The " + def.name.toLowerCase() + " so far"), yourTurn ? el("span", {class:"roundchip"}, `${d.edits} / ${def.perTurn}`) : null));
+    box.append(trayEditor(b, p, { editable: yourTurn, draft: d, showNew: true }));
+    s.append(box);
+  } else s.append(buildBox(b, p, { editable: yourTurn, draft: d, showNew: true, title: "The " + def.name.toLowerCase() + " so far", right: yourTurn ? el("span", {class:"roundchip"}, `${d.edits} / ${def.perTurn}`) : null }));
   if (yourTurn) {
     const complete = isComplete(b);
     s.append(el("div", {class:"readybox"},
@@ -1112,7 +1281,8 @@ function renderChat(){
       el("div", {class:"cover-grid"}, items.slice(0,4).map(it => el("i", {style: artStyle(it.v)}))),
       el("div", null, el("span", {class:"t-caption muted"}, "You both agreed"), el("h2", {class:"t-hero", style:"margin:6px 0 0;font-size:34px"}, def.doneTitle || ("It's a " + def.name.toLowerCase()))),
       el("p", {class:"muted num"}, `${items.length} ${def.kind === "list" ? def.unit + "s" : "slots"} · ${items.filter(x=>x.by==="you").length} from you · ${items.filter(x=>x.by!=="you").length} from ${p.name} · ${th.round} ${th.round === 1 ? "round" : "rounds"}`)));
-    s.append(buildBox(b, p, { title: p.name + " × you" }));
+    if (def.kind === "slots") { const box = el("div", {class:"buildbox"}); box.append(el("div", {class:"ptitle"}, el("span", null, p.name + " × you"))); box.append(trayEditor(b, p, { editable: false })); s.append(box); }
+    else s.append(buildBox(b, p, { title: p.name + " × you" }));
   } else {
     s.append(el("div", {class:"mixtape"}, el("div", {class:"avatars"}, el("div", {class:"avatar"}, "You"), el("div", {class:"avatar", style:photoStyle(p) + ";color:#fff"}, p.name[0])), el("div", null, el("span", {class:"t-caption muted"}, "You liked each other"), el("h2", {class:"t-hero", style:"margin:6px 0 0;font-size:34px"}, "It's a match"))));
   }

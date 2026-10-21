@@ -79,15 +79,23 @@ Then Share → **Add to Home Screen**.
    in full. **Pass** moves on. Each build ends with the Figma remix bar: "Put
    your own spin on it and send it back" and the verb (Remix, Curate, Plan,
    Cook).
-4. **Editor sheet.** The verb opens a bottom sheet over the profile. Swap or
-   add on list builds, counter any slot on slot builds, within the per-turn
-   limit. Picking a value swaps the sheet to the library view and back.
-   **Send it back** creates the build and moves to the next person. One build
-   per person at a time.
-5. **Builds.** The other person replies after a delay: fills slots, adds
-   items, occasionally counters. The tester makes changes and sends another
-   round, or says **It's done** once the rules are met. When both agree, it
-   aligns.
+4. **Editing.** Two patterns, by build kind.
+   - **Slot builds (The Plan, Dinner) edit inline.** On the profile they sit
+     as a fanned stack of tiles. Tap the stack or the verb and it fans out in
+     place into a tray, one tile per slot, with a finder underneath: search
+     plus your options. Tap a tile and tap a result, or drag a result onto
+     its tile, and it drops in. Drop it on the wrong tile and it shakes it
+     off. Your tiles get a green edge; tap one to put the original back.
+   - **List builds (Mixtape, Watchlist) edit in a bottom sheet.** Swap or add
+     from your library; picking a value swaps the sheet to the library view
+     and back.
+
+   Both respect the per-turn change limit. **Send it back** creates the build
+   and moves to the next person. One build per person at a time.
+5. **Builds.** The other person replies after a delay: accepts your
+   counters, adds items, occasionally counters back. Slot builds use the same
+   tray and finder here. The tester makes changes and sends another round, or
+   says **It's done** once the rules are met. When both agree, it aligns.
 6. **Chats.** Aligned builds live here with the finished artifact and an open
    chat. The tester can send a message.
 7. **Survey** and **Save session**.

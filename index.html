@@ -254,10 +254,10 @@ textarea.code{font-family:var(--font-mono);font-size:12px;line-height:1.5;min-he
 .sheet .sfoot{position:sticky;bottom:0;background:var(--bg);padding:var(--sp-300) 0 calc(var(--sp-400) + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:var(--sp-200)}
 .sheet .plist .pitem{min-height:68px}
 /* Inline slot builder: fanned stack (collapsed) → tray of tiles (open) with a finder underneath */
-.stack{position:relative;height:156px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.stack{position:relative;height:150px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .stack .tile{position:absolute;left:50%;top:12px;margin-left:-58px;transform:rotate(var(--r)) translateX(var(--x)) translateY(var(--y));transition:transform .3s cubic-bezier(.2,.8,.3,1)}
 .stack:hover .tile,.stack:focus-visible .tile{transform:rotate(calc(var(--r) * 1.4)) translateX(calc(var(--x) * 1.25)) translateY(var(--y))}
-.stack .hint{position:absolute;left:0;right:0;bottom:0;text-align:center;font-size:12px;color:var(--fg-2)}
+.stackhint{text-align:center;font-size:12px;color:var(--fg-2);margin-top:-4px}
 .tile{width:116px;height:128px;border-radius:20px;padding:10px;display:flex;flex-direction:column;justify-content:space-between;color:#fff;box-shadow:var(--shadow-200);text-align:left;border:0;position:relative;overflow:hidden;flex:0 0 116px;background:var(--bg-3)}
 .tile .lab{font-family:var(--font-mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;opacity:.85;line-height:1.2}
 .tile .big{font-family:var(--font-hero);font-weight:700;font-size:34px;line-height:1;letter-spacing:-.03em;opacity:.35;position:absolute;right:8px;top:6px}
@@ -894,8 +894,9 @@ function stackEl(b, onOpen){
   const def = btype(b.type); const n = def.slots.length;
   const st = el("div", {class:"stack", role:"button", tabindex:"0", "aria-label":"Open " + def.name, onclick: onOpen || null, onkeydown: e => { if (onOpen && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onOpen(); } }});
   def.slots.forEach((sl, i) => { const t = (i - (n-1)/2); const tile = tileEl(sl, b.slots[sl.id], {}); tile.style.setProperty("--r", (t * 6) + "deg"); tile.style.setProperty("--x", (t * 26) + "px"); tile.style.setProperty("--y", (Math.abs(t) * 3) + "px"); tile.style.zIndex = String(10 - Math.abs(t)); st.append(tile); });
-  st.append(el("span", {class:"hint"}, onOpen ? "Tap to open it up" : ""));
-  return st;
+  if (!onOpen) return st;
+  const wrap = el("div", {class:"stack-wrap", style:"display:flex;flex-direction:column;gap:8px"}, st, el("span", {class:"stackhint"}, "Tap to open it up"));
+  return wrap;
 }
 function tileEl(sl, it, opts){
   const tile = el(opts.button ? "button" : "div", {class:"tile" + (it ? "" : " empty") + (it && it.by === "you" ? " mine" : "") + (opts.sel ? " sel" : "") + (opts.drop ? " drop" : ""), "data-slot": sl.id, type: opts.button ? "button" : null, disabled: opts.disabled ? true : null, onclick: opts.onclick || null});

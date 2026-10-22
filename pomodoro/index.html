@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PT-25">
+<meta name="theme-color" content="#E6E3DB">
+<meta name="description" content="PT-25: a pomodoro timer that feels like an object. Turn the dial or swipe the pixel display, press the orange key.">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<title>PT-25 Pomodoro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one cream device body with two faces, an analog dial or a 32x8 LED matrix, chosen in settings.
+   Portrait: nameplate, mode switch, face, status, keys. Landscape: digital becomes a nightstand clock, analog puts the dial beside the controls. Light edition only. */
+:root {
+  color-scheme: light;
+  --body: #E6E3DB;        /* warm Braun off-white body */
+  --panel: #EFEDE7;       /* settings sheet */
+  --well: #D8D5CC;        /* recessed tracks */
+  --fg: #1F1F1D;
+  --muted: #7C7B74;
+  --line: #CBC8BF;
+  --key: #2B2B29;         /* dark keycap */
+  --key-edge: #121211;
+  --key-fg: #EDEBE5;
+  --accent: #E5531C;      /* the one orange on the body */
+  --accent-edge: #A33A10;
+  --accent-glow: rgba(229, 83, 28, .42);
+  --led-off: #CDCAC1;
+  --tick-dim: #C7C4BB;
+  --glass: #0B0B0A;       /* pixel display front */
+  --glass-edge: #26262A;
+  --shadow: rgba(30, 28, 20, .18);
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html, body { height: 100%; }
+html { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--body); }
+body { overscroll-behavior: none; touch-action: manipulation; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--body); color: var(--fg); font-family: var(--font-ui);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none;
+  overflow-x: hidden;
+}
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.device {
+  max-width: 440px; min-height: 100%; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; align-content: space-between; gap: 18px;
+  grid-template-areas: "left right" "mode mode" "face face" "status status" "keys keys";
+  padding-block: 18px 28px;
+}
+.plate-left { grid-area: left; display: flex; flex-direction: column; gap: 4px; }
+.plate-right { grid-area: right; justify-self: end; display: flex; align-items: center; gap: 14px; }
+.mode { grid-area: mode; }
+.face { grid-area: face; display: flex; justify-content: center; }
+.status { grid-area: status; }
+.keys { grid-area: keys; }
+
+/* engraved labels */
+.lbl, .tally, .sub, .model, .switch-labels span, .line, .row-label, .sheet-hint {
+  font-size: 11px; letter-spacing: .14em; text-transform: uppercase; font-weight: 500; color: var(--muted);
+}
+.model { color: var(--fg); font-weight: 600; font-size: 13px; letter-spacing: .18em; }
+.tally { color: var(--fg); font-variant-numeric: tabular-nums; }
+
+/* keys */
+.key {
+  appearance: none; border: 0; cursor: pointer; display: grid; place-items: center;
+  width: 60px; height: 46px; border-radius: 10px; background: var(--key); color: var(--key-fg);
+  box-shadow: 0 3px 0 var(--key-edge), 0 5px 10px var(--shadow);
+  transition: transform .06s ease, box-shadow .06s ease; touch-action: manipulation;
+}
+.key:active, .key.pressed { transform: translateY(3px); box-shadow: 0 0 0 var(--key-edge), 0 1px 3px var(--shadow); }
+.key svg { width: 18px; height: 18px; display: block; fill: currentColor; }
+.key-sm { width: 44px; height: 32px; border-radius: 8px; }
+.key-sm svg { width: 16px; height: 16px; }
+.key-main {
+  width: 92px; height: 92px; border-radius: 50%; background: var(--accent); color: #fff;
+  background-image: radial-gradient(circle at 50% 32%, rgba(255,255,255,.22), rgba(255,255,255,0) 62%);
+  box-shadow: 0 5px 0 var(--accent-edge), 0 8px 18px var(--accent-glow);
+}
+.key-main:active, .key-main.pressed { transform: translateY(5px); box-shadow: 0 0 0 var(--accent-edge), 0 2px 6px var(--accent-glow); }
+.key-main svg { width: 26px; height: 26px; }
+
+/* slide switches */
+.mode { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.switch {
+  position: relative; width: 198px; height: 30px; border-radius: 8px; background: var(--well);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,.22), inset 0 -1px 0 rgba(255,255,255,.25);
+  display: grid; grid-template-columns: repeat(3, 1fr); padding: 3px;
+}
+.switch .cap {
+  position: absolute; top: 3px; left: 3px; width: calc((100% - 6px) / 3); height: calc(100% - 6px);
+  border-radius: 6px; background: var(--key); box-shadow: 0 2px 0 var(--key-edge), 0 3px 6px var(--shadow);
+  transition: transform .22s cubic-bezier(.3, 1.4, .5, 1); pointer-events: none;
+}
+.switch .cap::after {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 3px; height: 12px; border-radius: 2px;
+  transform: translate(-50%, -50%); background: var(--key-fg); opacity: .55;
+}
+.switch .pos { appearance: none; border: 0; background: transparent; cursor: pointer; border-radius: 6px; }
+.switch.locked { opacity: .55; }
+.switch.locked .pos { cursor: default; }
+.switch-labels { width: 198px; display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
+.switch-labels span.on { color: var(--fg); }
+.switch.two, .switch-labels.two { width: 150px; grid-template-columns: repeat(2, 1fr); }
+.switch.two .cap { width: calc((100% - 6px) / 2); }
+.facectl { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+/* analog face: the dial */
+.dial {
+  position: relative; width: min(84vw, 330px); aspect-ratio: 1; max-width: 100%;
+  touch-action: none; cursor: grab;
+}
+.dial.locked { cursor: default; }
+.dial.turning { cursor: grabbing; }
+.dial svg { width: 100%; height: 100%; display: block; }
+.dial .tick { stroke: var(--tick-dim); stroke-width: 2; stroke-linecap: round; transition: stroke .15s; }
+.dial .tick.long { stroke-width: 3; }
+.dial .tick.lit { stroke: var(--fg); }
+.dial .rim { fill: none; stroke: var(--line); stroke-width: 1; }
+.dial .dot { fill: var(--accent); }
+.dial .dot-ring { fill: none; stroke: var(--accent); stroke-width: 1; opacity: .35; }
+.readout {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  pointer-events: none; gap: 2px;
+}
+.digits {
+  font-family: var(--font-num); font-weight: 500; font-size: clamp(54px, 19vw, 78px); line-height: 1;
+  letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--fg);
+}
+.digits.dim { color: var(--muted); }
+.unit { font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--muted); font-weight: 500; margin-top: 6px; }
+
+/* digital face: the LED matrix */
+.panel {
+  position: relative; width: 100%; max-width: 100%; border-radius: 16px; background: var(--glass);
+  padding: clamp(8px, 3.2%, 16px) clamp(10px, 3.6%, 18px);
+  box-shadow: inset 0 0 0 1px var(--glass-edge), inset 0 1px 0 rgba(255,255,255,.08), 0 8px 20px var(--shadow);
+  touch-action: none; cursor: ew-resize;
+}
+.panel.locked { cursor: default; }
+.panel::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(170deg, rgba(255,255,255,.07), rgba(255,255,255,0) 38%);
+}
+.panel canvas { display: block; width: 100%; aspect-ratio: 4 / 1; max-width: 100%; }
+
+/* status */
+.status { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.leds { display: flex; gap: 12px; }
+.face-digital .leds { display: none; }
+.led {
+  width: 9px; height: 9px; border-radius: 50%; background: var(--led-off);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.25); transition: background .2s, box-shadow .2s;
+}
+.led.on { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow), 0 0 1px var(--accent); }
+.line { color: var(--fg); text-align: center; min-height: 14px; }
+.line.quiet { color: var(--muted); }
+
+/* key row */
+.keys { display: flex; justify-content: center; align-items: flex-end; gap: 34px; }
+.keycol { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+
+/* settings sheet */
+.scrim { position: fixed; inset: 0; background: rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 20; }
+.scrim.open { opacity: 1; pointer-events: auto; }
+.sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; max-height: 90%; overflow-y: auto;
+  background: var(--panel); border-top: 1px solid var(--line); border-radius: 18px 18px 0 0;
+  padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
+  padding-block: 14px calc(18px + env(safe-area-inset-bottom, 0px));
+  transform: translateY(105%); transition: transform .3s cubic-bezier(.2, .9, .3, 1);
+  box-shadow: 0 -10px 30px rgba(0,0,0,.18);
+}
+.sheet.open { transform: translateY(0); }
+.sheet-inner { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
+.grip { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 10px; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 10px; border-bottom: 1px solid var(--line); min-width: 0; }
+.row:last-of-type { border-bottom: 0; }
+.row-label { color: var(--fg); display: flex; flex-direction: column; gap: 3px; }
+.row-label small { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--muted); font-weight: 400; }
+.stepper { display: flex; align-items: center; gap: 10px; }
+.stepper .val { font-family: var(--font-num); font-size: 18px; font-weight: 500; min-width: 2ch; text-align: center; font-variant-numeric: tabular-nums; }
+.key-step { width: 40px; height: 32px; border-radius: 8px; }
+.key-step svg { width: 14px; height: 14px; }
+.toggle {
+  appearance: none; border: 0; cursor: pointer; position: relative; width: 56px; height: 28px; border-radius: 7px;
+  background: var(--well); box-shadow: inset 0 2px 4px rgba(0,0,0,.22); padding: 0; transition: background .2s;
+}
+.toggle .tcap {
+  position: absolute; top: 3px; left: 3px; width: 24px; height: 22px; border-radius: 5px; background: var(--key);
+  box-shadow: 0 2px 0 var(--key-edge); transition: transform .18s cubic-bezier(.3, 1.3, .5, 1);
+}
+.toggle .tcap::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 10px; border-radius: 1px; transform: translate(-50%, -50%); background: var(--key-fg); opacity: .55; }
+.toggle[aria-checked="true"] { background: var(--accent); }
+.toggle[aria-checked="true"] .tcap { transform: translateX(26px); }
+.sheet-hint { margin-top: 8px; text-align: center; }
+.key-wide { width: 100%; height: 44px; margin-top: 12px; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; font-weight: 600; }
+
+/* landscape */
+@media (orientation: landscape) and (max-height: 560px) {
+  .device { max-width: none; gap: 8px 16px; padding-block: 10px 12px; align-items: center; }
+  .plate-left { flex-direction: row; align-items: baseline; gap: 12px; }
+  .mode { gap: 5px; }
+  .switch { height: 26px; }
+  .keys { gap: 22px; }
+  .keycol { gap: 6px; }
+  .key { width: 52px; height: 40px; }
+  .key-main { width: 64px; height: 64px; box-shadow: 0 4px 0 var(--accent-edge), 0 6px 14px var(--accent-glow); }
+  .key-main svg { width: 20px; height: 20px; }
+
+  /* digital: nightstand clock */
+  .face-digital .device {
+    grid-template-columns: 1fr auto 1fr; align-content: space-between;
+    grid-template-areas: "left mode right" "face face face" "status keys keys";
+  }
+  .face-digital .panel { width: fit-content; height: min(calc(100dvh - 168px), 100vw / 4.4); max-width: 100%; }
+  .face-digital .panel canvas { height: 100%; width: auto; aspect-ratio: 4 / 1; }
+  .face-digital .status { align-items: flex-start; }
+  .face-digital .line { text-align: left; }
+  .face-digital .keys { grid-column: 2 / 4; justify-self: end; }
+
+  /* analog: dial beside the controls */
+  .face-analog .device {
+    grid-template-columns: auto 1fr auto; grid-template-rows: auto 1fr auto auto; align-content: stretch;
+    grid-template-areas: "face left right" "face mode mode" "face status status" "face keys keys";
+  }
+  .face-analog .face { align-self: center; padding-right: 8px; }
+  .face-analog .dial { width: min(calc(100dvh - 44px), 44vw); }
+  .face-analog .digits { font-size: clamp(40px, 9vw, 64px); }
+  .face-analog .mode { align-self: center; }
+  .face-analog .keys { align-self: end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .switch .cap, .toggle .tcap, .sheet, .scrim, .key, .led, .dial .tick { transition: none; }
+}
+@media (max-height: 640px) and (orientation: portrait) {
+  .device { gap: 10px; }
+  .dial { width: min(70vw, 260px); }
+}
+</style>
+</head>
+<body>
+<main class="device">
+  <div class="plate-left">
+    <span class="model">PT-25</span>
+    <span class="sub">pomodoro timer</span>
+  </div>
+  <div class="plate-right">
+    <span class="tally" id="tally">Today 0</span>
+    <button class="key key-sm" id="btnSet" aria-label="Settings" title="Settings">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.6"/><circle cx="8" cy="8" r="1.6"/><circle cx="13" cy="8" r="1.6"/></svg>
+    </button>
+  </div>
+
+  <section class="mode">
+    <div class="switch" id="modeSwitch" role="radiogroup" aria-label="Mode">
+      <div class="cap" id="modeCap"></div>
+      <button class="pos" data-mode="focus" role="radio" aria-checked="true" aria-label="Focus"></button>
+      <button class="pos" data-mode="short" role="radio" aria-checked="false" aria-label="Short break"></button>
+      <button class="pos" data-mode="long" role="radio" aria-checked="false" aria-label="Long break"></button>
+    </div>
+    <div class="switch-labels" id="modeLabels"><span data-mode="focus" class="on">Focus</span><span data-mode="short">Short</span><span data-mode="long">Long</span></div>
+  </section>
+
+  <section class="face" id="faceAnalog">
+    <div class="dial" id="dial" aria-label="Minutes dial">
+      <svg viewBox="0 0 300 300" aria-hidden="true">
+        <circle class="rim" cx="150" cy="150" r="148"/>
+        <g id="ticks"></g>
+        <circle class="dot-ring" cx="150" cy="150" r="112"/>
+        <circle class="dot" id="dot" cx="150" cy="38" r="5"/>
+      </svg>
+      <div class="readout">
+        <div class="digits" id="digits">25:00</div>
+        <div class="unit" id="unit">min · sec</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="face" id="faceDigital" hidden>
+    <div class="panel" id="panel" aria-label="Timer display. Swipe to set minutes." role="img">
+      <canvas id="matrix" width="640" height="160"></canvas>
+    </div>
+  </section>
+
+  <section class="status">
+    <div class="leds" id="leds"></div>
+    <div class="line quiet" id="statusLine">Turn the dial to set minutes</div>
+  </section>
+
+  <section class="keys">
+    <div class="keycol">
+      <button class="key" id="btnReset" aria-label="Reset">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><rect x="4" y="4" width="10" height="10" rx="1.5"/></svg>
+      </button>
+      <span class="lbl">Reset</span>
+    </div>
+    <div class="keycol">
+      <button class="key key-main" id="btnMain" aria-label="Start">
+        <svg viewBox="0 0 26 26" aria-hidden="true" id="mainGlyph"><path d="M8 5.5v15l12-7.5z"/></svg>
+      </button>
+      <span class="lbl" id="mainLbl">Start</span>
+    </div>
+    <div class="keycol">
+      <button class="key" id="btnSkip" aria-label="Skip">
+        <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 4v10l7-5z"/><rect x="12" y="4" width="3" height="10" rx="1"/></svg>
+      </button>
+      <span class="lbl">Skip</span>
+    </div>
+  </section>
+</main>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Settings" aria-hidden="true">
+  <div class="sheet-inner">
+    <div class="grip"></div>
+    <div class="row">
+      <div class="row-label">Face<small>Dial, or pixel display</small></div>
+      <div class="facectl">
+        <div class="switch two" id="faceSwitch" role="radiogroup" aria-label="Face">
+          <div class="cap" id="faceCap"></div>
+          <button class="pos" data-face="analog" role="radio" aria-checked="true" aria-label="Analog"></button>
+          <button class="pos" data-face="digital" role="radio" aria-checked="false" aria-label="Digital"></button>
+        </div>
+        <div class="switch-labels two" id="faceLabels"><span data-face="analog" class="on">Analog</span><span data-face="digital">Digital</span></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">Rounds per set<small>Focus sessions before the long break</small></div>
+      <div class="stepper">
+        <button class="key key-step" data-step="rounds" data-dir="-1" aria-label="Fewer rounds"><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="6" width="10" height="2" rx="1"/></svg></button>
+        <span class="val" id="valRounds">4</span>
+        <button class="key key-step" data-step="rounds" data-dir="1" aria-label="More rounds"><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="6" width="10" height="2" rx="1"/><rect x="6" y="2" width="2" height="10" rx="1"/></svg></button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="row-label">Auto-start next<small>Breaks and focus start on their own</small></div>
+      <button class="toggle" role="switch" aria-checked="false" data-toggle="autoStart"><span class="tcap"></span></button>
+    </div>
+    <div class="row">
+      <div class="row-label">Sound<small>Key clicks, detents, chime</small></div>
+      <button class="toggle" role="switch" aria-checked="true" data-toggle="sound"><span class="tcap"></span></button>
+    </div>
+    <div class="row">
+      <div class="row-label">Haptics<small id="hapticNote">Vibration on each click</small></div>
+      <button class="toggle" role="switch" aria-checked="true" data-toggle="haptics"><span class="tcap"></span></button>
+    </div>
+    <div class="row">
+      <div class="row-label">Ticking<small>A soft tick each second while focusing</small></div>
+      <button class="toggle" role="switch" aria-checked="false" data-toggle="ticking"><span class="tcap"></span></button>
+    </div>
+    <div class="sheet-hint" id="sheetHint">Durations: pick a mode, then turn the dial</div>
+    <button class="key key-wide" id="btnDone">Done</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const LS = "pt25.v3";
+  const MODES = { focus: "Focus", short: "Short break", long: "Long break" };
+  const ORDER = ["focus", "short", "long"];
+  const defaults = { focus: 25, short: 5, long: 15, rounds: 4, autoStart: false, sound: true, haptics: true, ticking: false, face: "analog" };
+
+  const S = {
+    settings: { ...defaults },
+    mode: "focus", status: "idle",       // idle | running | paused
+    remaining: 25 * 60000, endAt: 0,
+    round: 0,                            // focus sessions finished in this set
+    today: { date: dayKey(), count: 0 },
+    hinted: false, note: ""
+  };
+
+  function dayKey() { const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
+  function save() { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} }
+  function load() {
+    try {
+      const raw = localStorage.getItem(LS); if (!raw) return;
+      const o = JSON.parse(raw);
+      Object.assign(S, o); S.settings = { ...defaults, ...(o.settings || {}) };
+    } catch (e) {}
+    if (S.today.date !== dayKey()) S.today = { date: dayKey(), count: 0 };
+  }
+  const dur = (m) => S.settings[m] * 60000;
+  const digital = () => S.settings.face === "digital";
+
+  // ---------- audio (synthesised, no files) ----------
+  let ac = null, master = null;
+  function audio() {
+    if (!S.settings.sound) return null;
+    try {
+      if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); master = ac.createGain(); master.gain.value = .7; master.connect(ac.destination); }
+      if (ac.state === "suspended") ac.resume();
+      return ac;
+    } catch (e) { return null; }
+  }
+  let noiseBuf = null;
+  function noise(a) {
+    if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate * .05, a.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const s = a.createBufferSource(); s.buffer = noiseBuf; return s;
+  }
+  function click(vol = .5, freq = 2400) {
+    const a = audio(); if (!a) return; const t = a.currentTime;
+    const s = noise(a), f = a.createBiquadFilter(), g = a.createGain();
+    f.type = "bandpass"; f.frequency.value = freq; f.Q.value = 1.2;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + .035);
+    s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + .05);
+  }
+  function detent() {
+    const a = audio(); if (!a) return; const t = a.currentTime;
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(900, t); o.frequency.exponentialRampToValueAtTime(500, t + .02);
+    g.gain.setValueAtTime(.18, t); g.gain.exponentialRampToValueAtTime(.001, t + .04);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + .05);
+    click(.18, 3200);
+  }
+  function tick() { if (audio()) click(.08, 1800); }
+  function chime(times = 2) {
+    const a = audio(); if (!a) return; const t0 = a.currentTime;
+    const bell = (t, f) => {
+      [1, 2.01, 3.0].forEach((p, i) => {
+        const o = a.createOscillator(), g = a.createGain();
+        o.type = "sine"; o.frequency.value = f * p;
+        const v = [.35, .12, .05][i];
+        g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + .008); g.gain.exponentialRampToValueAtTime(.001, t + 1.1);
+        o.connect(g); g.connect(master); o.start(t); o.stop(t + 1.2);
+      });
+    };
+    for (let i = 0; i < times; i++) { bell(t0 + i, 1046.5); bell(t0 + i + .18, 1318.5); }
+  }
+  function buzz(p) { if (!S.settings.haptics || !navigator.vibrate) return; try { navigator.vibrate(p); } catch (e) {} }
+
+  // ---------- wake lock ----------
+  let lock = null;
+  async function keepAwake(on) {
+    try {
+      if (on && !lock && navigator.wakeLock) { lock = await navigator.wakeLock.request("screen"); lock.addEventListener("release", () => { lock = null; }); }
+      else if (!on && lock) { await lock.release(); lock = null; }
+    } catch (e) { lock = null; }
+  }
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { if (S.status === "running") keepAwake(true); render(); } });
+
+  // ---------- elements ----------
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    tally: $("tally"), cap: $("modeCap"), sw: $("modeSwitch"), labels: $("modeLabels"),
+    faceAnalog: $("faceAnalog"), faceDigital: $("faceDigital"), faceSw: $("faceSwitch"), faceCap: $("faceCap"), faceLabels: $("faceLabels"),
+    dial: $("dial"), ticks: $("ticks"), dot: $("dot"), digits: $("digits"), unit: $("unit"),
+    panel: $("panel"), cv: $("matrix"),
+    leds: $("leds"), line: $("statusLine"), main: $("btnMain"), mainGlyph: $("mainGlyph"), mainLbl: $("mainLbl"),
+    reset: $("btnReset"), skip: $("btnSkip"), sheet: $("sheet"), scrim: $("scrim"), set: $("btnSet"), done: $("btnDone"),
+    valRounds: $("valRounds"), sheetHint: $("sheetHint")
+  };
+  const PLAY = "M8 5.5v15l12-7.5z", PAUSE = "M7 5h4v16H7zM15 5h4v16h-4z";
+
+  // ---------- analog face ----------
+  const tickEls = [];
+  for (let i = 0; i < 60; i++) {
+    const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    const long = i % 5 === 0;
+    l.setAttribute("x1", 150); l.setAttribute("x2", 150);
+    l.setAttribute("y1", 10); l.setAttribute("y2", long ? 26 : 20);
+    l.setAttribute("transform", `rotate(${i * 6} 150 150)`);
+    l.setAttribute("class", "tick" + (long ? " long" : ""));
+    el.ticks.appendChild(l); tickEls.push(l);
+  }
+  function drawDial() {
+    const r = remainingNow(), running = S.status === "running";
+    const litMin = Math.min(60, Math.ceil(r / 60000));
+    tickEls.forEach((t, i) => t.classList.toggle("lit", i < litMin));
+    const deg = Math.min(360, (r / 60000) * 6);
+    const rad = (deg - 90) * Math.PI / 180;
+    el.dot.setAttribute("cx", (150 + 112 * Math.cos(rad)).toFixed(2));
+    el.dot.setAttribute("cy", (150 + 112 * Math.sin(rad)).toFixed(2));
+    el.digits.textContent = turning ? String(S.settings[S.mode]).padStart(2, "0") + ":00" : fmt(r);
+    el.digits.classList.toggle("dim", S.status === "paused");
+    el.unit.textContent = turning ? "set minutes" : (running ? "remaining" : "min · sec");
+    el.dial.classList.toggle("locked", S.status !== "idle");
+  }
+
+  // ---------- digital face: LED matrix ----------
+  const COLS = 32, ROWS = 8;
+  const C = { off: "#1A1917", white: "#F3EADB", dim: "#6E675C", orange: "#FF6A1F", green: "#63C46B", steam: "#8E8A80" };
+  const FONT = {   // 4 x 7
+    "0": ["0110","1001","1001","1001","1001","1001","0110"],
+    "1": ["0010","0110","0010","0010","0010","0010","0111"],
+    "2": ["0110","1001","0001","0010","0100","1000","1111"],
+    "3": ["1110","0001","0001","0110","0001","0001","1110"],
+    "4": ["0010","0110","1010","1010","1111","0010","0010"],
+    "5": ["1111","1000","1000","1110","0001","0001","1110"],
+    "6": ["0110","1000","1000","1110","1001","1001","0110"],
+    "7": ["1111","0001","0010","0010","0100","0100","0100"],
+    "8": ["0110","1001","1001","0110","1001","1001","0110"],
+    "9": ["0110","1001","1001","0111","0001","0001","0110"],
+  };
+  const ICON = {   // 7 x 7, letters pick a colour
+    focus: ["..gg...", "...g...", ".ooooo.", "ooooooo", "ooooooo", "ooooooo", ".ooooo."],
+    short: [".s.s...", "..s.s..", "ooooo..", "ooooooo", "ooooooo", "ooooo..", ".ooo..."],
+    long:  ["..wwww.", ".ww....", "ww.....", "ww.....", "ww.....", ".ww....", "..wwww."],
+  };
+  const ICOL = { g: C.green, o: C.orange, s: C.steam, w: C.white };
+  const ctx = el.cv.getContext("2d");
+  function sizeCanvas() {
+    const r = el.cv.getBoundingClientRect(); if (!r.width) return;
+    const dpr = Math.min(3, window.devicePixelRatio || 1);
+    const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
+    if (el.cv.width !== w || el.cv.height !== h) { el.cv.width = w; el.cv.height = h; }
+  }
+  function frame() {
+    const F = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    const r = remainingNow(), running = S.status === "running";
+    const sec = Math.ceil(r / 1000);
+    ICON[S.mode].forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== ".") F[y][x] = ICOL[ch]; }));
+    const text = turning ? String(S.settings[S.mode]).padStart(2, "0") + ":00" : fmt(r);
+    const digitColor = S.status === "paused" ? C.dim : C.white;
+    let x = 8;
+    for (const ch of text) {
+      if (ch === ":") {
+        const on = turning || !running || sec % 2 === 0;
+        if (on) { F[2][x] = digitColor; F[4][x] = digitColor; }
+        x += 2; continue;
+      }
+      FONT[ch].forEach((row, y) => [...row].forEach((b, dx) => { if (b === "1") F[y][x + dx] = digitColor; }));
+      x += 5;
+    }
+    const n = turning ? 31 : Math.ceil(31 * Math.min(1, r / dur(S.mode)));
+    for (let i = 0; i < 31; i++) F[7][i] = i < n ? C.orange : null;
+    const rounds = S.settings.rounds;
+    const rows = rounds <= 4 ? [0, 2, 4, 6].slice(0, rounds) : Array.from({ length: rounds }, (_, i) => i);
+    rows.forEach((y, i) => { F[y][31] = i < S.round ? C.orange : null; });
+    return F;
+  }
+  function roundRect(x, y, w, h, rad) {
+    ctx.beginPath(); ctx.moveTo(x + rad, y); ctx.arcTo(x + w, y, x + w, y + h, rad); ctx.arcTo(x + w, y + h, x, y + h, rad);
+    ctx.arcTo(x, y + h, x, y, rad); ctx.arcTo(x, y, x + w, y, rad); ctx.closePath();
+  }
+  function drawMatrix() {
+    sizeCanvas();
+    const W = el.cv.width, H = el.cv.height; if (!W) return;
+    const cell = Math.min(W / COLS, H / ROWS);
+    const ox = (W - cell * COLS) / 2, oy = (H - cell * ROWS) / 2;
+    const pad = cell * .17, size = cell - pad * 2, rad = size * .24;
+    const F = frame();
+    ctx.clearRect(0, 0, W, H);
+    ctx.shadowBlur = 0; ctx.fillStyle = C.off;
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) { if (!F[y][x]) { roundRect(ox + x * cell + pad, oy + y * cell + pad, size, size, rad); ctx.fill(); } }
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
+      const c = F[y][x]; if (!c) continue;
+      ctx.fillStyle = c; ctx.shadowColor = c; ctx.shadowBlur = cell * .7;
+      roundRect(ox + x * cell + pad, oy + y * cell + pad, size, size, rad); ctx.fill();
+    }
+    ctx.shadowBlur = 0;
+    el.panel.classList.toggle("locked", S.status !== "idle");
+  }
+  if (window.ResizeObserver) new ResizeObserver(() => { if (digital()) drawMatrix(); }).observe(el.cv);
+  window.addEventListener("orientationchange", () => setTimeout(render, 60));
+
+  // ---------- timer core ----------
+  // Cycle: focus, short, focus, short, focus, short, focus, LONG, then the round markers clear and it starts over.
+  let loop = null, lastSec = -1;
+  function remainingNow() { return S.status === "running" ? Math.max(0, S.endAt - Date.now()) : S.remaining; }
+  function start() {
+    if (S.status === "running") return;
+    S.endAt = Date.now() + S.remaining; S.status = "running"; S.note = ""; S.hinted = true;
+    keepAwake(true); runLoop(); save(); render();
+  }
+  function pause() {
+    if (S.status !== "running") return;
+    S.remaining = remainingNow(); S.status = "paused"; stopLoop(); keepAwake(false); save(); render();
+  }
+  function reset() { stopLoop(); keepAwake(false); S.status = "idle"; S.remaining = dur(S.mode); S.note = ""; save(); render(); }
+  function setMode(m, keepNote) {
+    stopLoop(); keepAwake(false);
+    S.mode = m; S.status = "idle"; S.remaining = dur(m); if (!keepNote) S.note = ""; save(); render();
+  }
+  function advance(counted, silent) {
+    const was = S.mode;
+    let next = "focus";
+    if (was === "focus") {
+      if (counted) { S.round += 1; S.today.count += 1; }
+      next = (S.round >= S.settings.rounds) ? "long" : "short";
+    } else if (was === "long") { S.round = 0; }
+    if (!silent && counted) { chime(was === "long" ? 3 : 2); buzz(was === "long" ? [80, 80, 80, 80, 80, 80, 240] : [60, 80, 60, 80, 140]); }
+    S.note = counted
+      ? (was === "long" ? "Set done · new set next" : `${MODES[was]} done · ${MODES[next].toLowerCase()} next`)
+      : `${MODES[next]} next`;
+    setMode(next, true);
+    if (counted && S.settings.autoStart && !silent) start();
+  }
+  function runLoop() { stopLoop(); lastSec = -1; loop = setInterval(step, 200); step(); }
+  function stopLoop() { if (loop) clearInterval(loop); loop = null; }
+  function step() {
+    const r = remainingNow();
+    const sec = Math.ceil(r / 1000);
+    if (sec !== lastSec) { lastSec = sec; if (S.settings.ticking && S.mode === "focus" && r > 0) tick(); render(); }
+    if (r <= 0) { stopLoop(); keepAwake(false); advance(true, false); }
+  }
+
+  // ---------- render ----------
+  function fmt(ms) { const s = Math.ceil(ms / 1000); return String(Math.min(99, Math.floor(s / 60))).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0"); }
+  function render() {
+    const running = S.status === "running";
+    const dig = digital();
+    document.body.classList.toggle("face-digital", dig);
+    document.body.classList.toggle("face-analog", !dig);
+    el.faceAnalog.hidden = dig; el.faceDigital.hidden = !dig;
+    if (dig) drawMatrix(); else drawDial();
+
+    const idx = ORDER.indexOf(S.mode);
+    el.cap.style.transform = `translateX(${idx * 100}%)`;
+    el.sw.classList.toggle("locked", running);
+    el.sw.querySelectorAll(".pos").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.mode === S.mode)));
+    el.labels.querySelectorAll("span").forEach((s) => s.classList.toggle("on", s.dataset.mode === S.mode));
+
+    el.faceCap.style.transform = `translateX(${dig ? 100 : 0}%)`;
+    el.faceSw.querySelectorAll(".pos").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.face === S.settings.face)));
+    el.faceLabels.querySelectorAll("span").forEach((s) => s.classList.toggle("on", s.dataset.face === S.settings.face));
+    el.sheetHint.textContent = dig ? "Durations: pick a mode, then swipe the display" : "Durations: pick a mode, then turn the dial";
+
+    if (el.leds.childElementCount !== S.settings.rounds) {
+      el.leds.innerHTML = "";
+      for (let i = 0; i < S.settings.rounds; i++) { const d = document.createElement("span"); d.className = "led"; el.leds.appendChild(d); }
+    }
+    [...el.leds.children].forEach((d, i) => d.classList.toggle("on", i < S.round));
+
+    const roundTxt = `round ${Math.min(S.round + 1, S.settings.rounds)} of ${S.settings.rounds}`;
+    let line = "", quiet = false;
+    if (turning) line = `${MODES[S.mode]} · ${S.settings[S.mode]} min`;
+    else if (S.note) line = S.note;
+    else if (S.status === "paused") line = "Paused";
+    else if (running) line = S.mode === "focus" ? `Focusing · ${roundTxt}` : MODES[S.mode];
+    else if (!S.hinted) { line = dig ? "Swipe the display to set minutes" : "Turn the dial to set minutes"; quiet = true; }
+    else line = S.mode === "focus" ? `Focus · ${roundTxt}` : MODES[S.mode];
+    el.line.textContent = line; el.line.classList.toggle("quiet", quiet);
+
+    el.mainGlyph.firstElementChild.setAttribute("d", running ? PAUSE : PLAY);
+    el.mainLbl.textContent = running ? "Pause" : (S.status === "paused" ? "Resume" : "Start");
+    el.main.setAttribute("aria-label", el.mainLbl.textContent);
+    el.tally.textContent = `Today ${S.today.count}`;
+    el.valRounds.textContent = S.settings.rounds;
+    document.querySelectorAll(".toggle").forEach((t) => t.setAttribute("aria-checked", String(!!S.settings[t.dataset.toggle])));
+  }
+
+  // ---------- set minutes: turn the dial / swipe the display ----------
+  let turning = false, lastM = 0, startX = 0, startM = 0;
+  function applyMinutes(m) {
+    if (m === S.settings[S.mode]) return;
+    S.settings[S.mode] = m; S.remaining = m * 60000; lastM = m;
+    detent(); buzz(6); render();
+  }
+  const endTurn = () => { if (!turning) return; turning = false; el.dial.classList.remove("turning"); S.hinted = true; S.note = ""; save(); render(); };
+
+  el.dial.addEventListener("pointerdown", (e) => {
+    if (S.status !== "idle") return;
+    turning = true; lastM = S.settings[S.mode]; el.dial.classList.add("turning");
+    el.dial.setPointerCapture(e.pointerId); audio(); onTurn(e);
+  });
+  el.dial.addEventListener("pointermove", (e) => { if (turning) onTurn(e); });
+  el.dial.addEventListener("pointerup", endTurn); el.dial.addEventListener("pointercancel", endTurn);
+  function onTurn(e) {
+    const b = el.dial.getBoundingClientRect();
+    const dx = e.clientX - (b.left + b.width / 2), dy = e.clientY - (b.top + b.height / 2);
+    const deg = (Math.atan2(dy, dx) * 180 / Math.PI + 90 + 360) % 360;
+    let m = Math.round(deg / 6);
+    if (m === 0) m = lastM > 30 ? 60 : 1;
+    if (Math.abs(m - lastM) > 30) m = lastM > 30 ? 60 : 1;   // hard stops at 1 and 60, no wrap
+    applyMinutes(Math.max(1, Math.min(60, m)));
+  }
+
+  el.panel.addEventListener("pointerdown", (e) => {
+    if (S.status !== "idle") return;
+    turning = true; startX = e.clientX; startM = S.settings[S.mode]; lastM = startM;
+    el.panel.setPointerCapture(e.pointerId); audio(); render();
+  });
+  el.panel.addEventListener("pointermove", (e) => {
+    if (!turning) return;
+    const stepPx = Math.max(9, el.panel.clientWidth / 48);
+    applyMinutes(Math.max(1, Math.min(60, startM + Math.round((e.clientX - startX) / stepPx))));
+  });
+  el.panel.addEventListener("pointerup", endTurn); el.panel.addEventListener("pointercancel", endTurn);
+
+  // ---------- keys ----------
+  function key(btn, fn) {
+    btn.addEventListener("pointerdown", () => { if (btn.disabled) return; click(); buzz(10); });
+    btn.addEventListener("click", fn);
+  }
+  key(el.main, () => { S.status === "running" ? pause() : start(); });
+  key(el.reset, reset);
+  key(el.skip, () => advance(false, false));
+  el.sw.querySelectorAll(".pos").forEach((b) => key(b, () => { if (S.status === "running") return; if (b.dataset.mode !== S.mode) setMode(b.dataset.mode); }));
+  el.labels.querySelectorAll("span").forEach((s) => s.addEventListener("click", () => { if (S.status === "running") return; click(); buzz(10); if (s.dataset.mode !== S.mode) setMode(s.dataset.mode); }));
+
+  function setFace(f) { if (S.settings.face === f) return; S.settings.face = f; save(); render(); }
+  el.faceSw.querySelectorAll(".pos").forEach((b) => key(b, () => setFace(b.dataset.face)));
+  el.faceLabels.querySelectorAll("span").forEach((s) => s.addEventListener("click", () => { click(); buzz(10); setFace(s.dataset.face); }));
+
+  function openSheet(on) { el.sheet.classList.toggle("open", on); el.scrim.classList.toggle("open", on); el.sheet.setAttribute("aria-hidden", String(!on)); }
+  key(el.set, () => openSheet(true));
+  key(el.done, () => openSheet(false));
+  el.scrim.addEventListener("click", () => openSheet(false));
+  document.querySelectorAll(".key-step").forEach((b) => key(b, () => {
+    const k = b.dataset.step, d = Number(b.dataset.dir);
+    if (k === "rounds") S.settings.rounds = Math.max(2, Math.min(8, S.settings.rounds + d));
+    if (S.round > S.settings.rounds) S.round = S.settings.rounds;
+    save(); render();
+  }));
+  document.querySelectorAll(".toggle").forEach((t) => key(t, () => {
+    const k = t.dataset.toggle; S.settings[k] = !S.settings[k];
+    if (k === "sound" && S.settings.sound) click();
+    if (k === "haptics" && S.settings.haptics) buzz(20);
+    save(); render();
+  }));
+  if (!navigator.vibrate) $("hapticNote").textContent = "Not available in this browser (iPhone Safari has no vibration)";
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") openSheet(false); if (e.key === " " && e.target === document.body) { e.preventDefault(); el.main.click(); } });
+
+  // ---------- boot ----------
+  load();
+  if (S.status === "running") {
+    if (S.endAt <= Date.now()) { S.status = "idle"; advance(true, true); }
+    else { keepAwake(true); runLoop(); }
+  }
+  render();
+})();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
+</script>
+</body>
+</html>

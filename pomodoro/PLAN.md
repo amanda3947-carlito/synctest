@@ -88,14 +88,38 @@ Weniger, aber besser.
 - Skip never counts a focus session. Only a session that runs to zero does.
 - Nothing asks "are you sure". Reset is one tap; so is starting again.
 
-## Deployment path (next step)
+## Install on your iPhone
 
-Same approach as the concept-lab app already in this repo: a single HTML
-file plus `manifest.webmanifest`, `sw.js` and an icon, hosted on GitHub Pages
-and added to the home screen.
+The app lives in this folder as a home-screen web app: `index.html`,
+`manifest.webmanifest`, `sw.js` and the icons. GitHub Pages serves it from
+this branch.
 
-- **Android**: full experience, including vibration and notifications.
-- **iPhone**: installs the same way. Safari has no vibration API, so haptics
-  are silent there; sound and the chime work. Web push works for installed
-  apps on iOS 16.4+. If haptics matter on iPhone, the next step up is a thin
-  native wrapper (Capacitor) around the same files.
+**URL:** https://amanda3947-carlito.github.io/synctest/pomodoro/
+
+1. If Pages is not on yet: GitHub → repo **Settings → Pages → Build and
+   deployment → Source: Deploy from a branch**, pick this branch and `/ (root)`,
+   Save. The first build takes a minute or two.
+2. Open the URL above in **Safari** on the iPhone (it has to be Safari for the
+   next step).
+3. Tap **Share → Add to Home Screen → Add**. The icon is the orange key on a
+   cream dial.
+4. Open it from the home screen. It runs full-screen without the Safari bars,
+   rotates into landscape, and works offline after the first load.
+
+### What iPhone does and doesn't do
+
+- **Sound and chime:** work, but iPhone only lets a web app make sound after
+  you have tapped something. Tap any key once after opening and the
+  end-of-session chime is unlocked for that session.
+- **Screen stays on** while a session runs (wake lock, iOS 16.4+). Keep the
+  app in the foreground; if you switch away or lock the phone, the timer keeps
+  correct time but cannot play the chime until you come back. A background
+  alert needs push notifications, which is the v1.1 item.
+- **Haptics:** iPhone Safari has no vibration API, so every buzz is silent. The
+  settings row says so. Everything else is identical. If you want real
+  haptics on iPhone, the next step is a thin native wrapper (Capacitor) around
+  these same files, which also unlocks background notifications.
+- **Updating:** push a change, then bump `CACHE` in `sw.js`. The installed app
+  picks it up on the second launch.
+- **Where your data lives:** only on the phone, in the app's local storage.
+  Deleting the home-screen icon deletes it.

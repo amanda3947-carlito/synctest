@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="PT-25">
 <meta name="theme-color" content="#E6E3DB">
-<meta name="description" content="PT-25: a pomodoro timer that feels like an object. Turn the dial or swipe the pixel display, press the orange key.">
+<meta name="description" content="PT-25: a clock and pomodoro timer that feels like an object. Turn the dial or swipe the pixel display, press the orange key.">
 <link rel="manifest" href="./manifest.webmanifest">
 <link rel="icon" href="./icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="./apple-touch-icon.png">
@@ -64,7 +64,8 @@ button { font: inherit; color: inherit; }
   grid-template-areas: "left right" "mode mode" "face face" "status status" "keys keys";
   padding-block: 18px 28px;
 }
-.plate-left { grid-area: left; display: flex; flex-direction: column; gap: 4px; }
+.plate-left { grid-area: left; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.plate-left .switch-labels.two { width: 150px; }
 .plate-right { grid-area: right; justify-self: end; display: flex; align-items: center; gap: 14px; }
 .mode { grid-area: mode; }
 .face { grid-area: face; display: flex; justify-content: center; }
@@ -96,6 +97,8 @@ button { font: inherit; color: inherit; }
 }
 .key-main:active, .key-main.pressed { transform: translateY(5px); box-shadow: 0 0 0 var(--accent-edge), 0 2px 6px var(--accent-glow); }
 .key-main svg { width: 26px; height: 26px; }
+.key[disabled] { opacity: .45; cursor: default; }
+.keycol.off .lbl { opacity: .45; }
 
 /* slide switches */
 .mode { display: flex; flex-direction: column; align-items: center; gap: 8px; }
@@ -216,7 +219,7 @@ button { font: inherit; color: inherit; }
 /* landscape */
 @media (orientation: landscape) and (max-height: 560px) {
   .device { max-width: none; gap: 8px 16px; padding-block: 10px 12px; align-items: center; }
-  .plate-left { flex-direction: row; align-items: baseline; gap: 12px; }
+  .plate-left { gap: 4px; }
   .mode { gap: 5px; }
   .switch { height: 26px; }
   .keys { gap: 22px; }
@@ -259,8 +262,12 @@ button { font: inherit; color: inherit; }
 <body>
 <main class="device">
   <div class="plate-left">
-    <span class="model">PT-25</span>
-    <span class="sub">pomodoro timer</span>
+    <div class="switch two" id="viewSwitch" role="radiogroup" aria-label="View">
+      <div class="cap" id="viewCap"></div>
+      <button class="pos" data-view="clock" role="radio" aria-checked="true" aria-label="Clock"></button>
+      <button class="pos" data-view="timer" role="radio" aria-checked="false" aria-label="Timer"></button>
+    </div>
+    <div class="switch-labels two" id="viewLabels"><span data-view="clock" class="on">Clock</span><span data-view="timer">Timer</span></div>
   </div>
   <div class="plate-right">
     <span class="tally" id="tally">Today 0</span>
@@ -269,7 +276,7 @@ button { font: inherit; color: inherit; }
     </button>
   </div>
 
-  <section class="mode">
+  <section class="mode" id="modeSec">
     <div class="switch" id="modeSwitch" role="radiogroup" aria-label="Mode">
       <div class="cap" id="modeCap"></div>
       <button class="pos" data-mode="focus" role="radio" aria-checked="true" aria-label="Focus"></button>
@@ -384,7 +391,8 @@ button { font: inherit; color: inherit; }
     remaining: 25 * 60000, endAt: 0,
     round: 0,                            // focus sessions finished in this set
     today: { date: dayKey(), count: 0 },
-    hinted: false, note: ""
+    hinted: false, note: "",
+    view: "clock"                        // clock | timer
   };
 
   function dayKey() { const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
@@ -399,6 +407,13 @@ button { font: inherit; color: inherit; }
   }
   const dur = (m) => S.settings[m] * 60000;
   const digital = () => S.settings.face === "digital";
+  const clockView = () => S.view === "clock";
+  function clockParts(d) {
+    const parts = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }).formatToParts(d);
+    const get = (t) => (parts.find((p) => p.type === t) || {}).value || "";
+    return { h: get("hour"), m: get("minute"), period: get("dayPeriod") };
+  }
+  const dateLine = (d) => d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" });
 
   // ---------- audio (synthesised, no files) ----------
   let ac = null, master = null;
@@ -460,6 +475,7 @@ button { font: inherit; color: inherit; }
   const $ = (id) => document.getElementById(id);
   const el = {
     tally: $("tally"), cap: $("modeCap"), sw: $("modeSwitch"), labels: $("modeLabels"),
+    modeSec: $("modeSec"), viewSw: $("viewSwitch"), viewCap: $("viewCap"), viewLabels: $("viewLabels"),
     faceAnalog: $("faceAnalog"), faceDigital: $("faceDigital"), faceSw: $("faceSwitch"), faceCap: $("faceCap"), faceLabels: $("faceLabels"),
     dial: $("dial"), ticks: $("ticks"), dot: $("dot"), digits: $("digits"), unit: $("unit"),
     panel: $("panel"), cv: $("matrix"),
@@ -481,6 +497,19 @@ button { font: inherit; color: inherit; }
     el.ticks.appendChild(l); tickEls.push(l);
   }
   function drawDial() {
+    if (clockView()) {
+      const d = new Date(), cp = clockParts(d);
+      const sec = d.getSeconds() + d.getMilliseconds() / 1000, min = d.getMinutes();
+      tickEls.forEach((t, i) => t.classList.toggle("lit", i < min));
+      const rad = (sec / 60 * 360 - 90) * Math.PI / 180;
+      el.dot.setAttribute("cx", (150 + 112 * Math.cos(rad)).toFixed(2));
+      el.dot.setAttribute("cy", (150 + 112 * Math.sin(rad)).toFixed(2));
+      el.digits.textContent = `${cp.h}:${cp.m}`;
+      el.digits.classList.remove("dim");
+      el.unit.textContent = cp.period ? `${cp.period} · ${dateLine(d)}` : dateLine(d);
+      el.dial.classList.add("locked");
+      return;
+    }
     const r = remainingNow(), running = S.status === "running";
     const litMin = Math.min(60, Math.ceil(r / 60000));
     tickEls.forEach((t, i) => t.classList.toggle("lit", i < litMin));
@@ -496,7 +525,7 @@ button { font: inherit; color: inherit; }
 
   // ---------- digital face: LED matrix ----------
   const COLS = 32, ROWS = 8;
-  const C = { off: "#1A1917", white: "#F3EADB", dim: "#6E675C", orange: "#FF6A1F", green: "#63C46B", steam: "#8E8A80" };
+  const C = { off: "#1A1917", white: "#F3EADB", dim: "#6E675C", orange: "#FF6A1F", ember: "#4A2414", green: "#63C46B", steam: "#8E8A80" };
   const FONT = {   // 4 x 7
     "0": ["0110","1001","1001","1001","1001","1001","0110"],
     "1": ["0010","0110","0010","0010","0010","0010","0111"],
@@ -522,7 +551,27 @@ button { font: inherit; color: inherit; }
     const w = Math.round(r.width * dpr), h = Math.round(r.height * dpr);
     if (el.cv.width !== w || el.cv.height !== h) { el.cv.width = w; el.cv.height = h; }
   }
+  function putText(F, text, x0, color, colonOn) {
+    let x = x0;
+    for (const ch of text) {
+      if (ch === ":") { if (colonOn) { F[2][x] = color; F[4][x] = color; } x += 2; continue; }
+      if (FONT[ch]) FONT[ch].forEach((row, y) => [...row].forEach((b, dx) => { if (b === "1") F[y][x + dx] = color; }));
+      x += 5;
+    }
+  }
+  function clockFrame() {
+    const F = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
+    const d = new Date(), cp = clockParts(d), sec = d.getSeconds();
+    putText(F, cp.h.padStart(2, " ") + ":" + cp.m, 6, C.white, sec % 2 === 0);
+    const wd = (d.getDay() + 6) % 7;                       // Monday first
+    for (let i = 0; i < 7; i++) F[7][i * 2] = i === wd ? C.orange : C.ember;
+    const n = Math.ceil(17 * sec / 60);                    // seconds bar, cols 14..30
+    for (let i = 0; i < 17; i++) F[7][14 + i] = i < n ? C.orange : null;
+    if (/p/i.test(cp.period)) F[6][31] = C.orange;         // PM pixel on 12-hour clocks
+    return F;
+  }
   function frame() {
+    if (clockView()) return clockFrame();
     const F = Array.from({ length: ROWS }, () => Array(COLS).fill(null));
     const r = remainingNow(), running = S.status === "running";
     const sec = Math.ceil(r / 1000);
@@ -566,7 +615,7 @@ button { font: inherit; color: inherit; }
       roundRect(ox + x * cell + pad, oy + y * cell + pad, size, size, rad); ctx.fill();
     }
     ctx.shadowBlur = 0;
-    el.panel.classList.toggle("locked", S.status !== "idle");
+    el.panel.classList.toggle("locked", S.status !== "idle" || clockView());
   }
   if (window.ResizeObserver) new ResizeObserver(() => { if (digital()) drawMatrix(); }).observe(el.cv);
   window.addEventListener("orientationchange", () => setTimeout(render, 60));
@@ -622,6 +671,15 @@ button { font: inherit; color: inherit; }
     el.faceAnalog.hidden = dig; el.faceDigital.hidden = !dig;
     if (dig) drawMatrix(); else drawDial();
 
+    const clk = clockView();
+    el.viewCap.style.transform = `translateX(${clk ? 0 : 100}%)`;
+    el.viewSw.querySelectorAll(".pos").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.view === S.view)));
+    el.viewLabels.querySelectorAll("span").forEach((s) => s.classList.toggle("on", s.dataset.view === S.view));
+    el.modeSec.hidden = clk;
+    el.leds.hidden = clk;
+    el.reset.disabled = clk; el.skip.disabled = clk;
+    el.reset.closest(".keycol").classList.toggle("off", clk); el.skip.closest(".keycol").classList.toggle("off", clk);
+
     const idx = ORDER.indexOf(S.mode);
     el.cap.style.transform = `translateX(${idx * 100}%)`;
     el.sw.classList.toggle("locked", running);
@@ -641,7 +699,13 @@ button { font: inherit; color: inherit; }
 
     const roundTxt = `round ${Math.min(S.round + 1, S.settings.rounds)} of ${S.settings.rounds}`;
     let line = "", quiet = false;
-    if (turning) line = `${MODES[S.mode]} · ${S.settings[S.mode]} min`;
+    const r = remainingNow();
+    if (clk) {
+      if (running) line = `${S.mode === "focus" ? "Focusing" : MODES[S.mode]} · ${fmt(r)} left`;
+      else if (S.status === "paused") line = `Paused · ${fmt(r)} left`;
+      else { line = `Timer · ${MODES[S.mode].toLowerCase()} ${S.settings[S.mode]} min`; quiet = true; }
+    }
+    else if (turning) line = `${MODES[S.mode]} · ${S.settings[S.mode]} min`;
     else if (S.note) line = S.note;
     else if (S.status === "paused") line = "Paused";
     else if (running) line = S.mode === "focus" ? `Focusing · ${roundTxt}` : MODES[S.mode];
@@ -649,8 +713,8 @@ button { font: inherit; color: inherit; }
     else line = S.mode === "focus" ? `Focus · ${roundTxt}` : MODES[S.mode];
     el.line.textContent = line; el.line.classList.toggle("quiet", quiet);
 
-    el.mainGlyph.firstElementChild.setAttribute("d", running ? PAUSE : PLAY);
-    el.mainLbl.textContent = running ? "Pause" : (S.status === "paused" ? "Resume" : "Start");
+    el.mainGlyph.firstElementChild.setAttribute("d", running && !clk ? PAUSE : PLAY);
+    el.mainLbl.textContent = clk ? "Timer" : (running ? "Pause" : (S.status === "paused" ? "Resume" : "Start"));
     el.main.setAttribute("aria-label", el.mainLbl.textContent);
     el.tally.textContent = `Today ${S.today.count}`;
     el.valRounds.textContent = S.settings.rounds;
@@ -667,7 +731,7 @@ button { font: inherit; color: inherit; }
   const endTurn = () => { if (!turning) return; turning = false; el.dial.classList.remove("turning"); S.hinted = true; S.note = ""; save(); render(); };
 
   el.dial.addEventListener("pointerdown", (e) => {
-    if (S.status !== "idle") return;
+    if (S.status !== "idle" || clockView()) return;
     turning = true; lastM = S.settings[S.mode]; el.dial.classList.add("turning");
     el.dial.setPointerCapture(e.pointerId); audio(); onTurn(e);
   });
@@ -684,7 +748,7 @@ button { font: inherit; color: inherit; }
   }
 
   el.panel.addEventListener("pointerdown", (e) => {
-    if (S.status !== "idle") return;
+    if (S.status !== "idle" || clockView()) return;
     turning = true; startX = e.clientX; startM = S.settings[S.mode]; lastM = startM;
     el.panel.setPointerCapture(e.pointerId); audio(); render();
   });
@@ -700,12 +764,15 @@ button { font: inherit; color: inherit; }
     btn.addEventListener("pointerdown", () => { if (btn.disabled) return; click(); buzz(10); });
     btn.addEventListener("click", fn);
   }
-  key(el.main, () => { S.status === "running" ? pause() : start(); });
+  key(el.main, () => { if (clockView()) { setView("timer"); return; } S.status === "running" ? pause() : start(); });
   key(el.reset, reset);
   key(el.skip, () => advance(false, false));
   el.sw.querySelectorAll(".pos").forEach((b) => key(b, () => { if (S.status === "running") return; if (b.dataset.mode !== S.mode) setMode(b.dataset.mode); }));
   el.labels.querySelectorAll("span").forEach((s) => s.addEventListener("click", () => { if (S.status === "running") return; click(); buzz(10); if (s.dataset.mode !== S.mode) setMode(s.dataset.mode); }));
 
+  function setView(v) { if (S.view === v) return; S.view = v; render(); }
+  el.viewSw.querySelectorAll(".pos").forEach((b) => key(b, () => setView(b.dataset.view)));
+  el.viewLabels.querySelectorAll("span").forEach((s) => s.addEventListener("click", () => { click(); buzz(10); setView(s.dataset.view); }));
   function setFace(f) { if (S.settings.face === f) return; S.settings.face = f; save(); render(); }
   el.faceSw.querySelectorAll(".pos").forEach((b) => key(b, () => setFace(b.dataset.face)));
   el.faceLabels.querySelectorAll("span").forEach((s) => s.addEventListener("click", () => { click(); buzz(10); setFace(s.dataset.face); }));
@@ -731,6 +798,9 @@ button { font: inherit; color: inherit; }
 
   // ---------- boot ----------
   load();
+  S.view = S.status === "running" ? "timer" : "clock";   // clock by default, unless a session is running
+  let lastClockSec = -1;
+  setInterval(() => { if (!clockView()) return; const s = new Date().getSeconds(); if (s !== lastClockSec) { lastClockSec = s; render(); } }, 200);
   if (S.status === "running") {
     if (S.endAt <= Date.now()) { S.status = "idle"; advance(true, true); }
     else { keepAwake(true); runLoop(); }

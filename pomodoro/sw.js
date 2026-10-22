@@ -1,5 +1,5 @@
 /* Offline shell for PT-25. Bump CACHE when you change the app. */
-const CACHE = "pt25-v1";
+const CACHE = "pt25-v2";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", (event) => {

@@ -41,6 +41,23 @@ Design references:
 | Light edition | Cream body, dark keys, one orange. Always, regardless of the phone's dark mode setting. (A black edition was tried and set aside.) |
 | Remembers everything | Settings, mode, remaining time and today's count persist locally. No account, no server. |
 
+### Clock first
+
+The app opens as a clock. A **Clock / Timer** slide switch sits in the top
+left corner (the nameplate it replaced is gone). The timer keeps running
+underneath whichever view is showing, and if a session is running when the
+app is opened it opens on the timer instead.
+
+| Face | Clock view |
+|---|---|
+| Analog | Big digits in the centre with the date under them (12 or 24 hour, following the phone). Lit ticks count the minutes past the hour; the orange dot sweeps the seconds. |
+| Digital | Pixel digits centred on the matrix, colon blinking each second. Bottom row: seven weekday dots with today lit, then a seconds bar. A single pixel at the right marks PM on 12-hour clocks. |
+
+In clock view the mode switch and round LEDs are hidden, Reset and Skip are
+dimmed, and the orange key reads **Timer** and jumps to the timer view. The
+status line shows the running session ("Focusing · 12:34 left") so it is
+never out of sight.
+
 ### Two faces, one timer
 
 A **Face** switch in settings picks how the time is shown. Both faces share

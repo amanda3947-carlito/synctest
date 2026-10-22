@@ -14,8 +14,8 @@ Design references:
 
 - **Dieter Rams / Braun**: a single accent (orange) used only for the thing
   that is on or the thing you press; a dial with one dot; small engraved
-  labels under controls instead of text on them; warm off-white or black
-  body; a grid where everything lines up; no ornament.
+  labels under controls instead of text on them; warm off-white body; a grid
+  where everything lines up; no ornament.
 - **Teenage Engineering**: chunky keys with real travel and a click; a
   three-position slide switch; LED dots for state; monospaced numerals; labels
   in tiny caps printed on the panel; sounds synthesised, not sampled.
@@ -38,7 +38,7 @@ Design references:
 | Settings | A sheet that slides up from the bottom edge: rounds per set, auto-start, sound, haptics, ticking. Durations are set with the dial, not here. |
 | Survives the background | The timer stores an end timestamp, not a countdown, so it is correct after the phone sleeps or the app is switched away. |
 | Screen stays on | Wake lock while a session runs. |
-| Light and black editions | Follows the phone's appearance setting. Cream body with dark keys, or black body with grey keys. Orange in both. |
+| Light edition | Cream body, dark keys, one orange. Always, regardless of the phone's dark mode setting. (A black edition was tried and set aside.) |
 | Remembers everything | Settings, mode, remaining time and today's count persist locally. No account, no server. |
 
 ### v1.1 (after it is on your phone)

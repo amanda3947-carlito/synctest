@@ -41,6 +41,21 @@ Design references:
 | Light edition | Cream body, dark keys, one orange. Always, regardless of the phone's dark mode setting. (A black edition was tried and set aside.) |
 | Remembers everything | Settings, mode, remaining time and today's count persist locally. No account, no server. |
 
+### Pixel edition (v2, same timer, different face)
+
+Inspired by the Ulanzi TC001 pixel clock: a black glass front with a 32 × 8
+grid of square LEDs on the same cream body. Everything else (switch, keys,
+cycle, settings, sounds) is identical to v1.
+
+| Element | On the matrix |
+|---|---|
+| Time | MM:SS in a 4 × 7 pixel font, warm white. The colon blinks once a second while running. Paused digits dim. |
+| Mode icon | 7 × 7 pixel art at the left: a tomato with a green leaf for focus, a cup with steam for the short break, a moon for the long break. |
+| Progress | The bottom row, 31 orange pixels, one goes out per 1/31 of the session. |
+| Rounds | The right-hand column: one orange pixel per finished focus round, four spaced down the column. |
+| Set the duration | Swipe left or right across the glass while idle. One minute per step, a detent click and buzz each. The dial's hard stops at 1 and 60 remain. |
+| Landscape | Rotate the phone and it becomes a nightstand clock: nameplate, switch and settings in one row, the display as wide as the screen, status at the left and keys at the right. |
+
 ### v1.1 (after it is on your phone)
 
 - Notification when a session ends and the app is in the background.

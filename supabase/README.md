@@ -7,6 +7,7 @@ both clients: the web prototype in its Capacitor shell now, and the SwiftUI app 
 supabase/
   migrations/0001_init.sql   tables, row-level security, the build engine as SQL functions
   seed.sql                   build types, Brooklyn places and events, three demo profiles
+  storage.sql                the private `media` bucket and its upload/read policies
   tests/run.sh               runs migration + seed + an end-to-end scenario on a local Postgres
 ```
 
@@ -18,9 +19,9 @@ supabase/
    Then paste `seed.sql` → Run. (Or install the Supabase CLI, `supabase link`, `supabase db push`.)
 3. **Turn on phone sign-in.** Authentication → Providers → Phone. Connect Twilio (or MessageBird) for
    the SMS codes. For testing, Authentication → Settings lets you add test numbers with fixed codes.
-4. **Create the media bucket.** Storage → New bucket → `media`, private. Add two policies:
-   authenticated users can upload to a folder named after their own user id, and anyone signed in can
-   read. The seed's `demo/…` paths expect the prototype's assets uploaded under `media/demo/`.
+4. **Create the media bucket.** SQL Editor → paste `storage.sql` → Run. It makes a private `media`
+   bucket where each person can upload only to a folder named after their own user id and anyone
+   signed in can read. The seed's `demo/…` paths expect the prototype's assets uploaded under `media/demo/`.
 5. **Copy the keys.** Project Settings → API: the project URL and the `anon` public key go in the
    clients. The `service_role` key never leaves the server.
 6. **Push (later).** Database → Webhooks → on insert into `notifications`, call an Edge Function that

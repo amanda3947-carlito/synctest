@@ -50,6 +50,11 @@ select count(*) as olivia_notices from notifications where profile_id = :'olivia
 \echo '--- Olivia tries to agree too early (she has not added anything yet)'
 select pg_temp.expect_error(format($$select agree_build(%L)$$, :'build_id'), 'not there yet');
 
+\echo '--- a pure reorder counts as one change'
+select public.build_changes('list', '[{"key":"a"},{"key":"b"}]', '[{"key":"b"},{"key":"a"}]') as reorder_changes;   -- 1
+select public.build_changes('list', '[{"key":"a"},{"key":"b"}]', '[{"key":"a"},{"key":"b"}]') as same_changes;      -- 0
+select pg_temp.expect_error($$insert into profile_media (profile_id, kind, path, approved) values ('00000000-0000-4000-8000-000000000002', 'photo', 'x', false)$$, 'permission denied');
+
 \echo '--- Olivia adds two of her own'
 select round, turn_id = :'damon' as damons_turn, jsonb_array_length(items) as tracks from send_turn(:'build_id', (
   select items || '[{"key":"dean-nice","artist":"Olivia Dean","title":"Nice to Each Other"},{"key":"sza-kill-bill","artist":"SZA","title":"Kill Bill"}]'::jsonb

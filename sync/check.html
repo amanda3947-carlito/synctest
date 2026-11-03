@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sync backend check</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; padding: 24px 16px 48px; font: 16px/1.5 "DM Sans", system-ui, sans-serif; background: #f7f6f3; color: #1e1e1e; max-width: 640px; margin-inline: auto; }
+    @media (prefers-color-scheme: dark) { body { background: #0c0c0c; color: #f3f3f3; } .row { background: #171615 !important; } input { background: #171615 !important; color: #f3f3f3 !important; border-color: #2a2927 !important; } }
+    h1 { font: 800 28px/1.1 "Plus Jakarta Sans", system-ui, sans-serif; margin: 0 0 6px; letter-spacing: -0.02em; }
+    p { margin: 0 0 16px; opacity: 0.8; }
+    .row { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; padding: 12px 14px; background: #fff; border-radius: 14px; margin-bottom: 8px; }
+    .dot { width: 22px; height: 22px; border-radius: 50%; background: #e3e3e3; display: grid; place-items: center; font-size: 13px; font-weight: 700; margin-top: 2px; }
+    .ok .dot { background: #a8face; color: #0f4d2e; } .bad .dot { background: #ffb4b4; color: #6b0000; } .run .dot { background: #ffe9a8; color: #6b4a00; }
+    .row b { display: block; font-weight: 600; } .row small { display: block; opacity: 0.75; word-break: break-word; white-space: pre-wrap; font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; margin-top: 2px; }
+    form { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin: 10px 0 18px; }
+    input { font: inherit; padding: 10px 12px; border: 1px solid #e3e3e3; border-radius: 12px; min-width: 0; }
+    button { font: 600 14px system-ui, sans-serif; padding: 10px 16px; border-radius: 999px; border: 0; background: #1e1e1e; color: #fff; }
+  </style>
+</head>
+<body>
+  <h1>Sync backend check</h1>
+  <p>Runs the checks against the live Supabase project from this browser. Green all the way down means the app can talk to it.</p>
+  <div id="rows"></div>
+  <form id="auth">
+    <input id="phone" type="tel" placeholder="Test number, e.g. 15550000010" value="15550000010" autocomplete="off">
+    <button type="submit">Sign in with 123456</button>
+  </form>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script>
+    const cfg = window.SYNC_CONFIG;
+    const sb = supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+    const rows = document.getElementById('rows');
+    const row = (title) => { const el = document.createElement('div'); el.className = 'row run'; el.innerHTML = `<span class="dot">…</span><div><b>${title}</b><small></small></div>`; rows.appendChild(el); return (ok, detail) => { el.className = 'row ' + (ok ? 'ok' : 'bad'); el.querySelector('.dot').textContent = ok ? '✓' : '!'; el.querySelector('small').textContent = detail; }; };
+    const check = async (title, fn) => { const done = row(title); try { done(true, await fn()); } catch (e) { done(false, e.message || String(e)); } };
+
+    (async () => {
+      await check('Reach the project', async () => { const r = await fetch(cfg.supabaseUrl + '/auth/v1/settings', { headers: { apikey: cfg.supabaseKey } }); if (!r.ok) throw new Error('HTTP ' + r.status); const s = await r.json(); return `phone sign-in ${s.external && s.external.phone ? 'on' : 'OFF'}, email ${s.external && s.external.email ? 'on' : 'off'}`; });
+      await check('Schema is in (build_types readable by anyone)', async () => { const { data, error } = await sb.from('build_types').select('key').order('position'); if (error) throw error; if (!data.length) throw new Error('no rows: run seed.sql'); return data.map((r) => r.key).join(', '); });
+      await check('Profiles hidden until signed in', async () => { const { data, error } = await sb.from('profiles').select('name'); if (error) throw error; if (data.length) throw new Error('anon can read profiles: RLS is off'); return 'anon sees 0 profiles'; });
+      await check('Storage bucket exists', async () => { const { data, error } = await sb.storage.from('media').list('', { limit: 1 }); if (error) throw error; return 'media bucket answers'; });
+      await check('Reorder counts as a change (migration 0002)', async () => { const { data, error } = await sb.rpc('build_changes', { kind: 'list', old_items: [{ key: 'a' }, { key: 'b' }], new_items: [{ key: 'b' }, { key: 'a' }] }); if (error) throw error; if (data !== 1) throw new Error('returned ' + data + ': run 0002_reorder_and_media.sql'); return 'returns 1'; });
+      const s = (await sb.auth.getSession()).data.session;
+      if (s) {
+        await check('Signed in as', async () => s.user.phone || s.user.id);
+        await check('Profile row for this account', async () => { const { data, error } = await sb.from('profiles').select('name').eq('id', s.user.id).maybeSingle(); if (error) throw error; return data ? data.name : 'none yet (the app will ask for a name on first open)'; });
+        await check('feed() answers', async () => { const { data, error } = await sb.rpc('feed', { p_limit: 10 }); if (error) throw error; return data.map((p) => p.name).join(', ') || 'empty'; });
+        await check('Realtime connects', () => new Promise((res, rej) => { const t = setTimeout(() => rej(new Error('no SUBSCRIBED within 8s')), 8000); sb.channel('check').on('postgres_changes', { event: '*', schema: 'public', table: 'builds' }, () => {}).subscribe((st) => { if (st === 'SUBSCRIBED') { clearTimeout(t); res('subscribed to builds'); } if (st === 'CHANNEL_ERROR') { clearTimeout(t); rej(new Error('channel error')); } }); }));
+      }
+    })();
+
+    document.getElementById('auth').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const phone = document.getElementById('phone').value.replace(/\D/g, '');
+      const done = row('Sign in with a test number');
+      const otp = await sb.auth.signInWithOtp({ phone });
+      if (otp.error) return done(false, otp.error.message + ' (is the number in Test Phone Numbers?)');
+      const v = await sb.auth.verifyOtp({ phone, token: '123456', type: 'sms' });
+      if (v.error) return done(false, v.error.message);
+      done(true, 'signed in as ' + phone + '. Reloading to run the signed-in checks.');
+      setTimeout(() => location.reload(), 900);
+    });
+  </script>
+</body>
+</html>

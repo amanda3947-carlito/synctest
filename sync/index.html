@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>sync — home</title>
+  <meta name="theme-color" content="#000000">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+  <link rel="stylesheet" href="styles.css?v=12">
+</head>
+<body>
+  <!-- ":: home 1" — 402 × 874 device frame. On a phone it fills the viewport; on a
+       larger screen it sits centred with the design's 32px corner radius. -->
+  <div class="device">
+    <!-- device chrome: status bar and the sync wordmark stay put while the feed scrolls.
+         Same geometry as the card's top block so the dots line up beneath. -->
+    <div class="device__chrome" aria-hidden="true">
+      <div class="card__top-inner">
+        <div class="statusbar">
+          <div class="statusbar__time"><span>9:41</span></div>
+          <div class="statusbar__levels">
+            <img src="assets/cellular.svg" width="19.2" height="12.226" alt="">
+            <img src="assets/wifi.svg" width="17.142" height="12.328" alt="">
+            <img src="assets/battery.svg" width="27.328" height="13" alt="">
+          </div>
+        </div>
+        <!-- "header 3" (1021:30940): your avatar, the wordmark, and the filter. Feed only: the
+             whole chrome goes with the profile. -->
+        <div class="header">
+          <button class="header__me" type="button" aria-label="Your profile"><img src="assets/avatar-me.png" alt="" draggable="false"></button>
+          <img class="header__mark" src="assets/wordmark-sync.svg" width="77" height="28" alt="sync" draggable="false">
+          <button class="header__filter" type="button" aria-label="Filter the feed"><span class="header__filter-icon"></span></button>
+        </div>
+        <div class="carousel-wrap"><div class="dots-box"></div></div>
+      </div>
+    </div>
+    <main class="feed" id="feed" aria-label="Profiles"></main>
+
+    <!-- "nav-light" (1051:4424): floating liquid-glass tab bar, hides on scroll down, returns on scroll up -->
+    <!-- ":: input" (1062:5173 / 1063:5870): the compose layer. The panel with the quick
+         reactions and the message field sits right above the keyboard; the GIF drawer
+         takes the keyboard's place when asked. The keyboard is drawn for desktop review. -->
+    <div class="compose" aria-hidden="true">
+      <div class="compose__panel">
+        <p class="compose__title" aria-live="polite"></p>
+        <div class="compose__emoji" role="group" aria-label="Quick reactions">
+          <button type="button">🔥</button><button type="button">🎵</button><button type="button">😍</button><button type="button">💚</button><button type="button">😋</button><button type="button">🎧</button><button type="button">✨</button>
+        </div>
+        <div class="compose__field">
+          <div class="compose__attach">
+            <div class="compose__thumb">
+              <img class="compose__gif" src="" alt="" draggable="false">
+              <button class="compose__remove" type="button" aria-label="Remove the GIF"><img src="assets/attach-close.svg" width="102" height="102" alt="" draggable="false"></button>
+            </div>
+          </div>
+          <div class="compose__row">
+            <input class="compose__input" type="text" placeholder="Say something witty back" aria-label="Your reply" autocomplete="off" enterkeyhint="send">
+            <div class="compose__tools">
+              <button class="compose__tool" type="button" data-tool="voice" aria-label="Record a voice note"><img src="assets/icon-waveform.svg" width="24" height="24" alt="" draggable="false"></button>
+              <button class="compose__tool compose__gifbtn" type="button" aria-label="Add a GIF"><img src="assets/icon-gif.svg" width="24" height="24" alt="" draggable="false"></button>
+              <button class="compose__tool" type="button" data-tool="image" aria-label="Add a photo"><img src="assets/icon-image.svg" width="24" height="24" alt="" draggable="false"></button>
+            </div>
+            <button class="compose__send" type="button" tabindex="-1"><span>Send</span><img src="assets/arrow-right.svg" width="18" height="18" alt="" draggable="false"></button>
+          </div>
+        </div>
+      </div>
+      <div class="device__keyboard"><img src="assets/keyboard.png" width="401" height="335" alt="" draggable="false"></div>
+      <div class="compose__gifs" aria-label="GIFs">
+        <div class="compose__gifsearch"><img src="assets/magnifying-glass.svg" width="20" height="20" alt="" draggable="false"><span>Search GIFs</span></div>
+        <div class="compose__grid"></div>
+      </div>
+    </div>
+    <nav class="device__nav" aria-label="Primary">
+      <div class="gnav">
+        <span class="gnav__bubble" aria-hidden="true"></span>
+        <button class="gnav__item is-selected" type="button" data-tab="people" aria-label="People" aria-pressed="true"><span class="gnav__icon gnav__icon--people"></span></button>
+        <button class="gnav__item" type="button" data-tab="builds" aria-label="Builds" aria-pressed="false"><span class="gnav__icon gnav__icon--builds"></span><span class="gnav__badge" aria-hidden="true"></span></button>
+        <button class="gnav__item" type="button" data-tab="chats" aria-label="Chats" aria-pressed="false"><span class="gnav__icon gnav__icon--chats"></span></button>
+      </div>
+    </nav>
+    <!-- "profile like" (1067:6200): the global like, right of the nav; it stays put while the nav shows and hides -->
+    <button class="device__like" type="button" aria-label="Like"><span class="device__like-art"><img src="assets/sent-art.png" alt="" draggable="false"></span></button>
+
+    <!-- "bottom sheet _mixtape" (1038:32474) and its search / drag / added states -->
+    <div class="device__sheet" aria-hidden="true">
+      <div class="scrim"></div>
+      <section class="sheet" role="dialog" aria-label="Make it a mixtape">
+        <div class="sheet__grab"><div class="sheet__bar"></div></div>
+        <div class="sheet__head">
+          <p class="sheet__title">Make it a mixtape</p>
+          <p class="sheet__sub">Search, reorder and add tracks</p>
+        </div>
+        <!-- the field sits outside the scrolling unit so its shadow isn't clipped -->
+        <div class="sheet__field">
+          <div class="sheet__search">
+            <img class="sheet__glass" src="assets/magnifying-glass.svg" width="20" height="20" alt="">
+            <input class="sheet__input" type="text" placeholder="Search for a track to make it a mixtape" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search for a track">
+            <button class="sheet__clear" type="button" aria-label="Clear search"><img src="assets/x-16.svg" width="16" height="16" alt=""></button>
+          </div>
+        </div>
+        <div class="sheet__unit">
+          <div class="sheet__list" aria-label="Tracklist"></div>
+          <div class="sheet__results" aria-label="Search results"></div>
+        </div>
+        <!-- "Button group" (1061:4663): trash 48 circle + Send, gap 10 -->
+        <div class="sheet__cta">
+          <button class="sheet__trash" type="button" aria-label="Drag a track here to remove it"><img src="assets/trash.svg" width="18" height="18" alt="" draggable="false"></button>
+          <button class="sheet__agree" type="button" hidden>It's a mixtape</button>
+          <button class="sheet__send" type="button" disabled>Send it back</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- sign-in and first run: shown until there is a signed-in person with a profile, a photo and a rotation -->
+    <div class="device__auth" hidden>
+      <section class="auth" role="dialog" aria-label="Sign in">
+        <img class="auth__mark" src="assets/wordmark-sync.svg" width="77" height="28" alt="sync" draggable="false">
+        <div class="auth__step" data-step="phone" hidden>
+          <h2 class="auth__h">Your number</h2>
+          <p class="auth__p">We text you a code. That's the whole sign-in.</p>
+          <input class="auth__input" id="auth-phone" type="tel" inputmode="tel" placeholder="+1 555 000 0010" autocomplete="tel">
+          <button class="auth__btn" type="button" data-next="phone">Text me a code</button>
+        </div>
+        <div class="auth__step" data-step="code" hidden>
+          <h2 class="auth__h">The code</h2>
+          <p class="auth__p auth__sub"></p>
+          <input class="auth__input" id="auth-code" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" maxlength="6">
+          <button class="auth__btn" type="button" data-next="code">Sign in</button>
+        </div>
+        <div class="auth__step" data-step="profile" hidden>
+          <h2 class="auth__h">You, briefly</h2>
+          <p class="auth__p">Just enough to put a name on your card.</p>
+          <input class="auth__input" id="auth-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40">
+          <label class="auth__label" for="auth-bday">Birthday</label>
+          <input class="auth__input" id="auth-bday" type="date">
+          <button class="auth__btn" type="button" data-next="profile">Next</button>
+        </div>
+        <div class="auth__step" data-step="photo" hidden>
+          <h2 class="auth__h">A photo</h2>
+          <p class="auth__p">One is enough to start. More later.</p>
+          <label class="auth__file"><input type="file" id="auth-photo" accept="image/*,video/*"><span>Choose from your phone</span></label>
+          <div class="auth__preview"></div>
+          <button class="auth__btn" type="button" data-next="photo">Next</button>
+        </div>
+        <div class="auth__step" data-step="mixtape" hidden>
+          <h2 class="auth__h">Your rotation</h2>
+          <p class="auth__p">Four or more tracks you'd put on for someone. People remix it to say hi.</p>
+          <button class="auth__btn" type="button" data-next="mixtape">Pick tracks</button>
+        </div>
+        <div class="auth__step" data-step="account" hidden>
+          <h2 class="auth__h">Your account</h2>
+          <p class="auth__p">Editing your profile comes next. For now you can sign out.</p>
+          <button class="auth__btn auth__out" type="button">Sign out</button>
+          <button class="auth__btn auth__btn--quiet" type="button" onclick="this.closest('.device__auth').hidden = true">Back</button>
+        </div>
+        <p class="auth__err" aria-live="polite"></p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Card template: one per person. Layer names mirror the Figma frame "Feed Card large". -->
+  <template id="card-template">
+    <article class="card" tabindex="-1">
+      <div class="card__media"></div>
+
+      <!-- tap zones: outer 30% each side steps the carousel, the centre 40% toggles playback -->
+      <div class="tapzones" aria-hidden="true">
+        <button class="tapzone tapzone--prev" type="button" data-step="-1" tabindex="-1"></button>
+        <button class="tapzone tapzone--toggle" type="button" tabindex="-1"></button>
+        <button class="tapzone tapzone--next" type="button" data-step="1" tabindex="-1"></button>
+      </div>
+
+      <!-- top: status bar, sync header, carousel dots (gradient 140) -->
+      <div class="card__top">
+        <div class="card__top-inner">
+          <div class="statusbar" aria-hidden="true">
+            <div class="statusbar__time"><span>9:41</span></div>
+            <div class="statusbar__levels">
+              <img src="assets/cellular.svg" width="19.2" height="12.226" alt="">
+              <img src="assets/wifi.svg" width="17.142" height="12.328" alt="">
+              <img src="assets/battery.svg" width="27.328" height="13" alt="">
+            </div>
+          </div>
+          <div class="header"></div>
+          <div class="carousel-wrap">
+            <div class="carousel">
+              <div class="dots-box">
+                <div class="dots" role="tablist" aria-label="Media"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- middle: play / pause (149) -->
+      <div class="card__mid">
+        <button class="playpause" type="button" aria-label="Pause" aria-pressed="false">
+          <img class="playpause__pause" src="assets/pause.svg" width="24" height="24" alt="">
+          <svg class="playpause__play" width="24" height="24" viewBox="0 0 256 256" aria-hidden="true">
+            <path fill="#F7F6F3" d="M240 128a15.74 15.74 0 0 1-7.6 13.51L88.32 229.65a16 16 0 0 1-16.2.3A15.86 15.86 0 0 1 64 216.13V39.87a15.86 15.86 0 0 1 8.12-13.82 16 16 0 0 1 16.2.3L232.4 114.49A15.74 15.74 0 0 1 240 128Z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- bottom: name, rotation h-scroll (gradient 220) -->
+      <div class="card__bottom">
+        <div class="card__bottom-inner">
+          <div class="name">
+            <div class="name__text">
+              <h2 class="name__word"></h2>
+              <img class="name__disc" src="assets/disc.png" width="27" height="30" alt="">
+            </div>
+          </div>
+          <div class="bottom-content">
+            <p class="label">Rotation</p>
+            <div class="playlist" aria-label="Rotation"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- "mixtape sent" (1053:4536) / "spot sent" (1062:4972): the sent toast, played over
+           whichever screen the send happened on -->
+      <div class="cheer" aria-hidden="true">
+        <div class="toast">
+          <div class="toast__body">
+            <div class="toast__art"><img src="assets/sent-art.png" alt="" draggable="false"></div>
+            <p class="toast__title">Mixtape sent</p>
+          </div>
+          <p class="toast__sub"></p>
+        </div>
+      </div>
+      <!-- ":: profile view" — built per person in main.js, slides in from the right -->
+      <aside class="profile" aria-hidden="true"></aside>
+    </article>
+  </template>
+
+  <!-- Rotation tile templates -->
+  <template id="tile-template">
+    <div class="tile"><img alt="" width="80" height="80"></div>
+  </template>
+  <template id="mixtape-template">
+    <button class="tile tile--mixtape" type="button">
+      <img src="assets/plus-circle.svg" width="24" height="24" alt="">
+      <span class="tile__text">Make it a<br>mixtape</span>
+    </button>
+  </template>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+  <script src="config.js?v=12"></script>
+  <script src="api.js?v=12"></script>
+  <script src="main.js?v=12"></script>
+</body>
+</html>

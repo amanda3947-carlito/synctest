@@ -6,6 +6,7 @@ both clients: the web prototype in its Capacitor shell now, and the SwiftUI app 
 ```
 supabase/
   migrations/0001_init.sql   tables, row-level security, the build engine as SQL functions
+  migrations/0002_reorder_and_media.sql   reorder counts as a change; photos show without review for now
   seed.sql                   build types, Brooklyn places and events, three demo profiles
   storage.sql                the private `media` bucket and its upload/read policies
   tests/run.sh               runs migration + seed + an end-to-end scenario on a local Postgres
@@ -15,8 +16,8 @@ supabase/
 
 1. **Create the project.** supabase.com → New project. Pick the region nearest New York (`us-east-1`).
    Save the database password somewhere safe.
-2. **Run the migration.** Project → SQL Editor → paste `migrations/0001_init.sql` → Run.
-   Then paste `seed.sql` → Run. (Or install the Supabase CLI, `supabase link`, `supabase db push`.)
+2. **Run the migrations.** Project → SQL Editor → paste `migrations/0001_init.sql` → Run, then
+   `migrations/0002_reorder_and_media.sql` → Run. Then paste `seed.sql` → Run. (Or install the Supabase CLI, `supabase link`, `supabase db push`.)
 3. **Turn on phone sign-in.** Authentication → Providers → Phone. Connect Twilio (or MessageBird) for
    the SMS codes. For testing, Authentication → Settings lets you add test numbers with fixed codes.
 4. **Create the media bucket.** SQL Editor → paste `storage.sql` → Run. It makes a private `media`

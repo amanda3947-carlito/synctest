@@ -39,11 +39,16 @@
     (async () => {
       await check('Reach the project', async () => { const r = await fetch(cfg.supabaseUrl + '/auth/v1/settings', { headers: { apikey: cfg.supabaseKey } }); if (!r.ok) throw new Error('HTTP ' + r.status); const s = await r.json(); return `phone sign-in ${s.external && s.external.phone ? 'on' : 'OFF'}, email ${s.external && s.external.email ? 'on' : 'off'}`; });
       await check('Schema is in (build_types readable by anyone)', async () => { const { data, error } = await sb.from('build_types').select('key').order('position'); if (error) throw error; if (!data.length) throw new Error('no rows: run seed.sql'); return data.map((r) => r.key).join(', '); });
-      await check('Profiles hidden until signed in', async () => { const { data, error } = await sb.from('profiles').select('name'); if (error) throw error; if (data.length) throw new Error('anon can read profiles: RLS is off'); return 'anon sees 0 profiles'; });
-      await check('Storage bucket exists', async () => { const { data, error } = await sb.storage.from('media').list('', { limit: 1 }); if (error) throw error; return 'media bucket answers'; });
-      await check('Reorder counts as a change (migration 0002)', async () => { const { data, error } = await sb.rpc('build_changes', { kind: 'list', old_items: [{ key: 'a' }, { key: 'b' }], new_items: [{ key: 'b' }, { key: 'a' }] }); if (error) throw error; if (data !== 1) throw new Error('returned ' + data + ': run 0002_reorder_and_media.sql'); return 'returns 1'; });
       const s = (await sb.auth.getSession()).data.session;
+      await check(s ? 'Profiles visible once signed in' : 'Profiles hidden until signed in', async () => {
+        const { data, error } = await sb.from('profiles').select('name'); if (error) throw error;
+        if (s) { if (!data.length) throw new Error('signed in but 0 profiles: run seed.sql'); return `${data.length} visible: ${data.map((r) => r.name).join(', ')}`; }
+        if (data.length) throw new Error('anonymous visitor can read profiles: RLS is off'); return 'anonymous visitor sees 0 profiles';
+      });
+      await check('Storage bucket exists', async () => { const { data, error } = await sb.storage.from('media').list('', { limit: 1 }); if (error) throw error; return 'media bucket answers'; });
+      if (!s) row('Reorder counts as a change (migration 0002)')(true, 'checked after sign-in');
       if (s) {
+        await check('Reorder counts as a change (migration 0002)', async () => { const { data, error } = await sb.rpc('build_changes', { kind: 'list', old_items: [{ key: 'a' }, { key: 'b' }], new_items: [{ key: 'b' }, { key: 'a' }] }); if (error) throw error; if (data !== 1) throw new Error('returned ' + data + ': run 0002_reorder_and_media.sql from step 7 of the guide'); return 'returns 1'; });
         await check('Signed in as', async () => s.user.phone || s.user.id);
         await check('Profile row for this account', async () => { const { data, error } = await sb.from('profiles').select('name').eq('id', s.user.id).maybeSingle(); if (error) throw error; return data ? data.name : 'none yet (the app will ask for a name on first open)'; });
         await check('feed() answers', async () => { const { data, error } = await sb.rpc('feed', { p_limit: 10 }); if (error) throw error; return data.map((p) => p.name).join(', ') || 'empty'; });

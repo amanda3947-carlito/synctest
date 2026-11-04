@@ -1611,100 +1611,10 @@
 
   if (reduceMotion) document.documentElement.classList.add('reduce-motion');
 
-  // ── sign-in and first-run (".device__auth"): phone → code → name and birthday → a photo → your rotation.
-  // Each step resolves when its button is pressed and the database has accepted it.
+  // ── sign-in and first run live in onboard.js; it draws into .device__auth and uses the mixtape sheet
   const authRoot = device.querySelector('.device__auth');
-  const authErr = authRoot.querySelector('.auth__err');
-  const showStep = (name) => {
-    authRoot.hidden = false;
-    authErr.textContent = '';
-    authRoot.querySelectorAll('.auth__step').forEach((s) => { s.hidden = s.dataset.step !== name; });
-    const first = authRoot.querySelector(`[data-step="${name}"] input`);
-    if (first) setTimeout(() => first.focus({ preventScroll: true }), 50);
-  };
-  const press = (name) => new Promise((res) => {
-    const btn = authRoot.querySelector(`[data-next="${name}"]`);
-    const go = () => { btn.removeEventListener('click', go); res(); };
-    btn.addEventListener('click', go);
-    const input = authRoot.querySelector(`[data-step="${name}"] input:not([type=file])`);
-    if (input) input.addEventListener('keydown', function onKey(e) { if (e.key === 'Enter') { e.preventDefault(); input.removeEventListener('keydown', onKey); go(); } });
-  });
-  const busy = (name, on) => { const b = authRoot.querySelector(`[data-next="${name}"]`); b.disabled = on; b.classList.toggle('is-busy', on); };
-  async function ensureSignedIn() {
-    const api = window.SyncAPI;
-    let s = await api.session();
-    while (!s) {
-      showStep('phone');
-      await press('phone');
-      const phone = authRoot.querySelector('#auth-phone').value.replace(/\D/g, '');
-      if (phone.length < 10) { authErr.textContent = 'That number looks short.'; continue; }
-      busy('phone', true);
-      const r = await api.sendCode(phone);
-      busy('phone', false);
-      if (r.error) { authErr.textContent = r.error.message; continue; }
-      authRoot.querySelector('[data-step="code"] .auth__sub').textContent = `Texted to +${phone}`;
-      let ok = false;
-      while (!ok) {
-        showStep('code');
-        await press('code');
-        busy('code', true);
-        const v = await api.verifyCode(phone, authRoot.querySelector('#auth-code').value.trim());
-        busy('code', false);
-        if (v.error) { authErr.textContent = v.error.message; if (/expired/i.test(v.error.message)) break; continue; }
-        ok = true;
-      }
-      s = await api.session();
-    }
-    let me = await api.myProfile();
-    while (!me) {
-      showStep('profile');
-      await press('profile');
-      const name = authRoot.querySelector('#auth-name').value.trim();
-      const birthdate = authRoot.querySelector('#auth-bday').value;
-      if (!name) { authErr.textContent = 'A first name, at least.'; continue; }
-      if (!birthdate) { authErr.textContent = 'Your birthday, so we know you\'re 18.'; continue; }
-      busy('profile', true);
-      try { me = await api.createProfile({ name, birthdate }); } catch (e) { authErr.textContent = /birthdate/.test(errText(e)) ? 'Sync is 18 and up.' : errText(e); }
-      busy('profile', false);
-    }
-    const { count: photos } = await api.sb.from('profile_media').select('id', { count: 'exact', head: true }).eq('profile_id', me.id);
-    if (!photos) {
-      const fileInput = authRoot.querySelector('#auth-photo');
-      const preview = authRoot.querySelector('.auth__preview');
-      fileInput.addEventListener('change', () => { const f = fileInput.files[0]; if (!f) return; preview.innerHTML = ''; const img = document.createElement(f.type.startsWith('video') ? 'video' : 'img'); img.src = URL.createObjectURL(f); img.muted = true; preview.appendChild(img); });
-      let done = false;
-      while (!done) {
-        showStep('photo');
-        await press('photo');
-        const f = fileInput.files[0];
-        if (!f) { authErr.textContent = 'Pick one to go on.'; continue; }
-        busy('photo', true);
-        try { await api.uploadPhoto(f); done = true; } catch (e) { authErr.textContent = errText(e); }
-        busy('photo', false);
-      }
-    }
-    const { data: myBuilds } = await api.sb.from('profile_builds').select('id').eq('profile_id', me.id);
-    if (!myBuilds || !myBuilds.length) {
-      let saved = false;
-      while (!saved) {
-        showStep('mixtape');
-        await press('mixtape');
-        await new Promise((res) => {
-          const draft = { name: me.name, sheetItems: [] };
-          openSheet(draft, res, async (items) => {
-            try { await api.saveMyBuild('mixtape', items.map(api.trackItem)); saved = true; }
-            catch (e) { authErr.textContent = errText(e); }
-            res();
-          }, { title: 'Your rotation', sub: 'Four or more tracks. Search to add.', sendLabel: 'Save', addLimit: Infinity, minItems: 4 });
-          // the field is the way in: open search straight away
-          setTimeout(() => sheetInput.focus({ preventScroll: true }), 400);
-        });
-      }
-    }
-    authRoot.hidden = true;
-    return me;
-  }
-  authRoot.querySelector('.auth__out').addEventListener('click', async () => { await window.SyncAPI.signOut(); location.reload(); });
+  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText });
+  const ensureSignedIn = () => window.SyncOnboard.run();
 
   // ── boot: sign in, load the people, build the feed, then listen for builds moving
   async function boot() {
@@ -1713,7 +1623,10 @@
     ME = me.id;
     const header = device.querySelector('.header__me img');
     if (me.avatar_path) { const u = await api.mediaUrls([me.avatar_path]); if (u[me.avatar_path]) header.src = u[me.avatar_path]; }
-    device.querySelector('.header__me').addEventListener('click', () => { authRoot.hidden = false; showStep('account'); });
+    device.querySelector('.header__me').addEventListener('click', async () => {
+      const updated = await window.SyncOnboard.edit();
+      if (updated && updated.avatar_path) { const u = await api.mediaUrls([updated.avatar_path]); if (u[updated.avatar_path]) header.src = u[updated.avatar_path]; }
+    });
     let people;
     try { people = await api.peopleForFeed(); } catch (e) { notice(errText(e)); people = []; }
     if (!people.length) {

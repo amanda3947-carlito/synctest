@@ -17,8 +17,11 @@ sync/
 
 ## What's live
 
-- **Sign in** by phone and code. First run asks for a name and birthday, one photo (uploaded to the
-  `media` bucket), and a rotation of four or more tracks, saved as your mixtape build.
+- **Sign in** by phone and code, then first run (`onboard.js`): name and birthday, up to five photos in
+  the Style bento, a rotation of four or more tracks, your intro line typed into the quote card, and the
+  optional steps: taste stickers, your orbit (search places, add missing ones), going to (events),
+  mutuals (contacts hashed on the phone where the browser allows), and a cover. Tapping your avatar
+  opens the same steps as an editor.
 - **People** come from `feed()`: everyone with a profile up whom you haven't passed, blocked, or built with.
   People you have a build in flight with come first, yours-to-move on top.
 - **Profile** draws their intro, rotation, style, taste and spots from the database; Damon's frame content
@@ -31,8 +34,9 @@ sync/
 
 ## Not yet
 
-Builds and Chats tabs (nothing designed for them yet), editing your profile after first run, plan /
-watchlist / dinner builds in the UI (the backend has them), push notifications.
+Builds and Chats tabs (nothing designed for them yet), Style photos and Lyrics beyond the editor, plan /
+watchlist / dinner builds in the UI (the backend has them), push notifications, contact import on iOS
+Safari (needs the installed app).
 
 ## Testing
 

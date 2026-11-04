@@ -61,6 +61,93 @@ window.SyncAPI = (() => {
     urlCache.delete(path);
     return path;
   }
+  async function updateProfile(patch) {
+    const id = await userId();
+    const { data, error } = await sb.from('profiles').update(patch).eq('id', id).select().single();
+    if (error) throw error;
+    return data;
+  }
+  // what first run still needs from this person
+  async function myState() {
+    const id = await userId();
+    const [media, builds, places, events, contacts, prof] = await Promise.all([
+      sb.from('profile_media').select('id').eq('profile_id', id).limit(1),
+      sb.from('profile_builds').select('id').eq('profile_id', id).eq('type_key', 'mixtape').limit(1),
+      sb.from('profile_places').select('place_id').eq('profile_id', id).limit(1),
+      sb.from('profile_events').select('event_id').eq('profile_id', id).limit(1),
+      sb.rpc('my_contact_count').then((r) => r.data || 0, () => 0),
+      sb.from('profiles').select('intro_quote').eq('id', id).maybeSingle(),
+    ]);
+    return { photos: !!(media.data || []).length, mixtape: !!(builds.data || []).length, places: !!(places.data || []).length,
+             events: !!(events.data || []).length, contacts: contacts > 0, intro: !!(prof.data && prof.data.intro_quote) };
+  }
+  async function myMedia() {
+    const id = await userId();
+    const { data } = await sb.from('profile_media').select('id,kind,path,poster_path,position').eq('profile_id', id).order('position');
+    const rows = data || [];
+    const url = await mediaUrls(rows.flatMap((m) => [m.path, m.poster_path]).filter(Boolean));
+    return rows.map((m) => ({ ...m, url: url[m.path], posterUrl: m.poster_path ? url[m.poster_path] : null }));
+  }
+  async function uploadMedia(file, position) {
+    const id = await userId();
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${id}/${Date.now()}-${position}.${ext}`;
+    const up = await sb.storage.from('media').upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (up.error) throw up.error;
+    const kind = file.type.startsWith('video') ? 'video' : 'photo';
+    const { data, error } = await sb.from('profile_media').insert({ profile_id: id, kind, path, position }).select().single();
+    if (error) throw error;
+    return data;
+  }
+  const removeMedia = async (mediaId) => { const { error } = await sb.from('profile_media').delete().eq('id', mediaId); if (error) throw error; };
+  const setMediaPosition = async (mediaId, position) => { const { error } = await sb.from('profile_media').update({ position }).eq('id', mediaId); if (error) throw error; };
+  async function myBuild(typeKey) {
+    const id = await userId();
+    const { data } = await sb.from('profile_builds').select('*').eq('profile_id', id).eq('type_key', typeKey).maybeSingle();
+    return data;
+  }
+  // orbit
+  async function searchPlaces(q) {
+    const { data, error } = await sb.from('places').select('id,name,kind,neighborhood').ilike('name', `%${q.replace(/[%_]/g, '')}%`).order('name').limit(8);
+    if (error) throw error;
+    return data || [];
+  }
+  async function addPlace({ name, kind, neighborhood }) {
+    const id = await userId();
+    const { data, error } = await sb.from('places').upsert({ name, kind, neighborhood, created_by: id }, { onConflict: 'name,neighborhood' }).select('id,name,kind,neighborhood').single();
+    if (error) throw error;
+    return data;
+  }
+  async function myPlaces() {
+    const id = await userId();
+    const { data } = await sb.from('profile_places').select('position,places(id,name,kind,neighborhood)').eq('profile_id', id).order('position');
+    return (data || []).filter((r) => r.places).map((r) => r.places);
+  }
+  async function setMyPlaces(ids) {
+    const id = await userId();
+    await sb.from('profile_places').delete().eq('profile_id', id);
+    if (ids.length) { const { error } = await sb.from('profile_places').insert(ids.map((place_id, position) => ({ profile_id: id, place_id, position }))); if (error) throw error; }
+  }
+  // going to
+  async function addEvent({ title, venue, starts_at }) {
+    const id = await userId();
+    const { data, error } = await sb.from('events').insert({ title, venue, starts_at, created_by: id }).select('id,title,venue,starts_at').single();
+    if (error) throw error;
+    return data;
+  }
+  async function myEvents() {
+    const id = await userId();
+    const { data } = await sb.from('profile_events').select('events(id,title,venue,starts_at)').eq('profile_id', id);
+    return (data || []).filter((r) => r.events).map((r) => r.events).sort((a, b) => a.starts_at.localeCompare(b.starts_at));
+  }
+  async function setMyEvents(ids) {
+    const id = await userId();
+    await sb.from('profile_events').delete().eq('profile_id', id);
+    if (ids.length) { const { error } = await sb.from('profile_events').insert(ids.map((event_id) => ({ profile_id: id, event_id }))); if (error) throw error; }
+  }
+  const syncContacts = async (hashes) => { const { data, error } = await sb.rpc('sync_contacts', { p_hashes: hashes }); if (error) throw error; return data; };
+  const myContactCount = async () => { const { data } = await sb.rpc('my_contact_count'); return data || 0; };
+
   async function saveMyBuild(typeKey, items) {
     const id = await userId();
     const { data, error } = await sb.from('profile_builds').upsert({ profile_id: id, type_key: typeKey, items }, { onConflict: 'profile_id,type_key' }).select().single();
@@ -165,7 +252,8 @@ window.SyncAPI = (() => {
   // a track from the mixtape sheet, in the shape the database keeps
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
-  return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, uploadPhoto, saveMyBuild,
+  return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

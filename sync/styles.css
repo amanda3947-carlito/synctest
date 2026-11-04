@@ -1303,12 +1303,12 @@ img { display: block; }
 .device__auth[hidden] { display: none; }
 .auth { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 62px 20px 0; overflow-y: auto; scrollbar-width: none; }
 .auth::-webkit-scrollbar { display: none; }
-.ob__top { flex: 0 0 auto; display: grid; grid-template-columns: 36px 1fr auto; align-items: center; gap: 12px; height: 36px; }
+.ob__top { flex: 0 0 auto; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 12px; height: 36px; }
 .ob__back { width: 36px; height: 36px; padding: 6px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-left: -6px; }
-.ob__strip { display: flex; gap: 4px; justify-content: center; }
-.ob__seg { width: 18px; height: 4px; border-radius: 4px; background: #e3e3e3; transition: background 0.3s, width 0.3s; }
+.ob__strip { display: flex; gap: 4px; justify-content: center; min-width: 0; overflow: hidden; }
+.ob__seg { width: 14px; height: 4px; border-radius: 4px; background: #e3e3e3; transition: background 0.3s, width 0.3s; }
 .ob__seg.is-done { background: #1e1e1e; }
-.ob__seg.is-now { background: #1e1e1e; width: 32px; }
+.ob__seg.is-now { background: #1e1e1e; width: 26px; }
 .ob__skip { font-size: 13px; font-weight: 600; color: #757575; padding: 6px 0 6px 10px; font-variation-settings: "opsz" 14; white-space: nowrap; }
 .ob__head { flex: 0 0 auto; padding: 22px 0 18px; display: flex; flex-direction: column; gap: 8px; }
 .ob__h { margin: 0; font-family: var(--font-display); font-weight: 800; font-size: 28px; letter-spacing: -0.4px; line-height: 1.1; color: #1e1e1e; text-wrap: balance; }
@@ -1394,3 +1394,35 @@ img { display: block; }
 .ob__done { position: relative; height: 170px; display: flex; justify-content: center; }
 .ob__done-avatar { position: static; width: 130px; height: 130px; margin-top: 10px; pointer-events: none; }
 .ob__done-disc { position: absolute; left: 50%; top: 100px; margin-left: 28px; }
+
+/* ── "Reading & watching", "Going to", "Mutuals" on the profile ───────── */
+.pshelf { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
+.pshelf::-webkit-scrollbar { display: none; }
+.pshelf::after { content: ""; flex: 0 0 10px; }
+.pbook { position: relative; flex: 0 0 110px; width: 110px; display: flex; flex-direction: column; gap: 2px; }
+.pbook__art { width: 110px; height: 160px; border-radius: 16px; overflow: hidden; background: #2b2724; box-shadow: var(--shadow-200, 0 1px 4px rgba(12, 12, 13, 0.1)); display: flex; align-items: flex-end; margin-bottom: 6px; }
+.pbook__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* no cover yet: the title set like a spine, on ink */
+.pbook__type { padding: 12px 10px; font-family: var(--font-display); font-weight: 700; font-size: 15px; line-height: 1.15; letter-spacing: -0.2px; color: #f3f3f3; text-wrap: balance; }
+.pbook__art--sm { width: 36px; height: 54px; border-radius: 6px; flex: 0 0 36px; margin: 0; }
+.pbook__art--sm .pbook__type { font-size: 6px; padding: 4px; }
+.pbook__tag { position: absolute; left: 8px; top: 8px; height: 20px; padding: 0 8px; display: flex; align-items: center; border-radius: 9999px; background: rgba(255, 255, 255, 0.9); color: #1e1e1e; font-size: 11px; font-weight: 600; font-variation-settings: "opsz" 14; }
+.pbook__you { position: absolute; right: 8px; top: 8px; height: 20px; padding: 0 8px; display: flex; align-items: center; border-radius: 9999px; background: #a8face; color: #0f4d2e; font-size: 11px; font-weight: 600; }
+.pbook p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
+.pevent { align-items: center; }
+.pdate { flex: 0 0 50px; width: 50px; height: 50px; border-radius: 16px; background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.pdate span { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #757575; }
+.pdate b { font-family: var(--font-display); font-size: 18px; font-weight: 800; color: #1e1e1e; margin-top: 2px; }
+.pmutuals { margin: 0 20px; padding: 12px 16px; border-radius: 24px; background: var(--surface); display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 12px; align-items: center; }
+.pmutuals__faces { grid-row: 1 / span 2; display: flex; }
+.pmutuals__faces img { width: 36px; height: 36px; border-radius: 999px; object-fit: cover; object-position: 50% 25%; box-shadow: 0 0 0 2px var(--surface); margin-left: -10px; }
+.pmutuals__faces img:first-child { margin-left: 0; }
+
+/* the shelf step in first run */
+.ob__kinds { margin-bottom: 2px; }
+.ob__shelf { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ob__book { width: auto; flex: none; }
+.ob__book .pbook__art { width: 100%; height: auto; aspect-ratio: 2 / 3; }
+.ob__book .ob__slot-x { top: 8px; right: 8px; }
+.ob__shelf > .ob__fine { grid-column: 1 / -1; }
+.ob__hit { gap: 12px; }

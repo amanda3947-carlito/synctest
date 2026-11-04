@@ -8,6 +8,7 @@ supabase/
   migrations/0001_init.sql   tables, row-level security, the build engine as SQL functions
   migrations/0002_reorder_and_media.sql   reorder counts as a change; photos show without review for now
   migrations/0003_onboarding.sql          onboarded flag, place/event search index, my_contact_count()
+  migrations/0004_shelf.sql               reading & watching: profile_shelf and shared_shelf()
   seed.sql                   build types, Brooklyn places and events, three demo profiles
   storage.sql                the private `media` bucket and its upload/read policies
   tests/run.sh               runs migration + seed + an end-to-end scenario on a local Postgres

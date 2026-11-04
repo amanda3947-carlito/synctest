@@ -19,13 +19,15 @@ sync/
 
 - **Sign in** by phone and code, then first run (`onboard.js`): name and birthday, up to five photos in
   the Style bento, a rotation of four or more tracks, your intro line typed into the quote card, and the
-  optional steps: taste stickers, your orbit (search places, add missing ones), going to (events),
+  optional steps: taste stickers, reading & watching (shows, films and books from Apple's catalog, with
+  covers), your orbit (search places, add missing ones), going to (events),
   mutuals (contacts hashed on the phone where the browser allows), and a cover. Tapping your avatar
   opens the same steps as an editor.
 - **People** come from `feed()`: everyone with a profile up whom you haven't passed, blocked, or built with.
   People you have a build in flight with come first, yours-to-move on top.
-- **Profile** draws their intro, rotation, style, taste and spots from the database; Damon's frame content
-  stands in for anything a person hasn't filled in yet. A spot in both orbits shows "you too".
+- **Profile** draws their intro, rotation, style, taste, reading & watching, going to, mutuals and spots from
+  the database; Damon's frame content stands in for anything a person hasn't filled in yet. A spot in both
+  orbits, or a title on both shelves, shows "you too".
 - **Make it a mixtape** sends `start_build`. On your turn it sends `send_turn`, with "It's a mixtape" to agree.
   Someone who loved yours as is gets "match back" or a counter. The tile and the profile row read the state.
 - **The heart** is "love it as is" on their mixtape: the note goes with it, they match back or counter.

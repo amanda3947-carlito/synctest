@@ -17,7 +17,7 @@ window.SyncOnboard = (() => {
   const $$ = (sel) => [...panel().querySelectorAll(sel)];
 
   // the steps that count toward "up", in order; the progress strip shows these
-  const TRACK = ['about', 'photos', 'rotation', 'intro', 'taste', 'orbit', 'events', 'mutuals', 'cover'];
+  const TRACK = ['about', 'photos', 'rotation', 'intro', 'taste', 'shelf', 'orbit', 'events', 'mutuals', 'cover'];
   const REQUIRED = new Set(['about', 'photos', 'rotation', 'intro']);
 
   const COVERS = [
@@ -220,6 +220,42 @@ window.SyncOnboard = (() => {
     });
   }
 
+  // reading & watching: films, shows and books from the catalog, as covers on a shelf
+  const SHELF_KINDS = [['show', 'Shows'], ['film', 'Films'], ['book', 'Books']];
+  const KIND_TAG = { film: 'Film', show: 'Show', book: 'Book' };
+  const coverHTML = (it, cls = '') => `<div class="pbook__art ${cls}">${it.art ? `<img src="${esc(it.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(it.title)}</span>`}</div>`;
+  async function stepShelf(editing) {
+    const mine = await api().myShelf();
+    const chosen = mine.map((m) => ({ kind: m.kind, key: m.key, title: m.title, meta: m.meta, art: m.art }));
+    let kind = 'show';
+    const drawChosen = () => { $('#ob-shelf').innerHTML = chosen.length ? chosen.map((it, i) => `<div class="pbook ob__book">${coverHTML(it)}<span class="pbook__tag">${KIND_TAG[it.kind]}</span><button class="ob__slot-x" type="button" data-unpick="${i}" aria-label="Remove"><img src="assets/x-16.svg" width="16" height="16" alt=""></button><p class="t-sub">${esc(it.title)}</p><p class="t-body-sm">${esc(it.meta || '')}</p></div>`).join('') : '<p class="ob__fine">Nothing on the shelf yet. What are you in the middle of?</p>'; };
+    frame('shelf', { title: 'Reading & watching', sub: 'What you’re in the middle of. Shows, films, books. Same thing on both shelves says “you too”.', cta: editing ? 'Save' : 'Next', editing, skip: editing ? null : 'Skip for now',
+      body: `<div class="ob__chips ob__kinds">${SHELF_KINDS.map(([k, label]) => `<button class="ob__chip${k === kind ? ' is-on' : ''}" type="button" data-kind="${k}">${label}</button>`).join('')}</div>
+             <div class="sheet__search ob__search"><img class="sheet__glass" src="assets/magnifying-glass.svg" width="20" height="20" alt=""><input class="sheet__input" id="ob-q" type="text" placeholder="Search shows" autocomplete="off"></div>
+             <div class="ob__results" id="ob-results"></div>
+             <div class="ob__shelf" id="ob-shelf"></div>` });
+    drawChosen();
+    const q = $('#ob-q'); let timer = 0;
+    const search = async () => {
+      const text = q.value.trim(); const box = $('#ob-results');
+      if (!text) { box.innerHTML = ''; return; }
+      let hits = [];
+      try { hits = (await api().searchShelf(kind, text)).filter((h) => !chosen.some((c) => c.key === h.key)); } catch (e) { box.innerHTML = `<p class="ob__fine">${esc(deps.errText(e))}</p>`; return; }
+      box._hits = hits;
+      box.innerHTML = hits.map((h, i) => `<button class="prow ob__row ob__hit" type="button" data-pick="${i}">${coverHTML(h, 'pbook__art--sm')}<div class="prow__details"><p class="t-sub">${esc(h.title)}</p><p class="t-body-sm">${esc(h.meta || '')}</p></div><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></button>`).join('') || '<p class="ob__fine">Nothing matched that.</p>';
+    };
+    q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 260); });
+    panel().addEventListener('click', (e) => {
+      const k = e.target.closest('[data-kind]');
+      if (k) { kind = k.dataset.kind; $$('[data-kind]').forEach((b) => b.classList.toggle('is-on', b === k)); q.placeholder = 'Search ' + SHELF_KINDS.find(([kk]) => kk === kind)[1].toLowerCase(); if (q.value.trim()) search(); return; }
+      const pick = e.target.closest('[data-pick]');
+      if (pick) { const h = $('#ob-results')._hits[Number(pick.dataset.pick)]; if (h && chosen.length < 9) { chosen.push(h); drawChosen(); q.value = ''; $('#ob-results').innerHTML = ''; } return; }
+      const un = e.target.closest('[data-unpick]');
+      if (un) { chosen.splice(Number(un.dataset.unpick), 1); drawChosen(); }
+    });
+    return step(async () => { await api().setMyShelf(chosen); return true; });
+  }
+
   // orbit: search the shared places table; what's missing you add, and it's there for the next person
   async function stepOrbit(editing) {
     const mine = await api().myPlaces();   // [{id,name,kind,neighborhood}]
@@ -324,6 +360,7 @@ window.SyncOnboard = (() => {
       ['rotation', !state.mixtape, () => stepRotation(false)],
       ['intro', !state.intro, () => stepIntro(false)],
       ['taste', !me || !(me.taste || []).length, () => stepTaste(false)],
+      ['shelf', !state.shelf, () => stepShelf(false)],
       ['orbit', !state.places, () => stepOrbit(false)],
       ['events', !state.events, () => stepEvents(false)],
       ['mutuals', !state.contacts, () => stepMutuals(false)],
@@ -353,7 +390,7 @@ window.SyncOnboard = (() => {
     me = await a.myProfile();
     const sections = [
       ['about', 'Name and birthday', () => stepAbout(true)], ['photos', 'Photos', () => stepPhotos(true)], ['rotation', 'Your rotation', () => stepRotation(true)],
-      ['intro', 'Your line', () => stepIntro(true)], ['lyric', 'Lyrics to live by', () => stepLyric(true)], ['taste', 'Taste', () => stepTaste(true)],
+      ['intro', 'Your line', () => stepIntro(true)], ['lyric', 'Lyrics to live by', () => stepLyric(true)], ['taste', 'Taste', () => stepTaste(true)], ['shelf', 'Reading & watching', () => stepShelf(true)],
       ['orbit', 'Your orbit', () => stepOrbit(true)], ['events', 'Going to', () => stepEvents(true)], ['mutuals', 'Mutuals', () => stepMutuals(true)], ['cover', 'Cover', () => stepCover(true)],
     ];
     while (true) {

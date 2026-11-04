@@ -260,6 +260,40 @@
             ${tasteTiles}
           </div>
         </section>
+        ${(p.shelf && p.shelf.length) ? `
+        <section class="punit">
+          <p class="punit__title">Reading &amp; watching</p>
+          <div class="pshelf">
+            ${p.shelf.map((s) => `
+            <div class="pbook">
+              <div class="pbook__art">${s.art ? `<img src="${esc(s.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(s.title)}</span>`}</div>
+              <span class="pbook__tag">${({ film: 'Film', show: 'Show', book: 'Book' })[s.kind] || ''}</span>
+              ${s.shared ? '<span class="pbook__you">you too</span>' : ''}
+              <p class="t-sub">${esc(s.title)}</p>
+              <p class="t-body-sm">${esc(s.meta || '')}</p>
+            </div>`).join('')}
+          </div>
+        </section>` : ''}
+        ${(p.events && p.events.length) ? `
+        <section class="punit">
+          <p class="punit__title">Going to</p>
+          <div class="prow-list">
+            ${p.events.map((ev) => { const d = new Date(ev.starts_at); return `
+            <div class="prow pevent">
+              <div class="pdate"><span>${d.toLocaleDateString(undefined, { month: 'short' })}</span><b>${d.getDate()}</b></div>
+              <div class="prow__details"><p class="t-sub">${esc(ev.title)}</p><p class="t-body-sm">${esc(ev.venue || '')}</p></div>
+            </div>`; }).join('')}
+          </div>
+        </section>` : ''}
+        ${(p.mutuals && p.mutuals.length) ? `
+        <section class="punit">
+          <p class="punit__title">Mutuals</p>
+          <div class="pmutuals">
+            <div class="pmutuals__faces">${p.mutuals.slice(0, 4).map((m) => `<img src="${esc(m.avatar || 'assets/avatar-damon.png')}" alt="">`).join('')}</div>
+            <p class="t-sub">${esc(p.mutuals.map((m) => m.name).slice(0, 3).join(', '))}${p.mutuals.length > 3 ? ` and ${p.mutuals.length - 3} more` : ''}</p>
+            <p class="t-body-sm">${p.mutuals.length === 1 ? 'knows you both' : 'know you both'}</p>
+          </div>
+        </section>` : ''}
         <section class="punit" style="--unit-h:513px">
           <p class="punit__title">Spots</p>
           <div class="pspots">

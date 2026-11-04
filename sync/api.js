@@ -70,16 +70,17 @@ window.SyncAPI = (() => {
   // what first run still needs from this person
   async function myState() {
     const id = await userId();
-    const [media, builds, places, events, contacts, prof] = await Promise.all([
+    const [media, builds, places, events, contacts, prof, shelf] = await Promise.all([
       sb.from('profile_media').select('id').eq('profile_id', id).limit(1),
       sb.from('profile_builds').select('id').eq('profile_id', id).eq('type_key', 'mixtape').limit(1),
       sb.from('profile_places').select('place_id').eq('profile_id', id).limit(1),
       sb.from('profile_events').select('event_id').eq('profile_id', id).limit(1),
       sb.rpc('my_contact_count').then((r) => r.data || 0, () => 0),
       sb.from('profiles').select('intro_quote').eq('id', id).maybeSingle(),
+      sb.from('profile_shelf').select('id').eq('profile_id', id).limit(1),
     ]);
     return { photos: !!(media.data || []).length, mixtape: !!(builds.data || []).length, places: !!(places.data || []).length,
-             events: !!(events.data || []).length, contacts: contacts > 0, intro: !!(prof.data && prof.data.intro_quote) };
+             events: !!(events.data || []).length, contacts: contacts > 0, intro: !!(prof.data && prof.data.intro_quote), shelf: !!(shelf.data || []).length };
   }
   async function myMedia() {
     const id = await userId();
@@ -145,6 +146,37 @@ window.SyncAPI = (() => {
     await sb.from('profile_events').delete().eq('profile_id', id);
     if (ids.length) { const { error } = await sb.from('profile_events').insert(ids.map((event_id) => ({ profile_id: id, event_id }))); if (error) throw error; }
   }
+  // reading & watching: Apple's catalog answers cross-origin for films, shows and books, with covers
+  const SHELF = { film: 'media=movie&entity=movie', show: 'media=tvShow&entity=tvSeason', book: 'media=ebook&entity=ebook' };
+  async function searchShelf(kind, q) {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&${SHELF[kind]}&limit=12&country=us`);
+    if (!res.ok) throw new Error('catalog unavailable');
+    const { results } = await res.json();
+    const art = (r) => (r.artworkUrl100 || '').replace('100x100bb', '400x600bb') || null;
+    const seen = new Set();
+    const out = [];
+    for (const r of results) {
+      let item;
+      if (kind === 'film') item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: [r.releaseDate && r.releaseDate.slice(0, 4), r.artistName].filter(Boolean).join(' · '), art: art(r) };
+      else if (kind === 'show') item = { key: 'itunes:' + r.artistId + ':' + (r.collectionName || '').replace(/,?\s*(season|series|vol\.?)\s*\d+.*$/i, '').trim().toLowerCase(), title: (r.collectionName || '').replace(/,?\s*(season|series|vol\.?)\s*\d+.*$/i, '').trim(), meta: r.artistName, art: art(r) };
+      else item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: r.artistName, art: art(r) };
+      if (!item.title || seen.has(item.key)) continue;
+      seen.add(item.key);
+      out.push({ kind, ...item });
+      if (out.length >= 8) break;
+    }
+    return out;
+  }
+  async function myShelf() {
+    const id = await userId();
+    const { data } = await sb.from('profile_shelf').select('id,kind,key,title,meta,art,position').eq('profile_id', id).order('position');
+    return data || [];
+  }
+  async function setMyShelf(items) {
+    const id = await userId();
+    await sb.from('profile_shelf').delete().eq('profile_id', id);
+    if (items.length) { const { error } = await sb.from('profile_shelf').insert(items.map((it, position) => ({ profile_id: id, kind: it.kind, key: it.key, title: it.title, meta: it.meta || null, art: it.art || null, position }))); if (error) throw error; }
+  }
   const syncContacts = async (hashes) => { const { data, error } = await sb.rpc('sync_contacts', { p_hashes: hashes }); if (error) throw error; return data; };
   const myContactCount = async () => { const { data } = await sb.rpc('my_contact_count'); return data || 0; };
 
@@ -160,13 +192,15 @@ window.SyncAPI = (() => {
 
   // one person, with everything the card and the profile sheet draw
   async function hydrate(p, me) {
-    const [media, builds, places, events, mutuals, shared] = await Promise.all([
+    const [media, builds, places, events, mutuals, shared, shelf, sharedShelf] = await Promise.all([
       sb.from('profile_media').select('kind,path,poster_path,position').eq('profile_id', p.id).order('position'),
       sb.from('profile_builds').select('id,type_key,items,position').eq('profile_id', p.id).order('position'),
       sb.from('profile_places').select('position,places(id,name,kind,neighborhood,image_path)').eq('profile_id', p.id).order('position'),
       sb.from('profile_events').select('events(id,title,venue,starts_at)').eq('profile_id', p.id),
       rpc('mutuals', { p_profile: p.id }),
       rpc('shared_places', { p_profile: p.id }),
+      sb.from('profile_shelf').select('kind,key,title,meta,art,position').eq('profile_id', p.id).order('position'),
+      rpc('shared_shelf', { p_profile: p.id }).catch(() => []),
     ]);
     const mixtape = (builds.data || []).find((b) => b.type_key === 'mixtape');
     const paths = [
@@ -174,6 +208,7 @@ window.SyncAPI = (() => {
       ...(mixtape ? mixtape.items.map((t) => t.art) : []),
       p.avatar_path, ...(p.style_paths || []),
       ...(places.data || []).map((r) => r.places && r.places.image_path),
+      ...(mutuals || []).map((m) => m.avatar_path),
     ].filter(Boolean);
     const url = await mediaUrls(paths);
     const u = (x) => (x ? url[x] || x : null);
@@ -194,8 +229,9 @@ window.SyncAPI = (() => {
         taste: p.taste || [],
         style: (p.style_paths || []).map(u),
         spots: (places.data || []).filter((r) => r.places).map((r) => ({ img: u(r.places.image_path), name: r.places.name, meta: `${r.places.kind || 'Spot'} • ${r.places.neighborhood || ''}`, shared: (shared || []).some((s) => s.id === r.places.id) })),
-        events: (events.data || []).filter((r) => r.events).map((r) => r.events),
-        mutuals: mutuals || [],
+        events: (events.data || []).filter((r) => r.events).map((r) => r.events).sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
+        mutuals: (mutuals || []).map((m) => ({ ...m, avatar: u(m.avatar_path) })),
+        shelf: (shelf.data || []).map((s) => ({ ...s, shared: (sharedShelf || []).some((x) => x.key === s.key) })),
       },
     };
   }
@@ -253,7 +289,7 @@ window.SyncAPI = (() => {
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
-           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, uploadPhoto, saveMyBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

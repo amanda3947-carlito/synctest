@@ -122,3 +122,16 @@ insert into public.contact_hashes (profile_id, phone_hash) values
   ('00000000-0000-4000-8000-000000000002', encode(sha256('+15550009999'::bytea), 'hex')),
   ('00000000-0000-4000-8000-000000000002', encode(sha256('+15550008888'::bytea), 'hex'))
 on conflict do nothing;
+
+-- reading & watching (covers come from the catalog when a person picks them; seed rows draw typographic covers)
+insert into public.profile_shelf (profile_id, kind, key, title, meta, position) values
+  ('00000000-0000-4000-8000-000000000001', 'film', 'seed:past-lives',  'Past Lives',   '2023 · Celine Song', 0),
+  ('00000000-0000-4000-8000-000000000001', 'show', 'seed:the-bear',    'The Bear',     'FX', 1),
+  ('00000000-0000-4000-8000-000000000001', 'book', 'seed:the-argonauts', 'The Argonauts', 'Maggie Nelson', 2),
+  ('00000000-0000-4000-8000-000000000002', 'show', 'seed:fleabag',     'Fleabag',      'BBC', 0),
+  ('00000000-0000-4000-8000-000000000002', 'book', 'seed:intermezzo',  'Intermezzo',   'Sally Rooney', 1),
+  ('00000000-0000-4000-8000-000000000002', 'film', 'seed:past-lives',  'Past Lives',   '2023 · Celine Song', 2),
+  ('00000000-0000-4000-8000-000000000003', 'film', 'seed:aftersun',    'Aftersun',     '2022 · Charlotte Wells', 0),
+  ('00000000-0000-4000-8000-000000000003', 'show', 'seed:severance',   'Severance',    'Apple TV+', 1),
+  ('00000000-0000-4000-8000-000000000003', 'book', 'seed:trust',       'Trust',        'Hernan Diaz', 2)
+on conflict (profile_id, key) do nothing;

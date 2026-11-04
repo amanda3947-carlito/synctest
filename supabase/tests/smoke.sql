@@ -25,6 +25,7 @@ select count(*) = 2 as feed_ok from public.feed();
 select mutual_count(:'olivia') as shared_contacts;                     -- 2
 select name from mutuals(:'olivia');                                   -- Theo
 select name from shared_places(:'olivia');                             -- Books Are Magic
+select title from shared_shelf(:'olivia');                              -- Past Lives
 
 \echo '--- rules: own build, too many changes, no changes'
 select pg_temp.expect_error($$select start_build('00000000-0000-4000-8000-00000000d101', '[]')$$, 'your own build');

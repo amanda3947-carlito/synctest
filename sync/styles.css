@@ -1329,7 +1329,7 @@ img { display: block; }
 .ob__mini { height: 40px; padding: 0 16px; border-radius: 20px; background: #2c2c2c; color: var(--text-on-neutral); font-size: 13px; font-weight: 600; white-space: nowrap; }
 
 /* photos: the Style bento, 2 + 1 / 1 + 2, dashed where empty */
-.ob__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 126px; gap: 10px; }
+.ob__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 110px; gap: 10px; }
 .ob__slot { position: relative; border-radius: 32px; overflow: hidden; background: var(--surface); box-shadow: var(--shadow-200, 0 1px 4px rgba(12, 12, 13, 0.1)); padding: 0; }
 .ob__slot.span-2 { grid-column: span 2; }
 .ob__slot img, .ob__slot video { width: 100%; height: 100%; object-fit: cover; display: block; }

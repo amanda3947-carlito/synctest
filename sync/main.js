@@ -116,7 +116,17 @@
     nostalgic: { label: 'Nostalgic', art: `<img class="ptile__art" src="assets/taste-nostalgic.png" width="56" height="43" alt="" style="left:5px;top:7px">` },
     audiophile: { label: 'Audiophile', art: `<div class="ptile__crop" style="left:6.67px;top:2px;width:52px;height:51px"><img src="assets/disc-source.png" alt="" style="width:480.75%;height:486.46%;left:-46.01%;top:-42.76%"></div>` },
     throwback: { label: 'Throwback', art: `<div class="ptile__crop" style="left:7.5px;top:3px;width:51px;height:51px"><img src="assets/sticker-sheet-2.png" alt="" style="width:511.91%;height:286.36%;left:-105.03%;top:-22.66%"></div>` },
+    classics: { label: 'Classics', art: `<img class="ptile__art" src="assets/stickers/guitar.png" width="58" height="58" alt="" style="left:4px;top:2px">` },
+    live_shows: { label: 'Live Shows', art: `<img class="ptile__art" src="assets/stickers/ticket-sm.png" width="58" height="58" alt="" style="left:4px;top:2px">` },
+    all_around: { label: 'All Around', art: `<img class="ptile__art" src="assets/stickers/note.png" width="51" height="51" alt="" style="left:7.5px;top:4px">` },
   };
+  // "the basics" chips on the profile ("Details", 1087:10751)
+  const DETAIL_ICONS = {
+    occupation: '<path d="M4 7h16v11H4z M9 7V5h6v2 M4 12h16"/>', education: '<path d="M2 9l10-4 10 4-10 4z M6 11v4c0 1.5 3 3 6 3s6-1.5 6-3v-4"/>', hometown: '<path d="M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-6h4v6"/>',
+    location: '<path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', height: '<path d="M3 17L17 3l4 4L7 21z M7 13l2 2 M10 10l2 2 M13 7l2 2"/>',
+    activity: '<path d="M2 12h3 M19 12h3 M5 8v8 M8 6v12 M16 6v12 M19 8v8 M8 12h8"/>', kids: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01 M15 10h.01 M8.5 14.5a4.5 4.5 0 007 0"/>', smoking: '<path d="M3 15h13v4H3z M19 15v4 M18 9c2 0 3 1 3 3 M15 7c2 0 3 1 3 3"/>',
+  };
+  const DETAIL_ORDER = ['occupation', 'education', 'height', 'activity', 'hometown', 'location', 'kids', 'smoking'];
 
   const PLAY_BTN = (label) => `<button class="pplay" type="button" aria-label="Play ${label}" aria-pressed="false"><img class="ico-play" src="assets/play-16.svg" width="16" height="16" alt=""><svg class="ico-pause" viewBox="0 0 256 256" aria-hidden="true"><path fill="#000" d="M216 48v160a16 16 0 0 1-16 16h-40a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h40a16 16 0 0 1 16 16ZM96 32H56a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h40a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16Z"/></svg></button>`;
 
@@ -228,6 +238,11 @@
       <img class="pavatar-disc" src="${person.disc}" alt="">
       <div class="pbody">
         ${quoteUnit('Intro', p.intro, 195)}
+        ${(person.details && Object.keys(person.details).length) ? `
+        <section class="punit">
+          <p class="punit__title">Details</p>
+          <div class="pdetails">${DETAIL_ORDER.filter((k) => person.details[k]).map((k) => `<span class="pchip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DETAIL_ICONS[k]}</svg><span>${esc(person.details[k])}</span></span>`).join('')}</div>
+        </section>` : ''}
         <section class="punit">
           <p class="punit__title">Rotation</p>
           <div class="prow-list">
@@ -1647,7 +1662,7 @@
 
   // ── sign-in and first run live in onboard.js; it draws into .device__auth and uses the mixtape sheet
   const authRoot = device.querySelector('.device__auth');
-  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText });
+  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText, profileHTML });
   const ensureSignedIn = () => window.SyncOnboard.run();
 
   // ── boot: sign in, load the people, build the feed, then listen for builds moving

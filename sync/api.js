@@ -43,11 +43,33 @@ window.SyncAPI = (() => {
     const { data } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
     return data;
   }
-  async function createProfile({ name, birthdate }) {
+  async function createProfile({ name, last_name, birthdate }) {
     const id = await userId();
-    const { data, error } = await sb.from('profiles').insert({ id, name, birthdate, intro_quote: null }).select().single();
+    const { data, error } = await sb.from('profiles').insert({ id, name, last_name: last_name || null, birthdate, intro_quote: null }).select().single();
     if (error) throw error;
     return data;
+  }
+  // a photo for the Style bento ("Vibes"): uploaded to the person's own folder, path kept on the profile
+  async function uploadStyle(file) {
+    const id = await userId();
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${id}/vibe-${Date.now()}-${Math.random().toString(36).slice(2, 6)}.${ext}`;
+    const up = await sb.storage.from('media').upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (up.error) throw up.error;
+    return path;
+  }
+  // "search anything": tracks, films, shows, books and places, together
+  async function searchAll(q) {
+    const term = q.trim();
+    const tracks = fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=5&country=us`).then((r) => r.json())
+      .then((d) => d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }))).catch(() => []);
+    const [t, f, s, b, p] = await Promise.all([tracks, searchShelf('film', term).catch(() => []), searchShelf('show', term).catch(() => []), searchShelf('book', term).catch(() => []), searchPlaces(term).catch(() => [])]);
+    const places = p.map((x) => ({ kind: 'place', key: 'place:' + x.id, id: x.id, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' • '), art: null }));
+    // interleave so no one kind hogs the list
+    const buckets = [t.slice(0, 4), places.slice(0, 3), f.slice(0, 3), s.slice(0, 3), b.slice(0, 3)];
+    const out = [];
+    for (let i = 0; i < 5; i++) for (const bk of buckets) if (bk[i]) out.push(bk[i]);
+    return out.slice(0, 14);
   }
   async function uploadPhoto(file) {
     const id = await userId();
@@ -212,10 +234,12 @@ window.SyncAPI = (() => {
     ].filter(Boolean);
     const url = await mediaUrls(paths);
     const u = (x) => (x ? url[x] || x : null);
+    const STICKER = { collector: 'assets/taste-collector.png', nostalgic: 'assets/taste-nostalgic.png', audiophile: 'assets/stickers/headphones.png', classics: 'assets/stickers/guitar.png', live_shows: 'assets/stickers/ticket-sm.png', all_around: 'assets/stickers/note.png' };
     return {
       id: p.id,
       name: p.name,
-      disc: 'assets/disc.png',
+      disc: STICKER[(p.taste || [])[0]] || 'assets/disc.png',
+      details: p.details || {},
       items: (media.data || []).map((m) => (m.kind === 'video'
         ? { type: 'video', src: u(m.path), poster: u(m.poster_path) }
         : { type: 'photo', src: u(m.path) })),
@@ -289,7 +313,7 @@ window.SyncAPI = (() => {
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
-           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, uploadPhoto, saveMyBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

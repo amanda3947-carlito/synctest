@@ -17,28 +17,26 @@ sync/
 
 ## What's live
 
-- **Sign in** by phone and code, then first run (`onboard.js`): name and birthday, up to five photos in
-  the Style bento, a rotation of four or more tracks, your intro line typed into the quote card, and the
-  optional steps: taste stickers, reading & watching (shows, films and books from Apple's catalog, with
-  covers), your orbit (search places, add missing ones), going to (events),
-  mutuals (contacts hashed on the phone where the browser allows), and a cover. Tapping your avatar
-  opens the same steps as an editor.
-- **People** come from `feed()`: everyone with a profile up whom you haven't passed, blocked, or built with.
-  People you have a build in flight with come first, yours-to-move on top.
-- **Profile** draws their intro, rotation, style, taste, reading & watching, going to, mutuals and spots from
-  the database; Damon's frame content stands in for anything a person hasn't filled in yet. A spot in both
-  orbits, or a title on both shelves, shows "you too".
-- **Make it a mixtape** sends `start_build`. On your turn it sends `send_turn`, with "It's a mixtape" to agree.
-  Someone who loved yours as is gets "match back" or a counter. The tile and the profile row read the state.
-- **The heart** is "love it as is" on their mixtape: the note goes with it, they match back or counter.
-- **Not interested** records a pass.
-- **Realtime** on `builds`: your turn lights the Builds dot and the person's tile; a match plays the toast.
+- **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
+  1. *Essentials, 1 of 6 to 6 of 6*: name, number and code, birthday, photos (2 × 2, drag to reorder,
+     first is the card), the basics (an accordion: occupation, education, hometown, location, height,
+     activity, kids, smoking), and what best describes you (one sticker, shown beside your name).
+  2. *The celebration*: a sky with drifting stickers. "Get plugged in" opens act three.
+  3. *Make it yours*: search anything (tracks, films, shows, books and places at once) or upload a
+     photo; each pick floats in your orbit until you drag it into Music, Vibes, Watching & Reading or
+     Spots. Ten floating at once is the cap. Then your profile, for real, with a way back to the board.
+- **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, going to, mutuals, cover.
+- **People** come from `feed()`; **profile** draws intro, details, rotation, style (your vibes), lyrics,
+  taste, reading & watching, going to, mutuals and spots from the database. "You too" on shared spots
+  and titles.
+- **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. Realtime
+  on `builds` lights the Builds dot and plays the toast on a match.
 
 ## Not yet
 
-Builds and Chats tabs (nothing designed for them yet), Style photos and Lyrics beyond the editor, plan /
-watchlist / dinner builds in the UI (the backend has them), push notifications, contact import on iOS
-Safari (needs the installed app).
+Text and voice prompts in the essentials (coming), Builds and Chats tabs (nothing designed for them yet),
+plan / watchlist / dinner builds in the UI (the backend has them), push notifications, contact import on
+iOS Safari (needs the installed app), the video requirement on photos (encouraged, not enforced).
 
 ## Testing
 

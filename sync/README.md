@@ -23,8 +23,10 @@ sync/
      activity, kids, smoking), and what best describes you (one sticker, shown beside your name).
   2. *The celebration*: a sky with drifting stickers. "Get plugged in" opens act three.
   3. *Make it yours*: search anything (tracks, films, shows, books and places at once) or upload a
-     photo; each pick floats in your orbit until you drag it into Music, Vibes, Watching & Reading or
-     Spots. Ten floating at once is the cap. Then your profile, for real, with a way back to the board.
+     photo; each pick joins a ring of cards you spin with a sideways drag (the front one big and bright,
+     the back ones small and dim; left alone it turns slowly and settles with one card facing you). A
+     downward drag or a press lifts a card out to drop into Music, Vibes, Watching & Reading or Spots,
+     which are squares. Ten on the ring is the cap. Then your profile, for real, with a way back.
 - **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, going to, mutuals, cover.
 - **People** come from `feed()`; **profile** draws intro, details, rotation, style (your vibes), lyrics,
   taste, reading & watching, going to, mutuals and spots from the database. "You too" on shared spots

@@ -307,17 +307,20 @@ window.SyncOnboard = (() => {
     };
     if (existing.vibes.length) { const u = await api().mediaUrls(existing.vibes.map((v) => v.path)); existing.vibes.forEach((v) => { v.art = u[v.path]; }); }
     const folders = {}; FOLDERS.forEach((f) => { folders[f.id] = [...existing[f.id]]; });
-    const orbit = [];   // floating tiles: { item, el, a, r, w, bob, size, rot, dragging }
 
     frame({ cls: 'auth--board', title: 'Make it yours', cta: editing ? 'Save' : 'See your profile',
       body: `
       <div class="board__search">
         <div class="board__field"><img src="assets/magnifying-glass.svg" width="20" height="20" alt=""><input id="bd-q" type="text" placeholder="Search anything" autocomplete="off" autocorrect="off" spellcheck="false"><button class="board__upload" type="button" data-upload aria-label="Upload a photo"><img src="assets/icon-image.svg" width="22" height="22" alt=""></button></div>
-        <p class="ob__cap board__cap">Search to add items to your orbit, then drag them down to each section</p>
+        <p class="ob__cap board__cap">Search to add to your orbit, then drag into a section</p>
         <div class="board__results" id="bd-results" hidden></div>
         <input type="file" id="bd-file" accept="image/*" multiple hidden>
       </div>
-      <div class="board__stage" id="bd-stage"><p class="board__empty" id="bd-empty">Your orbit is empty. Search a song, a film, a place… or upload a photo.</p></div>
+      <div class="ring" id="bd-stage">
+        <div class="ring__bar"><span>Your orbit</span><span id="bd-count">Spin it, or drag one out</span></div>
+        <p class="ring__empty" id="bd-empty">Nothing here yet. Search a song, a film, a place, or upload a photo.</p>
+        <div class="ring__floor" aria-hidden="true"></div>
+      </div>
       <div class="board__folders">${FOLDERS.map((f) => `<div class="folder" data-folder="${f.id}"><div class="folder__stack" id="fs-${f.id}"></div><p class="folder__title">${esc(f.label)}</p><p class="folder__count" id="fc-${f.id}"></p></div>`).join('')}</div>` });
     panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
     panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="ob__pill">fun stuff</span>');
@@ -336,90 +339,138 @@ window.SyncOnboard = (() => {
     };
     drawFolders();
 
-    // ── the orbit: each tile circles the centre on its own radius and pace, bobbing a little
-    let raf = 0; const t0 = performance.now();
-    const place = (o, t) => {
-      const cx = stage.clientWidth / 2, cy = stage.clientHeight / 2;
-      const a = o.a + (t - t0) / 1000 * o.w;
-      const x = cx + Math.cos(a) * o.r - o.size / 2, y = cy + Math.sin(a) * o.r * 0.72 + Math.sin((t - t0) / 1000 * 0.9 + o.bob) * 6 - o.size / 2;
-      o.el.style.transform = `translate(${x}px, ${y}px) rotate(${o.rot + Math.sin((t - t0) / 1000 * 0.5 + o.bob) * 3}deg)`;
-      o.el.style.zIndex = String(100 + Math.round(Math.sin(a) * 10));
+    // ── the ring: cards on a circle seen from a little above. Spin it with a sideways drag;
+    //    the front card is big and bright, the back ones small and dim. Left alone it turns
+    //    slowly and each card breathes on its own. A downward drag or a press lifts a card out.
+    const ring = { cards: [], rot: 0, vel: 0, idleAt: performance.now(), spin: null, lift: null };
+    const SIZE = 112;
+    const radius = () => Math.max(78, (ring.cards.length * (SIZE + 14)) / (2 * Math.PI));
+    const count = () => { const n = ring.cards.length; $('#bd-count').textContent = n ? `${n} floating${n >= ORBIT_MAX ? ' · full' : ''}` : 'Spin it, or drag one out'; $('#bd-empty').hidden = n > 0; stage.classList.toggle('is-empty', !n); };
+    let last = performance.now(), raf = 0;
+    const tick = (t) => {
+      const dt = Math.min(0.05, (t - last) / 1000); last = t;
+      if (!ring.spin) {
+        const idle = t - ring.idleAt;
+        if (Math.abs(ring.vel) > 0.02) { ring.rot += ring.vel * dt; ring.vel *= Math.pow(0.08, dt); }
+        else if (idle < 1600 && ring.cards.length) {
+          // settle so one card faces front
+          const step = (Math.PI * 2) / ring.cards.length;
+          const target = Math.round(ring.rot / step) * step;
+          ring.rot += (target - ring.rot) * Math.min(1, dt * 8);
+        } else ring.rot += 0.16 * dt;   // the slow turn
+      }
+      const n = ring.cards.length, R = radius(), cx = stage.clientWidth / 2, cy = stage.clientHeight / 2 + 10;
+      ring.cards.forEach((c, i) => {
+        if (c.lifted) return;
+        const a = (i / Math.max(n, 1)) * Math.PI * 2 + ring.rot;
+        const depth = (Math.cos(a) + 1) / 2;                    // 1 front, 0 back
+        const x = Math.sin(a) * R, y = (1 - depth) * -26 + Math.sin(t / 1000 * 0.8 + c.bob) * 4;
+        const sc = 0.56 + 0.44 * depth;
+        c.el.style.transform = `translate(${cx + x - SIZE / 2}px, ${cy + y - SIZE / 2}px) scale(${sc}) rotate(${Math.sin(t / 1000 * 0.5 + c.bob) * 2.5}deg)`;
+        c.el.style.zIndex = String(10 + Math.round(depth * 100));
+        c.el.style.opacity = String(0.42 + 0.58 * depth);
+        c.el.classList.toggle('is-front', depth > 0.92);
+      });
+      raf = requestAnimationFrame(tick);
     };
-    const tick = (t) => { orbit.forEach((o) => { if (!o.dragging) place(o, t); }); raf = requestAnimationFrame(tick); };
     raf = requestAnimationFrame(tick);
-    const stopOrbit = () => cancelAnimationFrame(raf);
+    const stopRing = () => cancelAnimationFrame(raf);
 
-    const addToOrbit = (item) => {
-      if (orbit.length >= ORBIT_MAX) { deps.notice('Your orbit is full. Drag a few into their sections first.'); stage.classList.add('is-full'); setTimeout(() => stage.classList.remove('is-full'), 500); return false; }
+    const addToRing = (item) => {
+      if (ring.cards.length >= ORBIT_MAX) { deps.notice('Your orbit is full. Drag a few into their sections first.'); stage.classList.add('is-shake'); setTimeout(() => stage.classList.remove('is-shake'), 500); return false; }
       const el = document.createElement('div');
       el.className = 'tile tile--' + item.kind;
       el.innerHTML = tileHTML(item) + `<span class="tile__tag">${esc({ track: 'Track', photo: 'Photo', film: 'Film', show: 'Show', book: 'Book', place: 'Spot' }[item.kind])}</span>`;
-      const size = item.kind === 'place' || item.kind === 'photo' ? 118 : 104;
-      el.style.width = el.style.height = size + 'px';
-      const n = orbit.length;   // spread the newcomers around the ring, alternating inner and outer lanes
-      const o = { item, el, a: n * 2.4 + Math.random() * 0.6, r: (n % 2 ? 58 : 108) + Math.random() * 18, w: (0.1 + Math.random() * 0.08) * (n % 2 ? -1 : 1), bob: Math.random() * 6, size, rot: -8 + Math.random() * 16 };
-      orbit.push(o);
+      el.style.width = el.style.height = SIZE + 'px';
+      const card = { item, el, bob: Math.random() * 6 };
+      ring.cards.push(card);
+      // the newcomer takes the front: turn the ring so its slot faces you
+      ring.rot = -((ring.cards.length - 1) / ring.cards.length) * Math.PI * 2;
+      ring.vel = 0; ring.idleAt = performance.now();
       stage.appendChild(el);
-      $('#bd-empty').hidden = true;
-      el.animate([{ transform: 'translate(50%, -40px) scale(0.3)', opacity: 0 }, { opacity: 1, offset: 0.4 }, { transform: el.style.transform || 'none', opacity: 1 }], { duration: 480, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
-      attachDrag(o);
+      el.animate([{ transform: `translate(${stage.clientWidth / 2 - SIZE / 2}px, -40px) scale(0.4)`, opacity: 0 }, { opacity: 1 }], { duration: 420, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+      count();
       return true;
     };
-    const removeFromOrbit = (o) => { orbit.splice(orbit.indexOf(o), 1); o.el.remove(); $('#bd-empty').hidden = orbit.length > 0; };
+    const removeFromRing = (card) => { ring.cards.splice(ring.cards.indexOf(card), 1); card.el.remove(); ring.idleAt = performance.now(); count(); };
 
-    // ── drag a tile off its orbit into a folder; let go anywhere else and it drifts back
-    function attachDrag(o) {
-      let start = null;
-      o.el.addEventListener('pointerdown', (e) => {
-        if (e.pointerType === 'mouse' && e.button !== 0) return;
-        e.preventDefault();
-        o.el.setPointerCapture(e.pointerId);
-        const r = o.el.getBoundingClientRect(), s = stage.getBoundingClientRect();
-        start = { x: e.clientX, y: e.clientY, ox: r.left - s.left, oy: r.top - s.top, id: e.pointerId };
-        o.dragging = true;
-        o.el.classList.add('is-held');
-        o.el.style.zIndex = '500';
-      });
-      o.el.addEventListener('pointermove', (e) => {
-        if (!start || e.pointerId !== start.id) return;
-        const x = start.ox + e.clientX - start.x, y = start.oy + e.clientY - start.y;
-        o.el.style.transform = `translate(${x}px, ${y}px) rotate(${o.rot}deg) scale(1.06)`;
-        $$('.folder').forEach((f) => { const fr = f.getBoundingClientRect(); const over = e.clientX > fr.left && e.clientX < fr.right && e.clientY > fr.top && e.clientY < fr.bottom; f.classList.toggle('is-over', over); f.classList.toggle('is-wrong', over && !FOLDERS.find((x) => x.id === f.dataset.folder).accepts.includes(o.item.kind)); });
-      });
-      const end = async (e) => {
-        if (!start || e.pointerId !== start.id) return;
-        start = null;
-        const target = $('.folder.is-over');
-        $$('.folder').forEach((f) => f.classList.remove('is-over', 'is-wrong'));
-        o.el.classList.remove('is-held');
-        if (target && e.type !== 'pointercancel') {
-          const f = FOLDERS.find((x) => x.id === target.dataset.folder);
-          if (!f.accepts.includes(o.item.kind)) {
-            deps.notice(`That’s ${KIND_WORD[o.item.kind]}. Try ${FOLDERS.find((x) => x.accepts.includes(o.item.kind)).label}.`);
-            target.classList.add('is-shake'); setTimeout(() => target.classList.remove('is-shake'), 500);
-          } else {
-            // it drops in: shrinks toward the folder's stack and lands there
-            const fr = target.querySelector('.folder__stack').getBoundingClientRect(), s = stage.getBoundingClientRect();
-            const tx = fr.left + fr.width / 2 - s.left - o.size / 2, ty = fr.top + fr.height / 2 - s.top - o.size / 2;
-            o.dragging = true;
-            await o.el.animate([{ transform: o.el.style.transform }, { transform: `translate(${tx}px, ${ty}px) rotate(0deg) scale(0.55)`, opacity: 0.6 }], { duration: 320, easing: 'cubic-bezier(0.3, 0.7, 0.15, 1)', fill: 'forwards' }).finished;
-            folders[f.id].push(o.item);
-            removeFromOrbit(o);
-            drawFolders();
-            target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.04)' }, { transform: 'scale(1)' }], { duration: 280, easing: 'ease-out' });
-            return;
-          }
-        }
-        // back to the orbit, from wherever it was let go
-        const r = o.el.getBoundingClientRect(), s = stage.getBoundingClientRect();
-        const dx = r.left - s.left + o.size / 2 - stage.clientWidth / 2, dy = (r.top - s.top + o.size / 2 - stage.clientHeight / 2) / 0.72;
-        o.r = Math.min(150, Math.max(50, Math.hypot(dx, dy)));
-        o.a = Math.atan2(dy, dx) - (performance.now() - t0) / 1000 * o.w;
-        o.dragging = false;
-      };
-      o.el.addEventListener('pointerup', end);
-      o.el.addEventListener('pointercancel', end);
-    }
+    // ── gestures on the ring: sideways spins, down (or a press) lifts a card out to drag
+    let g = null;
+    stage.addEventListener('pointerdown', (e) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      const el = e.target.closest('.tile');
+      const card = el ? ring.cards.find((c) => c.el === el) : null;
+      g = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, card, axis: null, rot0: ring.rot, hold: 0 };
+      stage.setPointerCapture(e.pointerId);
+      if (card) g.hold = setTimeout(() => { if (g && !g.axis) startLift(e.clientX, e.clientY); }, 320);
+      e.preventDefault();
+    });
+    const startLift = (px, py) => {
+      const card = g.card; g.axis = 'lift'; clearTimeout(g.hold);
+      const r = card.el.getBoundingClientRect();
+      const ghost = card.el.cloneNode(true);
+      ghost.classList.add('is-ghost');
+      ghost.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;transform:none;opacity:1;z-index:1000;margin:0;`;
+      document.body.appendChild(ghost);
+      card.lifted = true; card.el.style.opacity = '0';
+      ring.lift = { card, ghost, dx: px - r.left, dy: py - r.top, w: r.width, h: r.height, startRect: r };
+      ghost.animate([{ transform: 'scale(1)' }, { transform: `scale(${SIZE / r.width * 1.04})` }], { duration: 180, easing: 'ease-out', fill: 'forwards' });
+      if (navigator.vibrate) navigator.vibrate(8);
+    };
+    stage.addEventListener('pointermove', (e) => {
+      if (!g || e.pointerId !== g.id) return;
+      const dx = e.clientX - g.x, dy = e.clientY - g.y;
+      if (!g.axis) {
+        if (Math.hypot(dx, dy) < 8) return;
+        clearTimeout(g.hold);
+        if (g.card && dy > Math.abs(dx) * 0.8) { startLift(e.clientX, e.clientY); }
+        else { g.axis = 'spin'; ring.spin = g; ring.vel = 0; }
+      }
+      if (g.axis === 'spin') {
+        ring.rot = g.rot0 + dx / radius();
+        const dt = e.timeStamp - g.lt; if (dt > 0) ring.vel = ((e.clientX - g.lx) / radius()) / (dt / 1000) * 0.6;
+        g.lx = e.clientX; g.lt = e.timeStamp;
+        return;
+      }
+      const L = ring.lift;
+      L.ghost.style.left = (e.clientX - L.dx) + 'px'; L.ghost.style.top = (e.clientY - L.dy) + 'px';
+      // keep the sections in reach: nudge the page when the finger nears the bottom
+      const pr = panel().getBoundingClientRect();
+      if (e.clientY > pr.bottom - 70) panel().scrollTop += 10;
+      else if (e.clientY < pr.top + 110) panel().scrollTop -= 10;
+      $$('.folder').forEach((f) => { const fr = f.getBoundingClientRect(); const over = e.clientX > fr.left && e.clientX < fr.right && e.clientY > fr.top && e.clientY < fr.bottom; f.classList.toggle('is-over', over); f.classList.toggle('is-wrong', over && !FOLDERS.find((x) => x.id === f.dataset.folder).accepts.includes(L.card.item.kind)); });
+    });
+    const endGesture = async (e) => {
+      if (!g || e.pointerId !== g.id) return;
+      clearTimeout(g.hold);
+      const was = g; g = null;
+      if (was.axis === 'spin') { ring.spin = null; ring.idleAt = performance.now(); return; }
+      if (was.axis !== 'lift') return;
+      const L = ring.lift; ring.lift = null;
+      const target = $('.folder.is-over');
+      $$('.folder').forEach((f) => f.classList.remove('is-over', 'is-wrong'));
+      const f = target && e.type !== 'pointercancel' ? FOLDERS.find((x) => x.id === target.dataset.folder) : null;
+      if (f && f.accepts.includes(L.card.item.kind)) {
+        const fr = target.querySelector('.folder__stack').getBoundingClientRect();
+        await L.ghost.animate([{ left: L.ghost.style.left, top: L.ghost.style.top, transform: L.ghost.style.transform || 'scale(1)' }, { left: (fr.left + fr.width / 2 - L.w / 2) + 'px', top: (fr.top + fr.height / 2 - L.h / 2) + 'px', transform: 'scale(0.42)', opacity: 0.7 }], { duration: 300, easing: 'cubic-bezier(0.3, 0.7, 0.15, 1)', fill: 'forwards' }).finished;
+        L.ghost.remove();
+        folders[f.id].push(L.card.item);
+        removeFromRing(L.card);
+        drawFolders();
+        target.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.05)' }, { transform: 'scale(1)' }], { duration: 300, easing: 'ease-out' });
+        return;
+      }
+      if (f) { deps.notice(`That’s ${KIND_WORD[L.card.item.kind]}. Try ${FOLDERS.find((x) => x.accepts.includes(L.card.item.kind)).label}.`); target.classList.add('is-shake'); setTimeout(() => target.classList.remove('is-shake'), 500); }
+      // back to its place on the ring
+      L.card.lifted = false;
+      const r = L.card.el.getBoundingClientRect();
+      await L.ghost.animate([{ left: L.ghost.style.left, top: L.ghost.style.top, transform: L.ghost.style.transform || 'scale(1)' }, { left: r.left + 'px', top: r.top + 'px', transform: `scale(${r.width / L.w})` }], { duration: 260, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)', fill: 'forwards' }).finished;
+      L.ghost.remove();
+      L.card.el.style.opacity = '';
+      ring.idleAt = performance.now();
+    };
+    stage.addEventListener('pointerup', endGesture);
+    stage.addEventListener('pointercancel', endGesture);
 
     // ── search anything: tracks, films, shows, books and places at once; or upload
     const q = $('#bd-q'), results = $('#bd-results'); let timer = 0, seq = 0;
@@ -430,8 +481,8 @@ window.SyncOnboard = (() => {
       let hits = [];
       try { hits = await api().searchAll(text); } catch (e) { hits = []; }
       if (my !== seq) return;
-      const inOrbit = new Set(orbit.map((o) => o.item.key)); const filed = new Set(Object.values(folders).flat().map((i) => i.key));
-      hits = hits.filter((h) => !inOrbit.has(h.key) && !filed.has(h.key));
+      const inRing = new Set(ring.cards.map((c) => c.item.key)); const filed = new Set(Object.values(folders).flat().map((i) => i.key));
+      hits = hits.filter((h) => !inRing.has(h.key) && !filed.has(h.key));
       results._hits = hits;
       results.innerHTML = hits.length ? hits.map((h, i) => `<button class="board__hit" type="button" data-hit="${i}"><span class="board__thumb board__thumb--${h.kind}">${h.art ? `<img src="${esc(h.art)}" alt="">` : `<i>${esc(h.title.slice(0, 1))}</i>`}</span><span class="board__hit-text"><b>${esc(h.title)}</b><small>${esc(h.meta || '')}</small></span><span class="board__hit-kind">${esc({ track: 'Track', film: 'Film', show: 'Show', book: 'Book', place: 'Spot' }[h.kind])}</span></button>`).join('') : '<p class="board__hint">Nothing matched that. Try the name of a song, a film, a book or a place.</p>';
     };
@@ -439,18 +490,19 @@ window.SyncOnboard = (() => {
     q.addEventListener('focus', () => { if (q.value.trim()) results.hidden = false; });
     panel().addEventListener('click', (e) => {
       const hit = e.target.closest('[data-hit]');
-      if (hit) { const h = results._hits[Number(hit.dataset.hit)]; if (h && addToOrbit(h)) { hit.remove(); results.hidden = true; if (!results.querySelector('[data-hit]')) q.value = ''; } return; }
+      if (hit) { const h = results._hits[Number(hit.dataset.hit)]; if (h && addToRing(h)) { hit.remove(); results.hidden = true; if (!results.querySelector('[data-hit]')) q.value = ''; } return; }
       if (e.target.closest('[data-upload]')) { $('#bd-file').click(); return; }
       if (!e.target.closest('.board__search')) results.hidden = true;
     });
     $('#bd-file').addEventListener('change', () => {
-      for (const f of $('#bd-file').files) { if (!addToOrbit({ kind: 'photo', key: 'upload:' + f.name + ':' + f.size, title: f.name.replace(/\.[^.]+$/, ''), art: URL.createObjectURL(f), file: f })) break; }
+      for (const f of $('#bd-file').files) { if (!addToRing({ kind: 'photo', key: 'upload:' + f.name + ':' + f.size, title: f.name.replace(/\.[^.]+$/, ''), art: URL.createObjectURL(f), file: f })) break; }
       $('#bd-file').value = '';
     });
+    count();
 
     // ── save: each folder goes where it lives on the profile
     const r = await step(async () => {
-      if (orbit.length) { err(`${orbit.length} still floating. Drag them into a section, or drop them in the bin by leaving them.`); }
+      if (ring.cards.length) err(`${ring.cards.length} still in your orbit. They stay here if you come back; only what’s in a section goes on your profile.`);
       const b = $('[data-next] span');
       const music = folders.music;
       if (music.length >= 4) { b.textContent = 'Saving your rotation…'; await api().saveMyBuild('mixtape', music.map((t) => api().trackItem({ key: t.key, artist: t.meta, title: t.title, art: t.art }))); }
@@ -465,7 +517,7 @@ window.SyncOnboard = (() => {
       me = await api().updateProfile({ style_paths: paths });
       return true;
     });
-    stopOrbit();
+    stopRing();
     return r;
   }
 

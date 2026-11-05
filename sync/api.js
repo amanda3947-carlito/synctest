@@ -19,6 +19,7 @@ window.SyncAPI = (() => {
       if (!p) continue;
       if (isRemote(p)) out[p] = p;
       else if (p.startsWith('demo/')) out[p] = cfg.demoAssets + p.slice(5);
+      else if (p.startsWith('assets/')) out[p] = p;
       else if (urlCache.has(p)) out[p] = urlCache.get(p);
       else need.push(p);
     }
@@ -57,6 +58,18 @@ window.SyncAPI = (() => {
     const up = await sb.storage.from('media').upload(path, file, { contentType: file.type || 'image/jpeg' });
     if (up.error) throw up.error;
     return path;
+  }
+  // one kind at a time, the way the board asks
+  const GIFS = [['hello-ladies.png', 'Hello ladies'], ['spinning-dancer.gif', 'Spinning dancer'], ['black-cat.gif', 'Black cat'], ['dj-caveman.gif', 'Caveman DJ'], ['disco.gif', 'Disco'], ['heart.gif', 'Heart'], ['horse.gif', 'Galloping horse'], ['thumbs-up.gif', 'Thumbs up'], ['dancing-men.gif', 'Dancing']];
+  async function searchKind(kind, q) {
+    const term = q.trim();
+    if (kind === 'track') {
+      const d = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=10&country=us`).then((r) => r.json());
+      return d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }));
+    }
+    if (kind === 'place') return (await searchPlaces(term)).map((x) => ({ kind: 'place', key: 'place:' + x.id, id: x.id, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' \u2022 '), art: null }));
+    if (kind === 'gif') return GIFS.filter(([, name]) => name.toLowerCase().includes(term.toLowerCase())).map(([file, name]) => ({ kind: 'gif', key: 'gif:' + file, title: name, meta: null, art: 'assets/gifs/' + file }));
+    return searchShelf(kind, term);
   }
   // "search anything": tracks, films, shows, books and places, together
   async function searchAll(q) {
@@ -313,7 +326,7 @@ window.SyncAPI = (() => {
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
-           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, uploadStyle, uploadPhoto, saveMyBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

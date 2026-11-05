@@ -291,11 +291,11 @@ window.SyncOnboard = (() => {
   // ═══════════════ act three: make it yours ═══════════════
   const FOLDERS = [
     { id: 'music', label: 'Music', min: 4, accepts: ['track'], hint: 'tracks' },
-    { id: 'vibes', label: 'Vibes', min: 2, accepts: ['photo'], hint: 'photos' },
+    { id: 'vibes', label: 'Vibes', min: 2, accepts: ['photo', 'gif'], hint: 'photos' },
     { id: 'shelf', label: 'Watching & Reading', min: 1, accepts: ['film', 'show', 'book'], hint: 'titles' },
     { id: 'spots', label: 'Spots', min: 2, accepts: ['place'], hint: 'places' },
   ];
-  const KIND_WORD = { track: 'a track', photo: 'a photo', film: 'a film', show: 'a show', book: 'a book', place: 'a place' };
+  const KIND_WORD = { track: 'a track', photo: 'a photo', gif: 'a GIF', film: 'a film', show: 'a show', book: 'a book', place: 'a place' };
   const ORBIT_MAX = 10;
 
   async function stepBoard(editing) {
@@ -308,22 +308,32 @@ window.SyncOnboard = (() => {
     if (existing.vibes.length) { const u = await api().mediaUrls(existing.vibes.map((v) => v.path)); existing.vibes.forEach((v) => { v.art = u[v.path]; }); }
     const folders = {}; FOLDERS.forEach((f) => { folders[f.id] = [...existing[f.id]]; });
 
+    const CATS = [['track', 'Tracks'], ['film', 'Movies'], ['show', 'Shows'], ['place', 'Spots'], ['gif', 'GIFs'], ['book', 'Books']];
+    const TAG = { track: 'Track', film: 'Movie', show: 'Show', place: 'Spot', gif: 'GIF', book: 'Book', photo: 'Photo' };
     frame({ cls: 'auth--board', title: 'Make it yours', cta: editing ? 'Save' : 'See your profile',
       body: `
-      <div class="board__search">
-        <div class="board__field"><img src="assets/magnifying-glass.svg" width="20" height="20" alt=""><input id="bd-q" type="text" placeholder="Search anything" autocomplete="off" autocorrect="off" spellcheck="false"><button class="board__upload" type="button" data-upload aria-label="Upload a photo"><img src="assets/icon-image.svg" width="22" height="22" alt=""></button></div>
-        <p class="ob__cap board__cap">Search to add to your orbit, then drag into a section</p>
-        <div class="board__results" id="bd-results" hidden></div>
+      <div class="board__search" id="bd-search">
+        <div class="board__field"><button class="board__glass" type="button" data-cats aria-label="Pick a category"><img src="assets/magnifying-glass.svg" width="20" height="20" alt=""></button><input id="bd-q" type="text" placeholder="Search books, movies, albums and more" autocomplete="off" autocorrect="off" spellcheck="false"><button class="board__fbtn board__fbtn--gif" type="button" data-gif aria-label="Search GIFs">GIF</button><button class="board__fbtn" type="button" data-upload aria-label="Upload a photo"><img src="assets/icon-image.svg" width="18" height="18" alt=""></button></div>
+        <p class="board__cap">All searched items will get added to your orbit below, drag and drop them into each folder for the perfect representation of you</p>
         <input type="file" id="bd-file" accept="image/*" multiple hidden>
       </div>
       <div class="ring" id="bd-stage">
-        <div class="ring__bar"><span>Your orbit</span><span id="bd-count">Spin it, or drag one out</span></div>
-        <p class="ring__empty" id="bd-empty">Nothing here yet. Search a song, a film, a place, or upload a photo.</p>
+        <div class="ring__empty" id="bd-empty" aria-hidden="true">
+          <svg class="ring__planet" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="6.5"/><path d="M5.2 14.6C2.4 16.9 1.3 18.9 2 19.9c1 1.5 6.2-.1 11.6-3.6S22.6 8.9 21.6 7.4c-.6-.9-2.6-.6-5.1.4"/></svg>
+          <svg class="ring__star ring__star--a" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5c.8 5 3.7 8.4 9.5 9.5-5.8 1.1-8.7 4.5-9.5 9.5-.8-5-3.7-8.4-9.5-9.5 5.8-1.1 8.7-4.5 9.5-9.5z"/></svg>
+          <svg class="ring__star ring__star--b" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5c.8 5 3.7 8.4 9.5 9.5-5.8 1.1-8.7 4.5-9.5 9.5-.8-5-3.7-8.4-9.5-9.5 5.8-1.1 8.7-4.5 9.5-9.5z"/></svg>
+          <svg class="ring__star ring__star--c" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5c.8 5 3.7 8.4 9.5 9.5-5.8 1.1-8.7 4.5-9.5 9.5-.8-5-3.7-8.4-9.5-9.5 5.8-1.1 8.7-4.5 9.5-9.5z"/></svg>
+          <svg class="ring__star ring__star--d" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.5c.8 5 3.7 8.4 9.5 9.5-5.8 1.1-8.7 4.5-9.5 9.5-.8-5-3.7-8.4-9.5-9.5 5.8-1.1 8.7-4.5 9.5-9.5z"/></svg>
+        </div>
         <div class="ring__floor" aria-hidden="true"></div>
       </div>
-      <div class="board__folders">${FOLDERS.map((f) => `<div class="folder" data-folder="${f.id}"><div class="folder__stack" id="fs-${f.id}"></div><p class="folder__title">${esc(f.label)}</p><p class="folder__count" id="fc-${f.id}"></p></div>`).join('')}</div>` });
+      <div class="board__folders">${FOLDERS.map((f) => `<div class="folder" data-folder="${f.id}"><div class="folder__stack" id="fs-${f.id}"></div><p class="folder__title">${esc(f.label)}</p><p class="folder__count" id="fc-${f.id}"></p></div>`).join('')}</div>
+      <div class="board__overlay" id="bd-overlay" hidden>
+        <div class="board__cats" id="bd-cats">${CATS.map(([k, label]) => `<button class="board__cat board__cat--${k}" type="button" data-cat="${k}">${label}</button>`).join('')}</div>
+        <div class="board__results" id="bd-results" hidden></div>
+      </div>` });
     panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
-    panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="ob__pill">fun stuff</span>');
+    panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="board__me board__me--ghost" aria-hidden="true"></span>');
     setReady(true);
 
     const stage = $('#bd-stage');
@@ -345,7 +355,7 @@ window.SyncOnboard = (() => {
     const ring = { cards: [], rot: 0, vel: 0, idleAt: performance.now(), spin: null, lift: null };
     const SIZE = 112;
     const radius = () => Math.max(78, (ring.cards.length * (SIZE + 14)) / (2 * Math.PI));
-    const count = () => { const n = ring.cards.length; $('#bd-count').textContent = n ? `${n} floating${n >= ORBIT_MAX ? ' · full' : ''}` : 'Spin it, or drag one out'; $('#bd-empty').hidden = n > 0; stage.classList.toggle('is-empty', !n); };
+    const count = () => { const n = ring.cards.length; const e = $('#bd-empty'); if (e) e.hidden = n > 0; stage.classList.toggle('is-empty', !n); };
     let last = performance.now(), raf = 0;
     const tick = (t) => {
       const dt = Math.min(0.05, (t - last) / 1000); last = t;
@@ -380,7 +390,7 @@ window.SyncOnboard = (() => {
       if (ring.cards.length >= ORBIT_MAX) { deps.notice('Your orbit is full. Drag a few into their sections first.'); stage.classList.add('is-shake'); setTimeout(() => stage.classList.remove('is-shake'), 500); return false; }
       const el = document.createElement('div');
       el.className = 'tile tile--' + item.kind;
-      el.innerHTML = tileHTML(item) + `<span class="tile__tag">${esc({ track: 'Track', photo: 'Photo', film: 'Film', show: 'Show', book: 'Book', place: 'Spot' }[item.kind])}</span>`;
+      el.innerHTML = tileHTML(item) + `<span class="tile__tag">${esc(TAG[item.kind] || item.kind)}</span>`;
       el.style.width = el.style.height = SIZE + 'px';
       const card = { item, el, bob: Math.random() * 6 };
       ring.cards.push(card);
@@ -472,29 +482,53 @@ window.SyncOnboard = (() => {
     stage.addEventListener('pointerup', endGesture);
     stage.addEventListener('pointercancel', endGesture);
 
-    // ── search anything: tracks, films, shows, books and places at once; or upload
-    const q = $('#bd-q'), results = $('#bd-results'); let timer = 0, seq = 0;
+    // ── search: tap the field and the page goes quiet under white; pick a category, then search
+    //    that one kind. A pick lands on the ring and the page comes back.
+    const q = $('#bd-q'), overlay = $('#bd-overlay'), cats = $('#bd-cats'), results = $('#bd-results'), field = $('.board__field');
+    let mode = 'idle', cat = null, timer = 0, seq = 0;
+    const PLACEHOLDER = q.placeholder;
+    const openCats = () => { mode = 'cats'; cat = null; overlay.hidden = false; cats.hidden = false; cats.classList.remove('is-out'); results.hidden = true; results.innerHTML = ''; q.placeholder = ''; q.value = ''; field.classList.add('is-open'); panel().classList.add('is-searching'); };
+    const pickCat = (k) => {
+      mode = 'results'; cat = k;
+      cats.classList.add('is-out'); setTimeout(() => { if (mode === 'results') cats.hidden = true; }, 220);
+      results.hidden = false; results.innerHTML = `<p class="board__hint">Type to search ${CATS.find(([kk]) => kk === k)[1].toLowerCase()}</p>`;
+      q.placeholder = `Searching ${CATS.find(([kk]) => kk === k)[1].toLowerCase()}`;
+      field.className = 'board__field is-open is-' + k;
+      if (q.value.trim()) search(); else q.focus({ preventScroll: true });
+    };
+    const closeSearch = () => { mode = 'idle'; cat = null; overlay.hidden = true; results.innerHTML = ''; q.value = ''; q.placeholder = PLACEHOLDER; q.blur(); field.className = 'board__field'; panel().classList.remove('is-searching'); };
+    const rowHTML = (h, i) => {
+      const art = h.art ? `<img src="${esc(h.art)}" alt="">` : `<i>${esc(h.title.slice(0, 1))}</i>`;
+      const two = h.kind === 'track' || h.kind === 'place' || h.kind === 'book';
+      return `<button class="board__hit" type="button" data-hit="${i}"><span class="board__thumb board__thumb--${h.kind}">${art}</span><span class="board__hit-text">${two && h.meta ? `<small>${esc(h.meta)}</small>` : ''}<b>${esc(h.title)}</b></span><span class="board__tag board__tag--${h.kind}">${TAG[h.kind]}</span></button>`;
+    };
     const search = async () => {
       const text = q.value.trim(); const my = ++seq;
-      if (!text) { results.hidden = true; results.innerHTML = ''; return; }
-      results.hidden = false; results.innerHTML = '<p class="board__hint">Looking…</p>';
+      if (!cat) return;
+      if (!text) { results.innerHTML = `<p class="board__hint">Type to search ${CATS.find(([kk]) => kk === cat)[1].toLowerCase()}</p>`; return; }
+      results.innerHTML = '<p class="board__hint">Looking…</p>';
       let hits = [];
-      try { hits = await api().searchAll(text); } catch (e) { hits = []; }
-      if (my !== seq) return;
+      try { hits = await api().searchKind(cat, text); } catch (e) { hits = []; }
+      if (my !== seq || mode !== 'results') return;
       const inRing = new Set(ring.cards.map((c) => c.item.key)); const filed = new Set(Object.values(folders).flat().map((i) => i.key));
       hits = hits.filter((h) => !inRing.has(h.key) && !filed.has(h.key));
       results._hits = hits;
-      results.innerHTML = hits.length ? hits.map((h, i) => `<button class="board__hit" type="button" data-hit="${i}"><span class="board__thumb board__thumb--${h.kind}">${h.art ? `<img src="${esc(h.art)}" alt="">` : `<i>${esc(h.title.slice(0, 1))}</i>`}</span><span class="board__hit-text"><b>${esc(h.title)}</b><small>${esc(h.meta || '')}</small></span><span class="board__hit-kind">${esc({ track: 'Track', film: 'Film', show: 'Show', book: 'Book', place: 'Spot' }[h.kind])}</span></button>`).join('') : '<p class="board__hint">Nothing matched that. Try the name of a song, a film, a book or a place.</p>';
+      results.innerHTML = hits.length ? hits.map(rowHTML).join('') : `<p class="board__hint">Nothing matched that.</p>`;
     };
-    q.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(search, 260); });
-    q.addEventListener('focus', () => { if (q.value.trim()) results.hidden = false; });
+    q.addEventListener('focus', () => { if (mode === 'idle') openCats(); });
+    q.addEventListener('input', () => { if (mode === 'cats') { if (q.value.trim()) pickCat('track'); return; } clearTimeout(timer); timer = setTimeout(search, 260); });
+    q.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeSearch(); if (e.key === 'Backspace' && mode === 'results' && !q.value) { openCats(); q.focus({ preventScroll: true }); } });
     panel().addEventListener('click', (e) => {
+      const c = e.target.closest('[data-cat]'); if (c) { pickCat(c.dataset.cat); return; }
       const hit = e.target.closest('[data-hit]');
-      if (hit) { const h = results._hits[Number(hit.dataset.hit)]; if (h && addToRing(h)) { hit.remove(); results.hidden = true; if (!results.querySelector('[data-hit]')) q.value = ''; } return; }
+      if (hit) { const h = results._hits[Number(hit.dataset.hit)]; if (h) { closeSearch(); addToRing(h); } return; }
+      if (e.target.closest('[data-cats]')) { if (mode === 'idle') { openCats(); q.focus({ preventScroll: true }); } else openCats(); return; }
+      if (e.target.closest('[data-gif]')) { if (mode === 'idle') openCats(); pickCat('gif'); return; }
       if (e.target.closest('[data-upload]')) { $('#bd-file').click(); return; }
-      if (!e.target.closest('.board__search')) results.hidden = true;
+      if (e.target === overlay) { closeSearch(); return; }
     });
     $('#bd-file').addEventListener('change', () => {
+      closeSearch();
       for (const f of $('#bd-file').files) { if (!addToRing({ kind: 'photo', key: 'upload:' + f.name + ':' + f.size, title: f.name.replace(/\.[^.]+$/, ''), art: URL.createObjectURL(f), file: f })) break; }
       $('#bd-file').value = '';
     });
@@ -512,7 +546,7 @@ window.SyncOnboard = (() => {
       b.textContent = 'Saving your spots…';
       await api().setMyPlaces(folders.spots.map((p) => p.id));
       const newVibes = folders.vibes.filter((v) => v.file);
-      const paths = folders.vibes.filter((v) => v.saved).map((v) => v.path);
+      const paths = folders.vibes.filter((v) => v.saved || v.kind === 'gif').map((v) => v.path || v.art);
       for (let i = 0; i < newVibes.length; i++) { b.textContent = `Uploading vibe ${i + 1} of ${newVibes.length}…`; paths.push(await api().uploadStyle(newVibes[i].file)); }
       me = await api().updateProfile({ style_paths: paths });
       return true;

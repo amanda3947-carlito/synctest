@@ -257,7 +257,7 @@ window.SyncOnboard = (() => {
       $$('.ob__acc-item').forEach((x) => { x.classList.remove('is-open'); x.querySelector('.ob__acc-body').hidden = true; x.querySelector('[data-toggle]').setAttribute('aria-expanded', 'false'); });
       if (!item) return;
       item.classList.add('is-open'); item.querySelector('.ob__acc-body').hidden = false; item.querySelector('[data-toggle]').setAttribute('aria-expanded', 'true');
-      const inp = item.querySelector('input'); if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 40);
+      const inp = item.querySelector('input'); if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 40); else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // a pick row needs no keyboard
       setTimeout(() => item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
     };
     panel().addEventListener('click', (e) => {
@@ -311,8 +311,7 @@ window.SyncOnboard = (() => {
              <div class="ob__compose" id="ob-compose" hidden>
                <div class="ob__ccard"><p class="ob__ccard-text" id="ob-ctext"></p></div>
                <div class="ob__cemoji">${EMOJI.map((e) => `<button type="button" data-emoji="${e}">${e}</button>`).join('')}</div>
-               <div class="ob__cfield"><input type="text" id="ob-cin" maxlength="140" autocomplete="off" enterkeyhint="done"><button class="ob__cvoice" type="button" data-voice aria-label="Add voice"><img src="assets/icon-waveform.svg" width="24" height="24" alt=""></button></div>
-               <div class="ob__ckb" aria-hidden="true"><img src="assets/keyboard.png" width="401" height="335" alt=""></div>
+               <form class="ob__cfield" id="ob-cform" novalidate><input type="text" id="ob-cin" maxlength="140" autocomplete="off" enterkeyhint="done" aria-label="Your answer"><button class="ob__cvoice" type="button" data-voice aria-label="Add voice"><img src="assets/icon-waveform.svg" width="24" height="24" alt=""></button></form>
              </div>` });
     const tiles = $('#ob-ptiles'), cap = $('#ob-pcap'), comp = $('#ob-compose'), cin = $('#ob-cin'), ctext = $('#ob-ctext'), voiceBtn = $('[data-voice]');
     let open = null, rec = null;
@@ -322,7 +321,7 @@ window.SyncOnboard = (() => {
       const a = answers[pr.key] || {};
       cin.value = a.text || ''; cin.placeholder = pr.ph;
       ctext.textContent = cin.value || pr.label.replace('<br>', ' '); ctext.classList.toggle('is-ph', !cin.value);
-      panel().classList.add('is-composing'); comp.hidden = false;
+      panel().classList.add('is-composing'); panel().scrollTop = 0; comp.hidden = false;
       setTimeout(() => cin.focus({ preventScroll: true }), 40);
     };
     const hide = () => { open = null; comp.hidden = true; panel().classList.remove('is-composing'); cin.blur(); };
@@ -366,6 +365,8 @@ window.SyncOnboard = (() => {
       if (open && !e.target.closest('.ob__ccard, .ob__cfield, .ob__cemoji, .ob__ckb')) { if (rec) stopRecDrop(); commit(); }
     });
     cin.addEventListener('input', () => { ctext.textContent = cin.value || open.label.replace('<br>', ' '); ctext.classList.toggle('is-ph', !cin.value); });
+    // the keyboard's return key: a submit on every platform, so it saves wherever the key event itself is swallowed
+    $('#ob-cform').addEventListener('submit', (e) => { e.preventDefault(); commit(); });
     cin.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(); } if (e.key === 'Escape') { stopRecDrop(); hide(); } });
     return step(async () => {
       if (open) { await commit(); }
@@ -788,5 +789,16 @@ window.SyncOnboard = (() => {
     return me;
   }
 
-  return { init(d) { deps = d; }, run, edit, stickerFor, get me() { return me; } };
+  function initKeyboard() {
+    const r = root();
+    if (r.querySelector('.ob__kb')) return;
+    const kb = document.createElement('div'); kb.className = 'ob__kb'; kb.setAttribute('aria-hidden', 'true');
+    kb.innerHTML = '<img src="assets/keyboard.png" width="401" height="335" alt="" draggable="false">';
+    r.appendChild(kb);
+    const isField = (el) => el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !/^(file|date|checkbox|radio|range)$/.test(el.type || '');
+    let hideTimer = 0;
+    r.addEventListener('focusin', (e) => { if (!isField(e.target)) return; clearTimeout(hideTimer); r.classList.add('has-kb'); });
+    r.addEventListener('focusout', () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (!isField(document.activeElement) || !r.contains(document.activeElement)) r.classList.remove('has-kb'); }, 160); });
+  }
+  return { init(d) { deps = d; initKeyboard(); }, run, edit, stickerFor, get me() { return me; } };
 })();

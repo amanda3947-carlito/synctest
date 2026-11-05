@@ -1394,9 +1394,13 @@ img { display: block; }
 .ob__ptile:active { transform: scale(0.97); }
 .ob__ptile-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; overflow-wrap: anywhere; }
 .ob__ptile-voice { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-size: 16px; letter-spacing: -0.3px; color: #1e1e1e; }
-/* on click (1093:25096): the page goes quiet under the open card, the emoji row and the field above the keyboard */
+/* on click (1093:25096): the page goes quiet; the card, the emoji row and the field sit on the keyboard,
+   the way the profile's reply does. The panel's bottom is the keyboard's top on a phone (and on a desktop,
+   where the drawn keyboard stands in) */
+.auth { position: relative; }
+.auth.is-composing { overflow: hidden; }
 .auth.is-composing .ob__ptiles, .auth.is-composing .ob__cap--prompts, .auth.is-composing .ob__foot { opacity: 0; pointer-events: none; }
-.ob__compose { position: absolute; left: 0; right: 0; top: 136px; bottom: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 0 20px; background: var(--white); }
+.ob__compose { position: absolute; left: 0; right: 0; top: 136px; bottom: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 16px; padding: 0 20px 16px; background: var(--white); }
 .ob__compose[hidden] { display: none; }
 .ob__ccard { width: 100%; min-height: 139px; padding: 24px 20px; border-radius: 32px; background: var(--surface); box-shadow: 0 16px 16px rgba(12, 12, 13, 0.1), 0 4px 4px rgba(12, 12, 13, 0.05); display: flex; align-items: center; justify-content: center; animation: ccard-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
 @keyframes ccard-in { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: none; } }
@@ -1405,16 +1409,17 @@ img { display: block; }
 .ob__cemoji { width: 335px; padding: 6px 10px; display: flex; justify-content: space-between; }
 .ob__cemoji button { height: 30px; padding: 0; font: 400 24px/1.2 var(--font-body); transition: transform 0.15s; }
 .ob__cemoji button:active { transform: scale(1.25); }
-.ob__cfield { width: 100%; height: 48px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid #f3f3f3; border-radius: 24px; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); }
+.ob__cfield { width: 100%; height: 48px; margin: 0; padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid #f3f3f3; border-radius: 24px; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); }
 .ob__cfield input { flex: 1 1 auto; min-width: 0; height: 27px; padding: 4px; border: 0; background: none; outline: none; font-family: var(--font-body); font-size: 13px; line-height: 1.2; color: #1e1e1e; font-variation-settings: "opsz" 14; }
 .ob__cfield input::placeholder { color: #757575; }
 .ob__cvoice { width: 24px; height: 24px; padding: 0; display: flex; flex: 0 0 24px; border-radius: 12px; transition: transform 0.15s; }
 .ob__cvoice.is-rec { animation: rec-pulse 1s ease-in-out infinite; }
 @keyframes rec-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
-/* the drawn keyboard stands in on a desktop; a phone brings its own and the page shrinks above it */
-.ob__ckb { display: none; margin: auto -20px 0; }
-.ob__ckb img { display: block; width: 401px; height: 335px; }
-@media (pointer: fine) { .ob__ckb { display: block; } }
+/* the drawn keyboard on a desktop: it comes up for any text field in first run and the panel ends
+   above it, as the real one makes the page do on a phone */
+.ob__kb { display: none; flex: 0 0 335px; height: 335px; background: rgb(225, 228, 232); }
+.ob__kb img { display: block; width: 401px; height: 335px; }
+@media (pointer: fine) { .device__auth.has-kb .ob__kb { display: block; } .device__auth.has-kb .ob__toast { bottom: calc(335px + 72px); } }
 
 /* what best describes you: 3 × 2 */
 .ob__describe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

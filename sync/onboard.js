@@ -613,23 +613,6 @@ window.SyncOnboard = (() => {
   }
   const stepIntro = () => quoteStep('intro', { title: 'Your line', sub: 'The first thing on your profile, in quotes.', placeholder: 'Jazz on vinyl. Rap in the kitchen.', promptDefault: 'Say something witty back', promptOptions: ['Say something witty back', 'Agree or disagree?', 'Your version?'] });
   const stepLyric = () => quoteStep('lyric', { title: 'Lyrics to live by', sub: 'A line from a song. They guess the artist.', placeholder: 'This may be the night that my dreams might let me know…', promptDefault: 'Name the artist', promptOptions: ['Name the artist', 'Finish the line', 'What’s it from?'] });
-  async function stepEvents() {
-    const chosen = [...(await api().myEvents())];
-    const fmt = (iso) => new Date(iso).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
-    const draw = () => { $('#ob-events').innerHTML = chosen.length ? chosen.map((ev) => `<div class="prow ob__row"><div class="ob__date"><span>${esc(fmt(ev.starts_at).split(' ')[1] || '')}</span><b>${esc(fmt(ev.starts_at).split(' ')[2] || '')}</b></div><div class="prow__details"><p class="t-sub">${esc(ev.title)}</p><p class="t-body-sm">${esc(ev.venue || '')}</p></div><button class="ob__row-x" type="button" data-unpick="${ev.id}" aria-label="Remove"><img src="assets/x-16.svg" width="16" height="16" alt=""></button></div>`).join('') : '<p class="ob__cap">Nothing on the calendar yet.</p>'; };
-    frame({ title: 'Going to', sub: 'Shows, markets, screenings. Anything with a date.', cta: 'Save', back: true,
-      body: `<div class="ob__chosen" id="ob-events"></div><div class="ob__new ob__new--open"><input class="ob__input" id="ob-ev-title" type="text" placeholder="What" maxlength="80"><input class="ob__input" id="ob-ev-venue" type="text" placeholder="Where" maxlength="80"><div class="ob__new-row"><input class="ob__input" id="ob-ev-date" type="date"><button class="ob__mini" type="button" data-add-event>Add</button></div></div>` });
-    setReady(true); draw();
-    panel().addEventListener('click', async (e) => {
-      const un = e.target.closest('[data-unpick]'); if (un) { const i = chosen.findIndex((c) => c.id === un.dataset.unpick); if (i >= 0) chosen.splice(i, 1); draw(); return; }
-      if (e.target.closest('[data-add-event]')) {
-        const title = $('#ob-ev-title').value.trim(), venue = $('#ob-ev-venue').value.trim(), date = $('#ob-ev-date').value;
-        if (!title || !date) { err('A what and a when, at least.'); return; }
-        try { chosen.push(await api().addEvent({ title, venue, starts_at: new Date(date + 'T20:00:00').toISOString() })); draw(); err(''); $('#ob-ev-title').value = ''; $('#ob-ev-venue').value = ''; $('#ob-ev-date').value = ''; } catch (ex) { err(deps.errText(ex)); }
-      }
-    });
-    return step(async () => { await api().setMyEvents(chosen.map((ev) => ev.id)); return true; });
-  }
   async function stepMutuals() {
     const can = !!(navigator.contacts && navigator.contacts.select);
     const count = await api().myContactCount();
@@ -692,7 +675,7 @@ window.SyncOnboard = (() => {
     const sections = [
       ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
       ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
-      ['intro', 'Your line', stepIntro], ['lyric', 'Lyrics to live by', stepLyric], ['events', 'Going to', stepEvents], ['mutuals', 'Mutuals', stepMutuals], ['cover', 'Cover', stepCover],
+      ['intro', 'Your line', stepIntro], ['lyric', 'Lyrics to live by', stepLyric], ['mutuals', 'Mutuals', stepMutuals], ['cover', 'Cover', stepCover],
     ];
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true,

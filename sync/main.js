@@ -196,10 +196,6 @@
           <p class="t-body-sm">${esc(s.meta)}</p>
         </div>
       </div>`).join('');
-    const tasteTiles = p.taste.map((k) => `
-      <div class="ptile">
-        <div class="ptile__box">${TASTE[k].art}<span class="ptile__label">${esc(TASTE[k].label)}</span></div>
-      </div>`).join('');
 
     return `
       <div class="pbar" aria-hidden="true">
@@ -268,13 +264,6 @@
           </button>
         </section>
         ${quoteUnit('Lyrics to live by', p.lyric, 233)}
-        <section class="punit" style="--unit-h:189px">
-          <p class="punit__title">Taste</p>
-          <div class="ptaste">
-            <button class="ptile ptile--add" type="button" aria-label="Add taste" data-action="taste"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></button>
-            ${tasteTiles}
-          </div>
-        </section>
         ${(p.shelf && p.shelf.length) ? `
         <section class="punit">
           <p class="punit__title">Reading &amp; watching</p>
@@ -287,17 +276,6 @@
               <p class="t-sub">${esc(s.title)}</p>
               <p class="t-body-sm">${esc(s.meta || '')}</p>
             </div>`).join('')}
-          </div>
-        </section>` : ''}
-        ${(p.events && p.events.length) ? `
-        <section class="punit">
-          <p class="punit__title">Going to</p>
-          <div class="prow-list">
-            ${p.events.map((ev) => { const d = new Date(ev.starts_at); return `
-            <div class="prow pevent">
-              <div class="pdate"><span>${d.toLocaleDateString(undefined, { month: 'short' })}</span><b>${d.getDate()}</b></div>
-              <div class="prow__details"><p class="t-sub">${esc(ev.title)}</p><p class="t-body-sm">${esc(ev.venue || '')}</p></div>
-            </div>`; }).join('')}
           </div>
         </section>` : ''}
         ${(p.mutuals && p.mutuals.length) ? `

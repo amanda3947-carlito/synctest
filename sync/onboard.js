@@ -410,7 +410,7 @@ window.SyncOnboard = (() => {
 
   // ═══════════════ act three: make it yours ═══════════════
   const FOLDERS = [
-    { id: 'music', label: 'Music', min: 4, accepts: ['track'], hint: 'tracks' },
+    { id: 'music', label: 'Music', min: 3, accepts: ['track'], hint: 'tracks' },
     { id: 'vibes', label: 'Vibes', min: 2, accepts: ['photo', 'gif'], hint: 'photos' },
     { id: 'shelf', label: 'Watching & Reading', min: 1, accepts: ['film', 'show', 'book'], hint: 'titles' },
     { id: 'spots', label: 'Spots', min: 2, accepts: ['place'], hint: 'places' },
@@ -454,7 +454,6 @@ window.SyncOnboard = (() => {
       </div>` });
     panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
     panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="board__me board__me--ghost" aria-hidden="true"></span>');
-    setReady(true);
 
     const stage = $('#bd-stage');
     const tileHTML = (it) => it.art ? `<img src="${esc(it.art)}" alt="" draggable="false">` : `<span class="orb__type">${esc(it.title)}</span>`;
@@ -475,7 +474,8 @@ window.SyncOnboard = (() => {
     const ring = { cards: [], rot: 0, vel: 0, idleAt: performance.now(), spin: null, lift: null };
     const SIZE = 112;
     const radius = () => Math.max(78, (ring.cards.length * (SIZE + 14)) / (2 * Math.PI));
-    const count = () => { const n = ring.cards.length; const e = $('#bd-empty'); if (e) e.hidden = n > 0; stage.classList.toggle('is-empty', !n); };
+    const MUSIC_MIN = FOLDERS.find((f) => f.id === 'music').min;
+    const count = () => { const n = ring.cards.length; const e = $('#bd-empty'); if (e) e.hidden = n > 0; stage.classList.toggle('is-empty', !n); setReady(folders.music.length >= MUSIC_MIN); };
     let last = performance.now(), raf = 0;
     const tick = (t) => {
       const dt = Math.min(0.05, (t - last) / 1000); last = t;
@@ -674,8 +674,8 @@ window.SyncOnboard = (() => {
       if (ring.cards.length) err(`${ring.cards.length} still in your orbit. They stay here if you come back; only what’s in a section goes on your profile.`);
       const b = $('[data-next] span');
       const music = folders.music;
-      if (music.length >= 4) { b.textContent = 'Saving your rotation…'; await api().saveMyBuild('mixtape', music.map((t) => api().trackItem({ key: t.key, artist: t.meta, title: t.title, art: t.art }))); }
-      else if (music.some((t) => !t.saved)) deps.notice(`Your rotation goes up at 4 tracks. You have ${music.length}; add the rest from your avatar any time.`);
+      if (music.length < MUSIC_MIN) { err(`Your rotation needs ${MUSIC_MIN} tracks to go up. ${MUSIC_MIN - music.length} more to go: search Tracks and drag them into Music.`); return false; }
+      b.textContent = 'Saving your rotation…'; await api().saveMyBuild('mixtape', music.map((t) => api().trackItem({ key: t.key, artist: t.meta, title: t.title, art: t.art })));
       b.textContent = 'Saving your shelf…';
       await api().setMyShelf(folders.shelf.map((s) => ({ kind: s.kind, key: s.key, title: s.title, meta: s.meta, art: s.art })));
       b.textContent = 'Saving your spots…';
@@ -717,7 +717,7 @@ window.SyncOnboard = (() => {
       deps.openSheet(draft, () => { root().hidden = false; res(false); }, async (items) => {
         try { await api().saveMyBuild('mixtape', items.map(api().trackItem)); root().hidden = false; res(true); }
         catch (e) { root().hidden = false; err(deps.errText(e)); res(false); }
-      }, { title: 'Your rotation', sub: 'Four or more tracks. Search to add.', sendLabel: 'Save', addLimit: Infinity, minItems: 4 });
+      }, { title: 'Your rotation', sub: 'Three or more tracks. Search to add.', sendLabel: 'Save', addLimit: Infinity, minItems: 3 });
       if (!current) setTimeout(deps.focusSearch, 400);
     }));
   }

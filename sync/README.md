@@ -32,7 +32,8 @@ sync/
      spin with a sideways drag (the front one big and bright, the back ones small and dim; left alone
      it turns slowly and settles with one card facing you). Empty, the ring is a planet and four stars.
      A downward drag or a press lifts a card out to drop into Music, Vibes, Watching & Reading or
-     Spots, which are squares. Ten on the ring is the cap. Then your profile, for real, with a way back.
+     Spots, which are squares. Ten on the ring is the cap. Music needs three tracks before the board
+     lets you on; the folder counts down. Then your profile, for real, with a way back.
      Sources: tracks and books from Apple's catalog; movies and shows from Wikipedia's search (Apple's
      film and show search answers almost nothing now), posters included; spots from the `places`
      table. The GIFs tile opens a keyboard to browse and narrow (the prototype's reel, or Giphy's

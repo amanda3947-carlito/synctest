@@ -3,7 +3,7 @@
 -- Safe to re-run: everything upserts on fixed ids.
 
 insert into public.build_types (key, name, verb, kind, unit, capacity, min_items, min_each, per_turn, slots, position) values
-  ('mixtape',   'Mixtape',   'Remix',  'list',  'track', 8, 4, 2, 2, '[]', 1),
+  ('mixtape',   'Mixtape',   'Remix',  'list',  'track', 8, 3, 2, 2, '[]', 1),
   ('watchlist', 'Watchlist', 'Curate', 'list',  'title', 6, 4, 2, 2, '[]', 2),
   ('plan',      'The Plan',  'Plan',   'slots', null, null, null, null, 2,
      '[{"id":"when","label":"When"},{"id":"vibe","label":"Vibe"},{"id":"place","label":"Where"},{"id":"do","label":"What we''ll do"}]', 3),

@@ -52,7 +52,8 @@ sync/
   on `builds` lights the Builds dot and plays the toast on a match.
 
 ## Starting over
-Open `sync/?reset` to sign out first and land on the first screen. Test numbers 555 000 0010, 0011 and
+Open `sync/?reset` to sign out first and land on the first screen. Signed in, `sync/?go=photos` (or
+`prompts`, `basics`, `describes`, `board`, `rotation`, `cover`, `name`) opens that step of the editor straight away. Test numbers 555 000 0010, 0011 and
 0012 take the code 123456 (more can be added under Authentication → Phone → Test phone numbers in
 Supabase); a number that has finished onboarding goes straight to the feed, so pick an unused one for
 a full run (0010 and 0011 are used).

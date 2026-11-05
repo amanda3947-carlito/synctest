@@ -746,7 +746,8 @@ window.SyncOnboard = (() => {
     }
     await loadMe();
     if (!me) { if (!draft.name) await stepName(false); let r; do { r = await stepBirthday(false); if (r === 'back') await stepName(false); } while (r === 'back'); }
-    if (me.onboarded) { root().hidden = true; return me; }
+    const go = new URLSearchParams(location.search).get('go');
+    if (me.onboarded) { if (go) { history.replaceState(null, '', location.pathname); return edit(go); } root().hidden = true; return me; }
     const state = await a.myState();
     if (!state.photos) await stepPhotos(false);
     if (!me.details || !Object.keys(me.details).length) await stepBasics(false);
@@ -765,7 +766,7 @@ window.SyncOnboard = (() => {
     return me;
   }
 
-  async function edit() {
+  async function edit(initial) {
     const a = api();
     await loadMe();
     const sections = [
@@ -773,6 +774,7 @@ window.SyncOnboard = (() => {
       ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
       ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', stepCover],
     ];
+    if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } }
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true,
         body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button></div>` });

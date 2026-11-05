@@ -746,8 +746,10 @@ window.SyncOnboard = (() => {
     }
     await loadMe();
     if (!me) { if (!draft.name) await stepName(false); let r; do { r = await stepBirthday(false); if (r === 'back') await stepName(false); } while (r === 'back'); }
+    // ?go=<step> opens that step of the editor first, finished or not; an unfinished run then carries on where it was
     const go = new URLSearchParams(location.search).get('go');
-    if (me.onboarded) { if (go) { history.replaceState(null, '', location.pathname); return edit(go); } root().hidden = true; return me; }
+    if (go) { history.replaceState(null, '', location.pathname); await edit(go); }
+    if (me.onboarded) { root().hidden = true; return me; }
     const state = await a.myState();
     if (!state.photos) await stepPhotos(false);
     if (!me.details || !Object.keys(me.details).length) await stepBasics(false);

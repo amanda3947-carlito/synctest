@@ -59,7 +59,7 @@ window.SyncOnboard = (() => {
     root().hidden = false;
     root().scrollTop = 0;
     panel().scrollTop = 0;
-    const first = $('.ob__body input:not([type=file]):not([type=date]), .ob__body textarea');
+    const first = cls.includes('auth--board') ? null : $('.ob__body input:not([type=file]):not([type=date]), .ob__body textarea');
     if (first) setTimeout(() => first.focus({ preventScroll: true }), 60);
   }
   const err = (t) => { const el = $('.ob__err'); if (el) el.textContent = t || ''; };

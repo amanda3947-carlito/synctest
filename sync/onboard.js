@@ -111,6 +111,8 @@ window.SyncOnboard = (() => {
     });
   }
 
+  // digits only; a ten-digit number is taken as US and gets its 1
+  const e164 = (v) => { const d = v.replace(/\D/g, ''); return d.length === 10 ? '1' + d : d; };
   async function stepPhone() {
     let phone = '';
     while (true) {
@@ -119,14 +121,14 @@ window.SyncOnboard = (() => {
       liveReady(() => $('#ob-phone').value.replace(/\D/g, '').length >= 10);
       const r = await step(async () => {
         phone = $('#ob-phone').value;
-        const digits = phone.replace(/\D/g, '');
+        const digits = e164(phone);
         if (digits.length < 10) { err('That number looks short.'); return false; }
         const res = await api().sendCode(digits);
-        if (res.error) { err(res.error.message); return false; }
+        if (res.error) { err(/provider|sms|twilio/i.test(res.error.message) ? 'Texting isn\u2019t on yet. Use a test number: +1 555 000 0010 to 0012, code 123456.' : res.error.message); return false; }
         return true;
       });
       if (r === 'back') return 'back';
-      const digits = phone.replace(/\D/g, '');
+      const digits = e164(phone);
       frame({ step: 2, total: 6, title: 'The code we texted', sub: `Sent to +${esc(digits)}`, cta: 'Next', back: true,
         body: `<input class="ob__input ob__input--code" id="ob-code" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" maxlength="6">` });
       liveReady(() => $('#ob-code').value.trim().length === 6);

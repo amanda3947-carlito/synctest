@@ -178,13 +178,14 @@
           <img src="assets/battery.svg" width="27.328" height="13" alt="">
         </div>
       </div>`;
-    const quoteUnit = (title, q, h) => `
+    const voiceHTML = (q) => `<div class="pvoice" data-voice="${esc(q.voice)}"><button class="pvoice__play" type="button" aria-label="Play"><img class="ico-play" src="assets/play-16.svg" width="16" height="16" alt=""><svg class="ico-pause" viewBox="0 0 256 256" aria-hidden="true"><path fill="#000" d="M216 48v160a16 16 0 0 1-16 16h-40a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h40a16 16 0 0 1 16 16ZM96 32H56a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h40a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16Z"/></svg></button><span class="pvoice__bars" aria-hidden="true">${Array.from({ length: 40 }, (_, i) => `<i style="height:${6 + Math.round(10 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.37)))}px"></i>`).join('')}</span><span class="pvoice__time">${q.seconds ? `${q.seconds}s` : ''}</span></div>`;
+    const quoteUnit = (title, q) => `
       <section class="punit">
         <p class="punit__title">${esc(title)}</p>
         <div class="pbento-wide">
           <div class="pquote">
             <div class="pquote__text">
-              <p class="t-quote">${esc(q.quote)}</p>
+              ${q.quote ? `<p class="t-quote">${esc(q.quote)}</p>` : voiceHTML(q)}
               <div class="preply">
                 <button class="preply__field" type="button" data-compose="text" data-prompt="${esc(q.prompt)}"><span class="preply__ph">${esc(q.prompt)}</span></button>
               </div>
@@ -246,7 +247,7 @@
       <div class="pavatar"><img src="${p.avatar}" alt=""></div>
       <img class="pavatar-disc" src="${person.disc}" alt="">
       <div class="pbody">
-        ${p.intro.quote ? quoteUnit('Intro', p.intro, 195) : ''}
+        ${(p.intro.quote || p.intro.voice) ? quoteUnit('Intro', p.intro) : ''}
         <section class="punit">
           <p class="punit__title">Rotation</p>
           <div class="prow-list">
@@ -271,7 +272,9 @@
             <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
           </button>
         </section>
-        ${p.lyric.quote ? quoteUnit('Lyrics to live by', p.lyric, 233) : ''}
+        ${(p.lyric.quote || p.lyric.voice) ? quoteUnit('Lyrics to live by', p.lyric) : ''}
+        ${p.dealbreakers && (p.dealbreakers.quote || p.dealbreakers.voice) ? quoteUnit('Deal-breakers', p.dealbreakers) : ''}
+        ${p.obsession && (p.obsession.quote || p.obsession.voice) ? quoteUnit('Current obsession', p.obsession) : ''}
         <section class="punit">
           <p class="punit__title">Watching and Reading</p>
           <div class="pshelf">
@@ -302,6 +305,8 @@
   const feed = document.getElementById('feed');
   const feedPage = () => Math.round(feed.scrollTop / feed.clientHeight);
   const device = document.querySelector('.device');
+  // the frame itself never scrolls: a focused field (or a scroll-into-view) must move the panel inside it, not the frame
+  device.addEventListener('scroll', () => { if (device.scrollTop || device.scrollLeft) { device.scrollTop = 0; device.scrollLeft = 0; } }, { passive: true });
   const keyboardEl = device.querySelector('.device__keyboard');
   const keyboardHeight = () => keyboardEl.offsetHeight;
   const cardTpl = document.getElementById('card-template');
@@ -1432,6 +1437,20 @@
     mixTile.addEventListener('click', openMixtape);
     profile.querySelector('[data-action="mixtape"]').addEventListener('click', openMixtape);
     wireRecordPlayers(profile.querySelector('.prow-list'), '.prow');
+    profile.querySelectorAll('.pvoice').forEach((v) => {
+      const audio = new Audio(v.dataset.voice); audio.preload = 'none';
+      v._audio = audio;
+      v.querySelector('.pvoice__play').addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!audio.paused) { audio.pause(); return; }
+        profile.querySelectorAll('.pvoice.is-playing').forEach((o) => { if (o !== v && o._audio) o._audio.pause(); });
+        audio.play().catch(() => notice('Couldn\u2019t play that'));
+      });
+      audio.addEventListener('play', () => v.classList.add('is-playing'));
+      audio.addEventListener('pause', () => v.classList.remove('is-playing'));
+      audio.addEventListener('ended', () => v.classList.remove('is-playing'));
+      audio.addEventListener('timeupdate', () => { if (audio.duration) v.style.setProperty('--played', `${(audio.currentTime / audio.duration) * 100}%`); });
+    });
     refresh();
 
     // "Not interested" records the pass and moves on to the next person

@@ -18,9 +18,13 @@ sync/
 ## What's live
 
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
-  1. *Essentials, 1 of 6 to 6 of 6*: name, number and code, birthday, photos (2 × 2, drag to reorder,
-     first is the card), the basics (an accordion: occupation, education, hometown, location, height,
-     activity, kids, smoking), and what best describes you (one sticker, shown beside your name).
+  1. *Essentials, 1 of 7 to 7 of 7*: name, number and code, birthday, photos (2 × 2, drag to reorder,
+     first is the card), the basics (an accordion: occupation, hometown, location and height are typed;
+     education, activity and smoking are one pick; kids takes several), the prompts ("Let's learn more
+     about you": Intro, Lyrics to Live By, Deal-breakers, Current Obsession as four tiles; tapping one
+     opens a card over the keyboard with the emoji row and a field; the waveform records a voice note
+     instead; two or more to go on; migration 0006 adds `profiles.prompts`), and what best describes you
+     (one sticker, shown beside your name).
   2. *The celebration*: a sky with drifting stickers. "Get plugged in" opens act three.
   3. *Make it yours*: tap the field and the page goes quiet under white; pick a category (Tracks,
      Movies, Shows, Spots, GIFs, Books, each with its pastel) and the field reads "Searching tracks";
@@ -35,7 +39,7 @@ sync/
      trending and search once `giphyKey` is set in `config.js`). When a catalog comes up empty, and
      always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
      typographic card in its category colour.
-- **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, cover.
+- **Editor** from your avatar: every piece above, plus rotation and cover (a redesign in context of the profile is coming).
 - **People** come from `feed()`; **profile** is the ":: profile view" frame (1092:13901), nothing
   more: Intro, Rotation, Details (120 × 68 chips with Phosphor icons), Vibes, Lyrics to live by,
   Watching and Reading (133 × 202 covers with the kind's tag), Spots, then "Not interested". The
@@ -54,7 +58,7 @@ a full run (0010 and 0011 are used).
 
 ## Not yet
 
-Text and voice prompts in the essentials (coming), Builds and Chats tabs (nothing designed for them yet),
+Builds and Chats tabs (nothing designed for them yet),
 plan / watchlist / dinner builds in the UI (the backend has them), push notifications, contact import on
 iOS Safari (needs the installed app), the video requirement on photos (encouraged, not enforced).
 

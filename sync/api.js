@@ -59,6 +59,14 @@ window.SyncAPI = (() => {
     if (up.error) throw up.error;
     return path;
   }
+  async function uploadVoice(key, blob) {
+    const id = await userId();
+    const ext = /ogg/.test(blob.type) ? 'ogg' : /mp4|aac|m4a/.test(blob.type) ? 'm4a' : 'webm';
+    const path = `${id}/voice-${key}-${Date.now()}.${ext}`;
+    const up = await sb.storage.from('media').upload(path, blob, { contentType: blob.type || 'audio/webm' });
+    if (up.error) throw up.error;
+    return path;
+  }
   // one kind at a time, the way the board asks
   const GIFS = [['hello-ladies.png', 'Hello ladies'], ['spinning-dancer.gif', 'Spinning dancer'], ['black-cat.gif', 'Black cat'], ['dj-caveman.gif', 'Caveman DJ'], ['disco.gif', 'Disco'], ['heart.gif', 'Heart'], ['horse.gif', 'Galloping horse'], ['thumbs-up.gif', 'Thumbs up'], ['dancing-men.gif', 'Dancing']];
   // the GIF keyboard: an empty query is the reel to browse; typing narrows it. With a Giphy key
@@ -290,6 +298,7 @@ window.SyncAPI = (() => {
       ...(media.data || []).flatMap((m) => [m.path, m.poster_path]),
       ...(mixtape ? mixtape.items.map((t) => t.art) : []),
       p.avatar_path, ...(p.style_paths || []),
+      ...Object.values(p.prompts || {}).map((x) => x && x.voice),
       ...(places.data || []).map((r) => r.places && r.places.image_path),
       ...(mutuals || []).map((m) => m.avatar_path),
     ].filter(Boolean);
@@ -309,8 +318,10 @@ window.SyncAPI = (() => {
       mixtapeBuildId: mixtape ? mixtape.id : null,
       profile: {
         cover: p.cover, avatar: u(p.avatar_path) || 'assets/avatar-damon.png',
-        intro: { quote: p.intro_quote, prompt: p.intro_prompt || 'Say something witty back' },
-        lyric: { quote: p.lyric_quote, prompt: p.lyric_prompt || 'Name the artist' },
+        intro: { quote: (p.prompts && p.prompts.intro && p.prompts.intro.text) || p.intro_quote, prompt: p.intro_prompt || 'Say something witty back', voice: u(p.prompts && p.prompts.intro && p.prompts.intro.voice), seconds: p.prompts && p.prompts.intro && p.prompts.intro.seconds },
+        lyric: { quote: (p.prompts && p.prompts.lyrics && p.prompts.lyrics.text) || p.lyric_quote, prompt: p.lyric_prompt || 'Name the artist', voice: u(p.prompts && p.prompts.lyrics && p.prompts.lyrics.voice), seconds: p.prompts && p.prompts.lyrics && p.prompts.lyrics.seconds },
+        dealbreakers: p.prompts && p.prompts.dealbreakers ? { quote: p.prompts.dealbreakers.text, prompt: 'Fair or not?', voice: u(p.prompts.dealbreakers.voice), seconds: p.prompts.dealbreakers.seconds } : null,
+        obsession: p.prompts && p.prompts.obsession ? { quote: p.prompts.obsession.text, prompt: 'Tell me yours', voice: u(p.prompts.obsession.voice), seconds: p.prompts.obsession.seconds } : null,
         taste: p.taste || [],
         style: (p.style_paths || []).map(u),
         spots: (places.data || []).filter((r) => r.places).map((r) => ({ img: u(r.places.image_path), name: r.places.name, meta: `${r.places.kind || 'Spot'} • ${r.places.neighborhood || ''}`, shared: (shared || []).some((s) => s.id === r.places.id) })),
@@ -374,7 +385,7 @@ window.SyncAPI = (() => {
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
-           searchPlaces, addPlace, myPlaces, setMyPlaces, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

@@ -28,17 +28,18 @@ window.SyncOnboard = (() => {
     ['classics', 'Classics', 'assets/stickers/guitar.png'], ['live_shows', 'Live Shows', 'assets/stickers/ticket-sm.png'], ['all_around', 'All Around', 'assets/stickers/note.png'],
   ];
   // "Now for the basics"
+  // "Now for the basics" (5 of 7): typed, or picked from a short list; Kids takes more than one
   const BASICS = [
-    ['occupation', 'Occupation', 'Ex: Designer at RG/A', 'briefcase'], ['education', 'Education', 'Ex: Undergrad', 'cap'], ['hometown', 'Hometown', 'Ex: London', 'house'],
-    ['location', 'Current Location', 'Ex: Brooklyn', 'pin'], ['height', 'Height', 'Ex: 5′10', 'ruler'], ['activity', 'Activity', 'Ex: Active', 'barbell'],
-    ['kids', 'Kids', 'Ex: Has kids', 'smiley'], ['smoking', 'Smoking', 'Ex: Never', 'smoke'],
+    { key: 'occupation', label: 'Occupation', icon: 'briefcase', ph: 'Ex: Designer at RG/A' },
+    { key: 'education', label: 'Education', icon: 'graduation-cap', options: ['High school', 'Undergrad', 'Graduate', 'PhD', 'Higher education'] },
+    { key: 'hometown', label: 'Hometown', icon: 'house-line', ph: 'Ex: London' },
+    { key: 'location', label: 'Current Location', icon: 'map-pin-line', ph: 'Ex: Brooklyn' },
+    { key: 'height', label: 'Height', icon: 'ruler', ph: 'Ex: 5′10' },
+    { key: 'activity', label: 'Activity', icon: 'barbell', options: ['Active', 'Moderately active', 'Sometimes active', 'Not active'] },
+    { key: 'kids', label: 'Kids', icon: 'baby', options: ['Has kids', 'No kids', 'Wants kids', 'Not sure yet'], multi: true },
+    { key: 'smoking', label: 'Smoking', icon: 'cigarette', options: ['Smokes', 'Doesn’t smoke', 'Socially'] },
   ];
-  const ICONS = {
-    briefcase: '<path d="M4 7h16v11H4z M9 7V5h6v2 M4 12h16"/>', cap: '<path d="M2 9l10-4 10 4-10 4z M6 11v4c0 1.5 3 3 6 3s6-1.5 6-3v-4"/>', house: '<path d="M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-6h4v6"/>',
-    pin: '<path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', ruler: '<path d="M3 17L17 3l4 4L7 21z M7 13l2 2 M10 10l2 2 M13 7l2 2"/>',
-    barbell: '<path d="M2 12h3 M19 12h3 M5 8v8 M8 6v12 M16 6v12 M19 8v8 M8 12h8"/>', smiley: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01 M15 10h.01 M8.5 14.5a4.5 4.5 0 007 0"/>', smoke: '<path d="M3 15h13v4H3z M19 15v4 M18 9c2 0 3 1 3 3 M15 7c2 0 3 1 3 3"/>',
-  };
-  const icon = (k) => `<svg class="ob__ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[k] || ''}</svg>`;
+  const icon = (k) => `<img class="ob__ic" src="assets/details/${k}.svg" width="24" height="24" alt="">`;
   const KINDS = ['Bar', 'Restaurant', 'Café', 'Venue', 'Store', 'Park', 'Cinema', 'Gallery'];
   const HOODS = ['Bed-Stuy', 'Bushwick', 'Carroll Gardens', 'Clinton Hill', 'Cobble Hill', 'Crown Heights', 'DUMBO', 'Fort Greene', 'Gowanus', 'Greenpoint', 'Park Slope', 'Prospect Heights', 'Red Hook', 'Williamsburg', 'Elsewhere'];
 
@@ -98,7 +99,7 @@ window.SyncOnboard = (() => {
   const draft = { name: '', last: '' };
 
   async function stepName(editing) {
-    frame({ step: editing ? 0 : 1, total: 6, title: 'What’s your name?', cta: editing ? 'Save' : 'Next',
+    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next',
       body: `<input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}">
              <div><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
     liveReady(() => $('#ob-name').value.trim().length > 0);
@@ -116,7 +117,7 @@ window.SyncOnboard = (() => {
   async function stepPhone() {
     let phone = '';
     while (true) {
-      frame({ step: 2, total: 6, title: 'What’s your phone number?', cta: 'Next', back: true,
+      frame({ step: 2, total: 7, title: 'What’s your phone number?', cta: 'Next', back: true,
         body: `<div><input class="ob__input" id="ob-phone" type="tel" inputmode="tel" placeholder="+1" autocomplete="tel" value="${esc(phone)}"><p class="ob__cap">Your phone number will never be shared</p></div>` });
       liveReady(() => $('#ob-phone').value.replace(/\D/g, '').length >= 10);
       const r = await step(async () => {
@@ -129,7 +130,7 @@ window.SyncOnboard = (() => {
       });
       if (r === 'back') return 'back';
       const digits = e164(phone);
-      frame({ step: 2, total: 6, title: 'The code we texted', sub: `Sent to +${esc(digits)}`, cta: 'Next', back: true,
+      frame({ step: 2, total: 7, title: 'The code we texted', sub: `Sent to +${esc(digits)}`, cta: 'Next', back: true,
         body: `<input class="ob__input ob__input--code" id="ob-code" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" maxlength="6">` });
       liveReady(() => $('#ob-code').value.trim().length === 6);
       const v = await step(async () => {
@@ -142,7 +143,7 @@ window.SyncOnboard = (() => {
   }
 
   async function stepBirthday(editing) {
-    frame({ step: editing ? 0 : 3, total: 6, title: 'What’s your birthday?', cta: editing ? 'Save' : 'Next', back: !editing,
+    frame({ step: editing ? 0 : 3, total: 7, title: 'What’s your birthday?', cta: editing ? 'Save' : 'Next', back: !editing,
       body: `<div><input class="ob__input" id="ob-bday" type="date" value="${esc(me ? me.birthdate : '')}"><p class="ob__cap">This information is used only for helping you find the right people</p></div>` });
     liveReady(() => !!$('#ob-bday').value);
     return step(async () => {
@@ -170,7 +171,7 @@ window.SyncOnboard = (() => {
       }).join('');
       setReady(slots.length > 0);
     };
-    frame({ step: editing ? 0 : 4, total: 6, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next',
+    frame({ step: editing ? 0 : 4, total: 7, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next',
       body: `<p class="ob__cap ob__cap--lead">Drag to reorder. The first photo will be your profile photo</p>
              <div class="ob__grid" id="ob-grid"></div>
              <p class="ob__cap">Add up to 4 videos and photos. At least 1 of these has to be a video. This helps us with verification.</p>
@@ -238,31 +239,147 @@ window.SyncOnboard = (() => {
   // the basics: an accordion; each row opens a field
   async function stepBasics(editing) {
     const d = { ...((me && me.details) || {}) };
-    frame({ step: editing ? 0 : 5, total: 6, title: 'Now for the basics', cta: editing ? 'Save' : 'Next',
-      body: `<div class="ob__acc">${BASICS.map(([k, label, ph]) => `
-        <div class="ob__acc-item${d[k] ? ' has-value' : ''}" data-key="${k}">
-          <button class="ob__acc-row" type="button" data-toggle="${k}" aria-expanded="false">${icon(BASICS.find((b) => b[0] === k)[3])}<span class="ob__acc-label">${esc(label)}</span><span class="ob__acc-val">${esc(d[k] || '')}</span><img class="ob__acc-chev" src="assets/caret-left-dark.svg" width="20" height="20" alt=""></button>
-          <div class="ob__acc-body" hidden><input class="ob__input" type="text" data-field="${k}" placeholder="${esc(ph)}" maxlength="60" value="${esc(d[k] || '')}"></div>
-        </div>`).join('')}</div>` });
+    const rowHTML = (f) => {
+      const v = d[f.key] || '';
+      const body = f.options
+        ? `<div class="ob__opts" role="${f.multi ? 'group' : 'radiogroup'}">${f.options.map((o) => { const on = f.multi ? v.split(', ').includes(o) : v === o; return `<button class="ob__opt${on ? ' is-on' : ''}" type="button" role="${f.multi ? 'checkbox' : 'radio'}" aria-checked="${on}" data-opt="${esc(o)}" data-for="${f.key}"><span>${esc(o)}</span><span class="ob__opt-mark${f.multi ? ' ob__opt-mark--box' : ''}"></span></button>`; }).join('')}</div>`
+        : `<input class="ob__input ob__input--basic" type="text" data-field="${f.key}" placeholder="${esc(f.ph)}" maxlength="60" value="${esc(v)}" autocomplete="off">`;
+      return `<div class="ob__acc-item${v ? ' has-value' : ''}" data-key="${f.key}">
+          <button class="ob__acc-row" type="button" data-toggle="${f.key}" aria-expanded="false">${icon(f.icon)}<span class="ob__acc-text"><span class="ob__acc-label">${esc(f.label)}</span><span class="ob__acc-val">${esc(v)}</span></span><img class="ob__acc-chev" src="assets/caret-left-dark.svg" width="20" height="20" alt=""></button>
+          <div class="ob__acc-body" hidden>${body}</div>
+        </div>`;
+    };
+    frame({ step: editing ? 0 : 5, total: 7, title: 'Now for the basics', cta: editing ? 'Save' : 'Next',
+      body: `<div class="ob__acc">${BASICS.map(rowHTML).join('')}</div>` });
     setReady(true);
-    panel().addEventListener('click', (e) => {
-      const t = e.target.closest('[data-toggle]'); if (!t) return;
-      const item = t.closest('.ob__acc-item'); const open = !item.classList.contains('is-open');
+    const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = $(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); };
+    const openItem = (item) => {
       $$('.ob__acc-item').forEach((x) => { x.classList.remove('is-open'); x.querySelector('.ob__acc-body').hidden = true; x.querySelector('[data-toggle]').setAttribute('aria-expanded', 'false'); });
-      if (open) { item.classList.add('is-open'); item.querySelector('.ob__acc-body').hidden = false; t.setAttribute('aria-expanded', 'true'); setTimeout(() => item.querySelector('input').focus({ preventScroll: true }), 40); }
+      if (!item) return;
+      item.classList.add('is-open'); item.querySelector('.ob__acc-body').hidden = false; item.querySelector('[data-toggle]').setAttribute('aria-expanded', 'true');
+      const inp = item.querySelector('input'); if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 40);
+      setTimeout(() => item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
+    };
+    panel().addEventListener('click', (e) => {
+      const t = e.target.closest('[data-toggle]');
+      if (t) { const item = t.closest('.ob__acc-item'); openItem(item.classList.contains('is-open') ? null : item); return; }
+      const o = e.target.closest('[data-opt]');
+      if (!o) return;
+      const f = BASICS.find((x) => x.key === o.dataset.for);
+      if (f.multi) {
+        const on = !o.classList.contains('is-on'); o.classList.toggle('is-on', on); o.setAttribute('aria-checked', on);
+        setVal(f.key, [...o.parentNode.querySelectorAll('.ob__opt.is-on')].map((x) => x.dataset.opt).join(', '));
+      } else {
+        o.parentNode.querySelectorAll('.ob__opt').forEach((x) => { x.classList.toggle('is-on', x === o); x.setAttribute('aria-checked', x === o); });
+        setVal(f.key, o.dataset.opt);
+        // one answer closes the row and opens the next unanswered one
+        setTimeout(() => { const next = $$('.ob__acc-item').find((x) => !x.classList.contains('has-value')); openItem(next || null); }, 220);
+      }
     });
-    panel().addEventListener('input', (e) => { const f = e.target.closest('[data-field]'); if (!f) return; const item = f.closest('.ob__acc-item'); item.querySelector('.ob__acc-val').textContent = f.value.trim(); item.classList.toggle('has-value', !!f.value.trim()); });
+    panel().addEventListener('input', (e) => { const f = e.target.closest('[data-field]'); if (!f) return; setVal(f.dataset.field, f.value.trim()); });
+    panel().addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('[data-field]')) { e.preventDefault(); e.stopImmediatePropagation(); const next = $$('.ob__acc-item').find((x) => !x.classList.contains('has-value')); openItem(next || null); } });
     return step(async () => {
-      const details = {};
-      $$('[data-field]').forEach((f) => { const v = f.value.trim(); if (v) details[f.dataset.field] = v; });
-      me = await api().updateProfile({ details });
+      me = await api().updateProfile({ details: d });
+      return true;
+    });
+  }
+
+  // ═══════════════ "Let's learn more about you" (6 of 7): the prompts, typed or spoken ═══════════════
+  const PROMPTS = [
+    { key: 'intro', label: 'Intro', ph: 'Type your intro or add voice', mirror: 'intro_quote' },
+    { key: 'lyrics', label: 'Lyrics to<br>Live By', ph: 'Type a lyric or add voice', mirror: 'lyric_quote' },
+    { key: 'dealbreakers', label: 'Deal-<br>breakers', ph: 'Type a deal-breaker or add voice' },
+    { key: 'obsession', label: 'Current<br>Obsession', ph: 'Type your obsession or add voice' },
+  ];
+  const PROMPT_MIN = 2;
+  const EMOJI = ['🔥', '🎵', '😍', '💚', '😋', '🎧', '✨'];
+  const mmss = (n) => `${Math.floor(n / 60)}:${String(Math.round(n % 60)).padStart(2, '0')}`;
+  async function stepPrompts(editing) {
+    const answers = { ...((me && me.prompts) || {}) };
+    const done = () => PROMPTS.filter((pr) => answers[pr.key] && (answers[pr.key].text || answers[pr.key].voice)).length;
+    const tileHTML = (pr) => {
+      const a = answers[pr.key];
+      if (a && a.text) return `<button class="ob__ptile is-done" type="button" data-prompt="${pr.key}"><span class="ob__ptile-text">${esc(a.text)}</span></button>`;
+      if (a && a.voice) return `<button class="ob__ptile is-done" type="button" data-prompt="${pr.key}"><span class="ob__ptile-voice"><img src="assets/icon-waveform.svg" width="24" height="24" alt=""><span>${pr.label.replace('<br>', ' ')} · ${mmss(a.seconds || 0)}</span></span></button>`;
+      return `<button class="ob__ptile" type="button" data-prompt="${pr.key}"><span class="ob__ptile-label">${pr.label}</span></button>`;
+    };
+    const capHTML = () => { const left = Math.max(0, PROMPT_MIN - done()); return left ? `Add ${left} or more, and remember you can also include voice` : 'Tap a prompt to change it, and remember you can also include voice'; };
+    frame({ step: editing ? 0 : 6, total: 7, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', ready: done() >= PROMPT_MIN,
+      body: `<p class="ob__cap ob__cap--lead ob__cap--prompts">Select from the prompts below to add a response</p>
+             <div class="ob__ptiles" id="ob-ptiles">${PROMPTS.map(tileHTML).join('')}</div>
+             <p class="ob__cap ob__cap--prompts" id="ob-pcap">${capHTML()}</p>
+             <div class="ob__compose" id="ob-compose" hidden>
+               <div class="ob__ccard"><p class="ob__ccard-text" id="ob-ctext"></p></div>
+               <div class="ob__cemoji">${EMOJI.map((e) => `<button type="button" data-emoji="${e}">${e}</button>`).join('')}</div>
+               <div class="ob__cfield"><input type="text" id="ob-cin" maxlength="140" autocomplete="off" enterkeyhint="done"><button class="ob__cvoice" type="button" data-voice aria-label="Add voice"><img src="assets/icon-waveform.svg" width="24" height="24" alt=""></button></div>
+               <div class="ob__ckb" aria-hidden="true"><img src="assets/keyboard.png" width="401" height="335" alt=""></div>
+             </div>` });
+    const tiles = $('#ob-ptiles'), cap = $('#ob-pcap'), comp = $('#ob-compose'), cin = $('#ob-cin'), ctext = $('#ob-ctext'), voiceBtn = $('[data-voice]');
+    let open = null, rec = null;
+    const redraw = () => { tiles.innerHTML = PROMPTS.map(tileHTML).join(''); cap.textContent = capHTML(); setReady(done() >= PROMPT_MIN); };
+    const show = (pr) => {
+      open = pr;
+      const a = answers[pr.key] || {};
+      cin.value = a.text || ''; cin.placeholder = pr.ph;
+      ctext.textContent = cin.value || pr.label.replace('<br>', ' '); ctext.classList.toggle('is-ph', !cin.value);
+      panel().classList.add('is-composing'); comp.hidden = false;
+      setTimeout(() => cin.focus({ preventScroll: true }), 40);
+    };
+    const hide = () => { open = null; comp.hidden = true; panel().classList.remove('is-composing'); cin.blur(); };
+    const commit = async () => {
+      if (!open) return;
+      const text = cin.value.trim(); const pr = open;
+      if (!text) { hide(); return; }
+      answers[pr.key] = { text };
+      hide(); redraw(); toast(`${pr.label.replace('<br>', ' ')} added successfully`);
+    };
+    // voice: tap to record, tap again to stop; the note is uploaded and the tile says how long it is
+    const startRec = async () => {
+      if (!navigator.mediaDevices || !window.MediaRecorder) { err('Voice needs a phone or a browser with a microphone.'); return; }
+      let stream;
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { err('The microphone isn’t available.'); return; }
+      const mr = new MediaRecorder(stream); const chunks = []; const started = Date.now(); const pr = open;
+      mr.addEventListener('dataavailable', (e) => chunks.push(e.data));
+      mr.addEventListener('stop', async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const seconds = Math.max(1, Math.round((Date.now() - started) / 1000));
+        cin.placeholder = pr.ph;
+        if (mr.discardFlag) return;
+        const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+        try { busy(true); const path = await api().uploadVoice(pr.key, blob); answers[pr.key] = { voice: path, seconds }; hide(); redraw(); toast(`${pr.label.replace('<br>', ' ')} added successfully`); }
+        catch (e) { err(deps.errText(e)); } finally { busy(false); }
+      });
+      rec = { mr, timer: 0 };
+      mr.start();
+      voiceBtn.classList.add('is-rec'); cin.value = ''; cin.blur();
+      rec.timer = setInterval(() => { cin.placeholder = `Recording… ${mmss((Date.now() - started) / 1000)}  tap to stop`; }, 250);
+      cin.placeholder = 'Recording… 0:00  tap to stop';
+      const stopAt = setTimeout(() => stopRec(false), 60000);
+      mr.addEventListener('stop', () => clearTimeout(stopAt), { once: true });
+    };
+    const stopRecKeep = () => { if (!rec) return; const r = rec; rec = null; voiceBtn.classList.remove('is-rec'); clearInterval(r.timer); r.mr.discardFlag = false; r.mr.stop(); };
+    const stopRecDrop = () => { if (!rec) return; const r = rec; rec = null; voiceBtn.classList.remove('is-rec'); clearInterval(r.timer); r.mr.discardFlag = true; r.mr.stop(); };
+    panel().addEventListener('click', (e) => {
+      const t = e.target.closest('[data-prompt]'); if (t) { show(PROMPTS.find((pr) => pr.key === t.dataset.prompt)); return; }
+      const em = e.target.closest('[data-emoji]'); if (em) { cin.value += em.dataset.emoji; cin.dispatchEvent(new Event('input')); cin.focus({ preventScroll: true }); return; }
+      if (e.target.closest('[data-voice]')) { if (rec) stopRecKeep(); else startRec(); return; }
+      if (open && !e.target.closest('.ob__ccard, .ob__cfield, .ob__cemoji, .ob__ckb')) { if (rec) stopRecDrop(); commit(); }
+    });
+    cin.addEventListener('input', () => { ctext.textContent = cin.value || open.label.replace('<br>', ' '); ctext.classList.toggle('is-ph', !cin.value); });
+    cin.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commit(); } if (e.key === 'Escape') { stopRecDrop(); hide(); } });
+    return step(async () => {
+      if (open) { await commit(); }
+      if (!editing && done() < PROMPT_MIN) { err(`Add ${PROMPT_MIN - done()} more to go on.`); return false; }
+      const patch = { prompts: answers };
+      PROMPTS.forEach((pr) => { if (pr.mirror) patch[pr.mirror] = (answers[pr.key] && answers[pr.key].text) || null; });
+      me = await api().updateProfile(patch);
       return true;
     });
   }
 
   async function stepDescribes(editing) {
     let pick = (me && me.taste && me.taste[0]) || null;
-    frame({ step: editing ? 0 : 6, total: 6, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', ready: !!pick,
+    frame({ step: editing ? 0 : 7, total: 7, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', ready: !!pick,
       body: `<div class="ob__describe">${DESCRIBES.map(([k, label, src]) => `<button class="ob__dtile${k === pick ? ' is-on' : ''}" type="button" data-pick="${k}"><img src="${src}" alt="" draggable="false"><span>${esc(label)}</span></button>`).join('')}</div>
              <p class="ob__cap">This appears along with your profile avatar</p>` });
     panel().addEventListener('click', (e) => { const b = e.target.closest('[data-pick]'); if (!b) return; pick = b.dataset.pick; $$('[data-pick]').forEach((x) => x.classList.toggle('is-on', x === b)); setReady(true); });
@@ -603,18 +720,6 @@ window.SyncOnboard = (() => {
       if (!current) setTimeout(deps.focusSearch, 400);
     }));
   }
-  function quoteStep(key, { title, sub, placeholder, promptDefault, promptOptions }) {
-    const quoteCol = key === 'intro' ? 'intro_quote' : 'lyric_quote', promptCol = key === 'intro' ? 'intro_prompt' : 'lyric_prompt';
-    const cur = (me && me[quoteCol]) || '', curPrompt = (me && me[promptCol]) || promptDefault;
-    frame({ title, sub, cta: 'Save', back: true,
-      body: `<div class="pbento-wide ob__quote"><div class="pquote"><div class="pquote__text"><textarea class="t-quote ob__quote-in" id="ob-quote" rows="3" maxlength="140" placeholder="${esc(placeholder)}">${esc(cur)}</textarea><div class="preply"><div class="preply__field"><span class="preply__ph" id="ob-prompt-ph">${esc(curPrompt)}</span></div></div></div></div></div>
-             <p class="ob__label">What they reply to</p><div class="ob__chips">${promptOptions.map((p) => `<button class="ob__chip${p === curPrompt ? ' is-on' : ''}" type="button" data-prompt="${esc(p)}">${esc(p)}</button>`).join('')}</div>` });
-    setReady(true);
-    panel().addEventListener('click', (e) => { const c = e.target.closest('[data-prompt]'); if (!c) return; $$('[data-prompt]').forEach((b) => b.classList.toggle('is-on', b === c)); $('#ob-prompt-ph').textContent = c.dataset.prompt; });
-    return step(async () => { const qv = $('#ob-quote').value.trim(); const on = $('[data-prompt].is-on'); me = await api().updateProfile({ [quoteCol]: qv || null, [promptCol]: on ? on.dataset.prompt : promptDefault }); return true; });
-  }
-  const stepIntro = () => quoteStep('intro', { title: 'Your line', sub: 'The first thing on your profile, in quotes.', placeholder: 'Jazz on vinyl. Rap in the kitchen.', promptDefault: 'Say something witty back', promptOptions: ['Say something witty back', 'Agree or disagree?', 'Your version?'] });
-  const stepLyric = () => quoteStep('lyric', { title: 'Lyrics to live by', sub: 'A line from a song. They guess the artist.', placeholder: 'This may be the night that my dreams might let me know…', promptDefault: 'Name the artist', promptOptions: ['Name the artist', 'Finish the line', 'What’s it from?'] });
   async function stepCover() {
     let pick = (me && me.cover) || 'reeded';
     frame({ title: 'Your cover', sub: 'The header on your profile.', cta: 'Save', back: true,
@@ -644,6 +749,7 @@ window.SyncOnboard = (() => {
     const state = await a.myState();
     if (!state.photos) await stepPhotos(false);
     if (!me.details || !Object.keys(me.details).length) await stepBasics(false);
+    if (!me.prompts || Object.keys(me.prompts).length < PROMPT_MIN) await stepPrompts(false);
     if (!me.taste || !me.taste.length) await stepDescribes(false);
     await loadMe();
     await stepCelebration();
@@ -664,7 +770,7 @@ window.SyncOnboard = (() => {
     const sections = [
       ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
       ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
-      ['intro', 'Your line', stepIntro], ['lyric', 'Lyrics to live by', stepLyric], ['cover', 'Cover', stepCover],
+      ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', stepCover],
     ];
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true,

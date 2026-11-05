@@ -822,6 +822,16 @@ img { display: block; }
 .pspot__cap { height: 41px; padding: 10px 12px 6px 16px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .pspot__cap p { white-space: nowrap; }
 
+/* a spoken prompt ("Controversial take", 1085:8008): play, forty bars, the length */
+.pvoice { width: 100%; height: 48px; padding: 8px; border-radius: 999px; background: var(--surface); display: flex; align-items: center; gap: 10px; }
+.pvoice__play { width: 32px; height: 32px; padding: 8px; border-radius: 32px; background: var(--chip); display: flex; flex: 0 0 32px; }
+.pvoice__play img, .pvoice__play svg { width: 16px; height: 16px; display: block; }
+.pvoice__play .ico-pause { display: none; }
+.pvoice.is-playing .pvoice__play .ico-play { display: none; }
+.pvoice.is-playing .pvoice__play .ico-pause { display: block; }
+.pvoice__bars { flex: 1 1 auto; min-width: 0; height: 24px; display: flex; align-items: center; justify-content: space-between; }
+.pvoice__bars i { display: block; width: 2px; min-height: 4px; border-radius: 80px; background: #2c2c2c; }
+.pvoice__time { flex: 0 0 auto; font-size: 13px; color: #1e1e1e; font-variation-settings: "opsz" 14; padding-right: 8px; }
 /* bottom CTA: h 97, items end */
 .pcta { height: 53px; padding: 0 20px; display: flex; align-items: flex-end; }
 .ppill {
@@ -1350,18 +1360,61 @@ img { display: block; }
 .ob__slot.is-lifted { z-index: 5; box-shadow: 0 16px 32px -4px rgba(12, 12, 13, 0.2); transition: none; }
 .ob__slot.is-over { outline: 2px solid #1e1e1e; outline-offset: -2px; }
 
-/* the basics: an accordion */
+/* the basics (1088:12316): rows of icon 24, label 14 semibold and a chevron, a hairline under the text;
+   open, a typed row shows the 60px pill, a picked row its options; answered, the label goes small over the value */
 .ob__acc { display: flex; flex-direction: column; }
-.ob__acc-item { border-bottom: 1px solid #e3e3e3; margin-left: 44px; }
-.ob__acc-row { width: 100%; display: flex; align-items: center; gap: 14px; padding: 18px 0; margin-left: -44px; width: calc(100% + 44px); text-align: left; font-size: 14px; font-weight: 600; color: #1e1e1e; font-variation-settings: "opsz" 14; }
-.ob__ic { width: 20px; height: 20px; flex: 0 0 20px; color: #1e1e1e; }
-.ob__acc-label { flex: 0 0 auto; }
-.ob__acc-val { flex: 1 1 auto; min-width: 0; font-weight: 400; color: #757575; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
-.ob__acc-chev { flex: 0 0 20px; transform: rotate(-90deg); transition: transform 0.25s; opacity: 0.8; }
+.ob__acc-item { }
+.ob__acc-row { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px 0 12px; text-align: left; }
+.ob__ic { width: 24px; height: 24px; flex: 0 0 24px; display: block; }
+.ob__acc-text { flex: 1 1 auto; min-width: 0; height: 51px; padding: 4px; display: flex; flex-direction: column; justify-content: center; border-bottom: 0.5px solid #d9d9d9; }
+.ob__acc-label { font-size: 14px; line-height: 1.2; font-weight: 600; color: #1e1e1e; font-variation-settings: "opsz" 14; transition: font-size 0.15s, color 0.15s; }
+.ob__acc-val { display: none; font-size: 16px; line-height: 1.2; color: #1e1e1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variation-settings: "opsz" 14; }
+.ob__acc-item.has-value:not(.is-open) .ob__acc-label { font-size: 12px; color: #b3b3b3; }
+.ob__acc-item.has-value:not(.is-open) .ob__acc-val { display: block; }
+.ob__acc-chev { flex: 0 0 20px; margin-right: 2px; transform: rotate(-90deg); transition: transform 0.25s; opacity: 0.9; }
 .ob__acc-item.is-open .ob__acc-chev { transform: rotate(90deg); }
-.ob__acc-body { padding: 0 0 16px; margin-left: -44px; }
-.ob__acc-body .ob__input { height: 56px; border-radius: 28px; }
-.ob__acc-body .ob__input:focus { border-color: #1e1e1e; }
+.ob__acc-body { padding: 10px 8px 14px; }
+.ob__input--basic { height: 60px; border-radius: 24px; border: 1px solid #f3f3f3; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); font-size: 16px; letter-spacing: -0.32px; }
+.ob__input--basic::placeholder { color: #b3b3b3; }
+/* the options: 36px pills under the label, a radio (or a box for Kids) at the right */
+.ob__opts { display: flex; flex-direction: column; gap: 8px; padding-left: 36px; }
+.ob__opt { height: 36px; padding: 0 12px 0 16px; border-radius: 9999px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: #1e1e1e; text-align: left; font-variation-settings: "opsz" 14; transition: background 0.15s; }
+.ob__opt:active { background: #f0eeea; }
+.ob__opt-mark { flex: 0 0 16px; width: 16px; height: 16px; border-radius: 50%; border: 1.25px solid #1e1e1e; position: relative; }
+.ob__opt-mark--box { border-radius: 4px; }
+.ob__opt.is-on .ob__opt-mark::after { content: ""; position: absolute; inset: 3px; border-radius: inherit; background: #1e1e1e; }
+.ob__opt.is-on .ob__opt-mark--box::after { inset: 2px; }
+
+/* "Let's learn more about you" (1093:24857): four 173 × 174 tiles, radius 32, dashed until answered */
+.ob__cap--prompts { margin: 0 0 0 16px; font-size: 12px; line-height: 1.1; letter-spacing: 0.06px; color: #757575; }
+.ob__ptiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ob__ptile { aspect-ratio: 173.5 / 174; border-radius: 32px; background: #f5f5f5; border: 1px dashed #757575; padding: 16px; display: flex; align-items: center; justify-content: center; text-align: center; font-family: var(--font-body); font-weight: 700; font-size: 24px; line-height: 1.2; letter-spacing: -0.48px; color: #1e1e1e; font-variation-settings: "opsz" 14; transition: transform 0.15s, border-color 0.15s, background 0.15s; }
+.ob__ptile:first-child { border-style: solid; border-color: #383838; }
+.ob__ptile.is-done { border: 0; background: var(--surface); text-align: left; align-items: center; justify-content: flex-start; }
+.ob__ptile:active { transform: scale(0.97); }
+.ob__ptile-text { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; overflow-wrap: anywhere; }
+.ob__ptile-voice { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; font-size: 16px; letter-spacing: -0.3px; color: #1e1e1e; }
+/* on click (1093:25096): the page goes quiet under the open card, the emoji row and the field above the keyboard */
+.auth.is-composing .ob__ptiles, .auth.is-composing .ob__cap--prompts, .auth.is-composing .ob__foot { opacity: 0; pointer-events: none; }
+.ob__compose { position: absolute; left: 0; right: 0; top: 136px; bottom: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 0 20px; background: var(--white); }
+.ob__compose[hidden] { display: none; }
+.ob__ccard { width: 100%; min-height: 139px; padding: 24px 20px; border-radius: 32px; background: var(--surface); box-shadow: 0 16px 16px rgba(12, 12, 13, 0.1), 0 4px 4px rgba(12, 12, 13, 0.05); display: flex; align-items: center; justify-content: center; animation: ccard-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes ccard-in { from { opacity: 0; transform: scale(0.96) translateY(6px); } to { opacity: 1; transform: none; } }
+.ob__ccard-text { margin: 0; width: 100%; text-align: center; font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 27px; letter-spacing: -0.3px; color: #353331; overflow-wrap: anywhere; }
+.ob__ccard-text.is-ph { font-family: var(--font-body); font-weight: 400; font-size: 24px; color: #757575; }
+.ob__cemoji { width: 335px; padding: 6px 10px; display: flex; justify-content: space-between; }
+.ob__cemoji button { height: 30px; padding: 0; font: 400 24px/1.2 var(--font-body); transition: transform 0.15s; }
+.ob__cemoji button:active { transform: scale(1.25); }
+.ob__cfield { width: 100%; height: 48px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; background: var(--white); border: 1px solid #f3f3f3; border-radius: 24px; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); }
+.ob__cfield input { flex: 1 1 auto; min-width: 0; height: 27px; padding: 4px; border: 0; background: none; outline: none; font-family: var(--font-body); font-size: 13px; line-height: 1.2; color: #1e1e1e; font-variation-settings: "opsz" 14; }
+.ob__cfield input::placeholder { color: #757575; }
+.ob__cvoice { width: 24px; height: 24px; padding: 0; display: flex; flex: 0 0 24px; border-radius: 12px; transition: transform 0.15s; }
+.ob__cvoice.is-rec { animation: rec-pulse 1s ease-in-out infinite; }
+@keyframes rec-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
+/* the drawn keyboard stands in on a desktop; a phone brings its own and the page shrinks above it */
+.ob__ckb { display: none; margin: auto -20px 0; }
+.ob__ckb img { display: block; width: 401px; height: 335px; }
+@media (pointer: fine) { .ob__ckb { display: block; } }
 
 /* what best describes you: 3 × 2 */
 .ob__describe { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }

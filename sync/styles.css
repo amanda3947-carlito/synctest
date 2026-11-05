@@ -497,8 +497,8 @@ img { display: block; }
 .pbar .pnav__btn { pointer-events: auto; }
 
 /* "primary container": top 242 (16 below the cover), pt 32, pb 10, gap 10 */
-.pbody { margin-top: 16px; padding: 32px 0 10px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
-.punit { width: 100%; display: flex; flex-direction: column; gap: 10px; min-height: var(--unit-h, auto); }
+.pbody { margin-top: 16px; padding: 32px 0 10px; display: flex; flex-direction: column; gap: 44px; align-items: flex-start; }
+.punit { width: 100%; display: flex; flex-direction: column; gap: 10px; }
 .punit__title {
   padding: 0 20px;
   font-size: 13px;
@@ -821,7 +821,7 @@ img { display: block; }
 .pspot__cap p { white-space: nowrap; }
 
 /* bottom CTA: h 97, items end */
-.pcta { height: 97px; padding: 0 20px; display: flex; align-items: flex-end; }
+.pcta { height: 53px; padding: 0 20px; display: flex; align-items: flex-end; }
 .ppill {
   width: 360px;
   height: 48px;
@@ -1553,10 +1553,10 @@ img { display: block; }
 /* ── "Reading & watching", "Going to", "Mutuals" on the profile ───────── */
 /* "watching & reading" (1018:30280): 133-wide cards, cover 133 × 202 at radius 32 with the kind's tag
    top right, caption 14 semibold over 12 subtle at y 216; the last card adds */
-.pshelf { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
+.pshelf { display: flex; align-items: flex-start; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
 .pshelf::-webkit-scrollbar { display: none; }
 .pshelf::after { content: ""; flex: 0 0 10px; }
-.pbook { position: relative; flex: 0 0 133px; width: 133px; height: 248px; display: flex; flex-direction: column; text-align: left; padding: 0; }
+.pbook { position: relative; flex: 0 0 133px; width: 133px; min-height: 248px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; text-align: left; padding: 0; }
 .pbook__art { position: relative; width: 133px; height: 202px; border-radius: 32px; overflow: hidden; background: var(--surface); filter: drop-shadow(0 1px 2px rgba(12, 12, 13, 0.05)); display: flex; align-items: flex-end; }
 .pbook__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pbook__art--empty { background: var(--surface); border: 1px dashed var(--dash); align-items: center; justify-content: center; }
@@ -1568,8 +1568,9 @@ img { display: block; }
 .pbook__tag { position: absolute; right: 10px; top: 15px; padding: 4px 8px; border-radius: 9999px; color: #1e1e1e; font-size: 12px; line-height: 1; font-weight: 400; box-shadow: 0 4px 2px rgba(12, 12, 13, 0.1), 0 4px 2px rgba(12, 12, 13, 0.05); font-variation-settings: "opsz" 14; }
 .pbook--film .pbook__tag { background: #fdd3d0; } .pbook--show .pbook__tag { background: #eaf5ff; } .pbook--book .pbook__tag { background: #c6fff3; }
 .pbook__you { position: absolute; left: 10px; top: 15px; padding: 4px 8px; border-radius: 9999px; background: #a8face; color: #0f4d2e; font-size: 12px; line-height: 1; font-weight: 600; }
-.pbook__cap { position: absolute; left: 0; right: 0; top: 216px; height: 32px; padding: 4px 12px 0 4px; display: flex; flex-direction: column; gap: 2px; justify-content: center; }
-.pbook__cap p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pbook__cap { width: 100%; padding: 0 8px 0 4px; display: flex; flex-direction: column; gap: 2px; }
+.pbook__cap p { margin: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.pbook__cap .pbook__meta { -webkit-line-clamp: 1; }
 .pbook__meta { font-size: 12px; line-height: 1.2; font-weight: 600; color: var(--secondary); min-height: 14px; }
 .pevent { align-items: center; }
 .pdate { flex: 0 0 50px; width: 50px; height: 50px; border-radius: 16px; background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }

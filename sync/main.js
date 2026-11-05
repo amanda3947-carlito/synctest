@@ -159,7 +159,7 @@
         </div>
       </div>`;
     const quoteUnit = (title, q, h) => `
-      <section class="punit" style="--unit-h:${h}px">
+      <section class="punit">
         <p class="punit__title">${esc(title)}</p>
         <div class="pbento-wide">
           <div class="pquote">
@@ -239,11 +239,11 @@
           </div>
         </section>
         ${(person.details && DETAIL_ORDER.some((k) => person.details[k])) ? `
-        <section class="punit" style="--unit-h:129px">
+        <section class="punit">
           <p class="punit__title">Details</p>
           <div class="pdetails">${DETAIL_ORDER.filter((k) => person.details[k]).map((k) => `<span class="pchip"><img src="assets/details/${DETAIL_ICONS[k]}.svg" width="24" height="24" alt=""><span>${esc(person.details[k])}</span></span>`).join('')}</div>
         </section>` : ''}
-        <section class="punit" style="--unit-h:${p.style.length ? 498 : 0}px">
+        <section class="punit">
           <p class="punit__title">Vibes</p>
           ${p.style.length ? `<div class="pbento-mixed">${p.style.slice(0, 4).map((src, i) => `<div${i % 3 === 0 ? ' class="span-2"' : ''}><img src="${esc(src)}" alt=""></div>`).join('')}</div>` : ''}
           <button class="prow prow--dashed prow--cta" type="button" data-action="style">
@@ -252,12 +252,12 @@
           </button>
         </section>
         ${p.lyric.quote ? quoteUnit('Lyrics to live by', p.lyric, 233) : ''}
-        <section class="punit" style="--unit-h:286px">
+        <section class="punit">
           <p class="punit__title">Watching and Reading</p>
           <div class="pshelf">
             ${(p.shelf || []).map((sh) => `
             <div class="pbook pbook--${sh.kind}">
-              <div class="pbook__art">${sh.art ? `<img src="${esc(sh.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(sh.title)}</span>`}<span class="pbook__tag">${({ film: 'Movie', show: 'Show', book: 'Book' })[sh.kind] || ''}</span>${sh.shared ? '<span class="pbook__you">you too</span>' : ''}</div>
+              <div class="pbook__art">${sh.art ? `<img src="${esc(sh.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(sh.title)}</span>`}</div>
               <div class="pbook__cap"><p class="t-sub">${esc(sh.title)}</p><p class="pbook__meta">${esc(sh.meta || '')}</p></div>
             </div>`).join('')}
             <button class="pbook pbook--add" type="button" data-action="shelf" aria-label="Add something you're watching or reading">
@@ -265,7 +265,7 @@
             </button>
           </div>
         </section>
-        <section class="punit" style="--unit-h:513px">
+        <section class="punit">
           <p class="punit__title">Spots</p>
           <div class="pspots">
             ${spotCards}

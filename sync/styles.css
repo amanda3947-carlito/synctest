@@ -1545,8 +1545,10 @@ img { display: block; }
 .pdetails { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
 .pdetails::-webkit-scrollbar { display: none; }
 .pdetails::after { content: ""; flex: 0 0 10px; }
-.pchip { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 110px; padding: 12px 14px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-100); font-size: 13px; font-weight: 600; color: #1e1e1e; white-space: nowrap; font-variation-settings: "opsz" 14; }
-.pchip svg { width: 20px; height: 20px; }
+/* "collector" (1092:13997): 120 × 68, p 12, radius 16, icon 24 over a 14 semibold label */
+.pchip { flex: 0 0 120px; width: 120px; height: 68px; padding: 12px 6px 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-100); font-size: 14px; line-height: 14px; font-weight: 600; letter-spacing: -0.14px; color: #292929; text-align: center; white-space: nowrap; font-variation-settings: "opsz" 14; }
+.pchip img { width: 24px; height: 24px; display: block; }
+.pchip span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── "Reading & watching", "Going to", "Mutuals" on the profile ───────── */
 .pshelf { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }

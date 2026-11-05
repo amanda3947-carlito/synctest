@@ -121,11 +121,7 @@
     all_around: { label: 'All Around', art: `<img class="ptile__art" src="assets/stickers/note.png" width="51" height="51" alt="" style="left:7.5px;top:4px">` },
   };
   // "the basics" chips on the profile ("Details", 1087:10751)
-  const DETAIL_ICONS = {
-    occupation: '<path d="M4 7h16v11H4z M9 7V5h6v2 M4 12h16"/>', education: '<path d="M2 9l10-4 10 4-10 4z M6 11v4c0 1.5 3 3 6 3s6-1.5 6-3v-4"/>', hometown: '<path d="M3 11l9-7 9 7 M5 10v10h14V10 M10 20v-6h4v6"/>',
-    location: '<path d="M12 21s-7-6.5-7-11a7 7 0 0114 0c0 4.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/>', height: '<path d="M3 17L17 3l4 4L7 21z M7 13l2 2 M10 10l2 2 M13 7l2 2"/>',
-    activity: '<path d="M2 12h3 M19 12h3 M5 8v8 M8 6v12 M16 6v12 M19 8v8 M8 12h8"/>', kids: '<circle cx="12" cy="12" r="9"/><path d="M9 10h.01 M15 10h.01 M8.5 14.5a4.5 4.5 0 007 0"/>', smoking: '<path d="M3 15h13v4H3z M19 15v4 M18 9c2 0 3 1 3 3 M15 7c2 0 3 1 3 3"/>',
-  };
+  const DETAIL_ICONS = { occupation: 'briefcase', education: 'graduation-cap', height: 'ruler', activity: 'barbell', hometown: 'house-line', location: 'map-pin-line', kids: 'baby', smoking: 'cigarette' };
   const DETAIL_ORDER = ['occupation', 'education', 'height', 'activity', 'hometown', 'location', 'kids', 'smoking'];
 
   const PLAY_BTN = (label) => `<button class="pplay" type="button" aria-label="Play ${label}" aria-pressed="false"><img class="ico-play" src="assets/play-16.svg" width="16" height="16" alt=""><svg class="ico-pause" viewBox="0 0 256 256" aria-hidden="true"><path fill="#000" d="M216 48v160a16 16 0 0 1-16 16h-40a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h40a16 16 0 0 1 16 16ZM96 32H56a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h40a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16Z"/></svg></button>`;
@@ -148,13 +144,10 @@
 
   function profileHTML(person) {
     // the person's own content from the database; Damon's frame content stands in for anything they haven't filled yet
-    const p = { ...DAMON_SECTIONS, ...(person.profile || PROFILES[person.name] || PROFILES.Damon) };
-    if (!p.style || !p.style.length) p.style = DAMON_SECTIONS.style;
-    if (!p.taste || !p.taste.length) p.taste = DAMON_SECTIONS.taste;
-    p.taste = p.taste.filter((k) => TASTE[k]);
-    if (!p.spots || !p.spots.length) p.spots = DAMON_SECTIONS.spots;
-    if (!p.intro || !p.intro.quote) p.intro = DAMON_SECTIONS.intro;
-    if (!p.lyric || !p.lyric.quote) p.lyric = DAMON_SECTIONS.lyric;
+    const p = person.profile ? { ...person.profile } : { ...(PROFILES[person.name] || PROFILES.Damon) };
+    p.style = (p.style || []).filter(Boolean);
+    p.spots = p.spots || [];
+    p.intro = p.intro || {}; p.lyric = p.lyric || {};
     const cover = COVERS.find((c) => c.id === p.cover) || COVERS[0];
     const statusbar = `
       <div class="statusbar" aria-hidden="true">
@@ -233,12 +226,7 @@
       <div class="pavatar"><img src="${p.avatar}" alt=""></div>
       <img class="pavatar-disc" src="${person.disc}" alt="">
       <div class="pbody">
-        ${quoteUnit('Intro', p.intro, 195)}
-        ${(person.details && Object.keys(person.details).length) ? `
-        <section class="punit">
-          <p class="punit__title">Details</p>
-          <div class="pdetails">${DETAIL_ORDER.filter((k) => person.details[k]).map((k) => `<span class="pchip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${DETAIL_ICONS[k]}</svg><span>${esc(person.details[k])}</span></span>`).join('')}</div>
-        </section>` : ''}
+        ${p.intro.quote ? quoteUnit('Intro', p.intro, 195) : ''}
         <section class="punit">
           <p class="punit__title">Rotation</p>
           <div class="prow-list">
@@ -250,43 +238,20 @@
             </button>
           </div>
         </section>
-        <section class="punit" style="--unit-h:498px">
-          <p class="punit__title">Style</p>
-          <div class="pbento-mixed">
-            <div class="span-2"><img src="${p.style[0]}" alt=""></div>
-            <div><img src="${p.style[1]}" alt=""></div>
-            <div><img src="${p.style[2]}" alt=""></div>
-            <div class="span-2"><img src="${p.style[3]}" alt=""></div>
-          </div>
+        ${(person.details && DETAIL_ORDER.some((k) => person.details[k])) ? `
+        <section class="punit" style="--unit-h:129px">
+          <p class="punit__title">Details</p>
+          <div class="pdetails">${DETAIL_ORDER.filter((k) => person.details[k]).map((k) => `<span class="pchip"><img src="assets/details/${DETAIL_ICONS[k]}.svg" width="24" height="24" alt=""><span>${esc(person.details[k])}</span></span>`).join('')}</div>
+        </section>` : ''}
+        <section class="punit" style="--unit-h:${p.style.length ? 498 : 0}px">
+          <p class="punit__title">Vibes</p>
+          ${p.style.length ? `<div class="pbento-mixed">${p.style.slice(0, 4).map((src, i) => `<div${i % 3 === 0 ? ' class="span-2"' : ''}><img src="${esc(src)}" alt=""></div>`).join('')}</div>` : ''}
           <button class="prow prow--dashed prow--cta" type="button" data-action="style">
-            <div class="prow__details"><p class="t-sub">Add more style</p></div>
+            <div class="prow__details"><p class="t-sub">Add more vibes</p></div>
             <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
           </button>
         </section>
-        ${quoteUnit('Lyrics to live by', p.lyric, 233)}
-        ${(p.shelf && p.shelf.length) ? `
-        <section class="punit">
-          <p class="punit__title">Reading &amp; watching</p>
-          <div class="pshelf">
-            ${p.shelf.map((s) => `
-            <div class="pbook">
-              <div class="pbook__art">${s.art ? `<img src="${esc(s.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(s.title)}</span>`}</div>
-              <span class="pbook__tag">${({ film: 'Film', show: 'Show', book: 'Book' })[s.kind] || ''}</span>
-              ${s.shared ? '<span class="pbook__you">you too</span>' : ''}
-              <p class="t-sub">${esc(s.title)}</p>
-              <p class="t-body-sm">${esc(s.meta || '')}</p>
-            </div>`).join('')}
-          </div>
-        </section>` : ''}
-        ${(p.mutuals && p.mutuals.length) ? `
-        <section class="punit">
-          <p class="punit__title">Mutuals</p>
-          <div class="pmutuals">
-            <div class="pmutuals__faces">${p.mutuals.slice(0, 4).map((m) => `<img src="${esc(m.avatar || 'assets/avatar-damon.png')}" alt="">`).join('')}</div>
-            <p class="t-sub">${esc(p.mutuals.map((m) => m.name).slice(0, 3).join(', '))}${p.mutuals.length > 3 ? ` and ${p.mutuals.length - 3} more` : ''}</p>
-            <p class="t-body-sm">${p.mutuals.length === 1 ? 'knows you both' : 'know you both'}</p>
-          </div>
-        </section>` : ''}
+        ${p.lyric.quote ? quoteUnit('Lyrics to live by', p.lyric, 233) : ''}
         <section class="punit" style="--unit-h:513px">
           <p class="punit__title">Spots</p>
           <div class="pspots">

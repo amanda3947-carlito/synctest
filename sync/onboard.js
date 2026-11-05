@@ -613,21 +613,6 @@ window.SyncOnboard = (() => {
   }
   const stepIntro = () => quoteStep('intro', { title: 'Your line', sub: 'The first thing on your profile, in quotes.', placeholder: 'Jazz on vinyl. Rap in the kitchen.', promptDefault: 'Say something witty back', promptOptions: ['Say something witty back', 'Agree or disagree?', 'Your version?'] });
   const stepLyric = () => quoteStep('lyric', { title: 'Lyrics to live by', sub: 'A line from a song. They guess the artist.', placeholder: 'This may be the night that my dreams might let me know…', promptDefault: 'Name the artist', promptOptions: ['Name the artist', 'Finish the line', 'What’s it from?'] });
-  async function stepMutuals() {
-    const can = !!(navigator.contacts && navigator.contacts.select);
-    const count = await api().myContactCount();
-    frame({ title: 'Mutuals', sub: 'Pick contacts to share. We keep a scrambled fingerprint of each number, never the number, and show you people you both know.', cta: can ? 'Choose contacts' : 'Done', back: true,
-      body: `<div class="ob__mutuals">${count ? `<p class="t-sub">${count} contacts shared</p><p class="ob__cap">Choose again to replace them.</p>` : can ? '<p class="ob__cap">Your phone will ask which contacts to share.</p>' : '<p class="ob__cap">Contact import isn’t available in this browser yet. It comes with the installed app.</p>'}</div>` });
-    setReady(true);
-    return step(async () => {
-      if (!can) return true;
-      let picked; try { picked = await navigator.contacts.select(['tel'], { multiple: true }); } catch (e) { err('Nothing chosen.'); return false; }
-      const numbers = picked.flatMap((c) => c.tel || []).map((t) => { const d = String(t).replace(/\D/g, ''); return d.length < 10 ? null : '+' + (d.length === 10 ? '1' + d : d); }).filter(Boolean);
-      const hashes = await Promise.all(numbers.map(async (s) => [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))].map((b) => b.toString(16).padStart(2, '0')).join('')));
-      await api().syncContacts(hashes);
-      return true;
-    });
-  }
   async function stepCover() {
     let pick = (me && me.cover) || 'reeded';
     frame({ title: 'Your cover', sub: 'The header on your profile.', cta: 'Save', back: true,
@@ -675,7 +660,7 @@ window.SyncOnboard = (() => {
     const sections = [
       ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
       ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
-      ['intro', 'Your line', stepIntro], ['lyric', 'Lyrics to live by', stepLyric], ['mutuals', 'Mutuals', stepMutuals], ['cover', 'Cover', stepCover],
+      ['intro', 'Your line', stepIntro], ['lyric', 'Lyrics to live by', stepLyric], ['cover', 'Cover', stepCover],
     ];
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true,

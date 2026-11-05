@@ -35,10 +35,13 @@ sync/
      trending and search once `giphyKey` is set in `config.js`). When a catalog comes up empty, and
      always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
      typographic card in its category colour.
-- **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, mutuals, cover.
-- **People** come from `feed()`; **profile** draws intro, rotation, details, vibes, lyrics, reading &
-  watching, mutuals and spots from the database. The sticker you picked sits beside your avatar and
-  name; it is not a section. Going to is off for now. "You too" on shared spots
+- **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, cover.
+- **People** come from `feed()`; **profile** is the ":: profile view" frame (1092:13901), nothing
+  more: Intro, Rotation, Details (120 × 68 chips with Phosphor icons), Vibes, Lyrics to live by, Spots,
+  then "Not interested". A real person's profile shows only what they filled in; the three prototype
+  names keep Damon's frame content. The sticker you picked sits beside your avatar and name; it is
+  not a section. Reading & watching, Going to, Mutuals and Taste are off the profile for now (their
+  tables and API stay). "You too" on shared spots
   and titles.
 - **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. Realtime
   on `builds` lights the Builds dot and plays the toast on a match.

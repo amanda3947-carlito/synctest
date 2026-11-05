@@ -221,21 +221,34 @@ window.SyncAPI = (() => {
     }
     return out;
   }
-  async function searchShelf(kind, q) {
-    if (kind === 'film' || kind === 'show') return searchWiki(kind, q);
-    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=ebook&entity=ebook&limit=12&country=us`);
+  // Apple's catalog, as the second opinion for films and shows and the only one for books
+  const APPLE = { film: 'media=movie&entity=movie', show: 'media=tvShow&entity=tvSeason', book: 'media=ebook&entity=ebook' };
+  async function searchApple(kind, q) {
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&${APPLE[kind]}&limit=12&country=us`);
     if (!res.ok) throw new Error('catalog unavailable');
     const { results } = await res.json();
+    const art = (r) => (r.artworkUrl100 || '').replace('100x100bb', '400x600bb') || null;
+    const season = (name) => (name || '').replace(/,?\s*(season|series|vol\.?)\s*\d+.*$/i, '').trim();
     const seen = new Set();
     const out = [];
     for (const r of results) {
-      const item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '400x600bb') || null };
+      let item;
+      if (kind === 'film') item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: [r.releaseDate && r.releaseDate.slice(0, 4), r.artistName].filter(Boolean).join(' · '), art: art(r) };
+      else if (kind === 'show') item = { key: 'itunes:' + r.artistId + ':' + season(r.collectionName).toLowerCase(), title: season(r.collectionName), meta: r.artistName, art: art(r) };
+      else item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: r.artistName, art: art(r) };
       if (!item.title || seen.has(item.key)) continue;
       seen.add(item.key);
       out.push({ kind, ...item });
       if (out.length >= 8) break;
     }
     return out;
+  }
+  async function searchShelf(kind, q) {
+    if (kind === 'book') return searchApple(kind, q);
+    let hits = [];
+    try { hits = await searchWiki(kind, q); } catch (e) { hits = []; }
+    if (hits.length) return hits;
+    try { return await searchApple(kind, q); } catch (e) { return []; }
   }
   async function myShelf() {
     const id = await userId();

@@ -37,19 +37,20 @@ sync/
      typographic card in its category colour.
 - **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, cover.
 - **People** come from `feed()`; **profile** is the ":: profile view" frame (1092:13901), nothing
-  more: Intro, Rotation, Details (120 × 68 chips with Phosphor icons), Vibes, Lyrics to live by, Spots,
-  then "Not interested". A real person's profile shows only what they filled in; the three prototype
+  more: Intro, Rotation, Details (120 × 68 chips with Phosphor icons), Vibes, Lyrics to live by,
+  Watching and Reading (133 × 202 covers with the kind's tag), Spots, then "Not interested". The
+  frame's Controversial take (a voice note) waits for the prompts pass. A real person's profile shows only what they filled in; the three prototype
   names keep Damon's frame content. The sticker you picked sits beside your avatar and name; it is
-  not a section. Reading & watching, Going to, Mutuals and Taste are off the profile for now (their
-  tables and API stay). "You too" on shared spots
+  not a section. Going to, Mutuals and Taste are off the profile for now (their tables and API stay). "You too" on shared spots
   and titles.
 - **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. Realtime
   on `builds` lights the Builds dot and plays the toast on a match.
 
 ## Starting over
-Open `sync/?reset` to sign out first and land on the first screen. Test numbers 555 000 0010 through
-0019 take the code 123456; a number that has finished onboarding goes straight to the feed, so pick
-an unused one for a full run (0010 and 0011 are used).
+Open `sync/?reset` to sign out first and land on the first screen. Test numbers 555 000 0010, 0011 and
+0012 take the code 123456 (more can be added under Authentication → Phone → Test phone numbers in
+Supabase); a number that has finished onboarding goes straight to the feed, so pick an unused one for
+a full run (0010 and 0011 are used).
 
 ## Not yet
 

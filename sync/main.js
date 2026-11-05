@@ -252,6 +252,19 @@
           </button>
         </section>
         ${p.lyric.quote ? quoteUnit('Lyrics to live by', p.lyric, 233) : ''}
+        <section class="punit" style="--unit-h:286px">
+          <p class="punit__title">Watching and Reading</p>
+          <div class="pshelf">
+            ${(p.shelf || []).map((sh) => `
+            <div class="pbook pbook--${sh.kind}">
+              <div class="pbook__art">${sh.art ? `<img src="${esc(sh.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(sh.title)}</span>`}<span class="pbook__tag">${({ film: 'Movie', show: 'Show', book: 'Book' })[sh.kind] || ''}</span>${sh.shared ? '<span class="pbook__you">you too</span>' : ''}</div>
+              <div class="pbook__cap"><p class="t-sub">${esc(sh.title)}</p><p class="pbook__meta">${esc(sh.meta || '')}</p></div>
+            </div>`).join('')}
+            <button class="pbook pbook--add" type="button" data-action="shelf" aria-label="Add something you're watching or reading">
+              <div class="pbook__art pbook__art--empty"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
+            </button>
+          </div>
+        </section>
         <section class="punit" style="--unit-h:513px">
           <p class="punit__title">Spots</p>
           <div class="pspots">

@@ -1551,19 +1551,26 @@ img { display: block; }
 .pchip span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 
 /* ── "Reading & watching", "Going to", "Mutuals" on the profile ───────── */
+/* "watching & reading" (1018:30280): 133-wide cards, cover 133 × 202 at radius 32 with the kind's tag
+   top right, caption 14 semibold over 12 subtle at y 216; the last card adds */
 .pshelf { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
 .pshelf::-webkit-scrollbar { display: none; }
 .pshelf::after { content: ""; flex: 0 0 10px; }
-.pbook { position: relative; flex: 0 0 110px; width: 110px; display: flex; flex-direction: column; gap: 2px; }
-.pbook__art { width: 110px; height: 160px; border-radius: 16px; overflow: hidden; background: #2b2724; box-shadow: var(--shadow-200, 0 1px 4px rgba(12, 12, 13, 0.1)); display: flex; align-items: flex-end; margin-bottom: 6px; }
+.pbook { position: relative; flex: 0 0 133px; width: 133px; height: 248px; display: flex; flex-direction: column; text-align: left; padding: 0; }
+.pbook__art { position: relative; width: 133px; height: 202px; border-radius: 32px; overflow: hidden; background: var(--surface); filter: drop-shadow(0 1px 2px rgba(12, 12, 13, 0.05)); display: flex; align-items: flex-end; }
 .pbook__art img { width: 100%; height: 100%; object-fit: cover; display: block; }
-/* no cover yet: the title set like a spine, on ink */
-.pbook__type { padding: 12px 10px; font-family: var(--font-display); font-weight: 700; font-size: 15px; line-height: 1.15; letter-spacing: -0.2px; color: #f3f3f3; text-wrap: balance; }
-.pbook__art--sm { width: 36px; height: 54px; border-radius: 6px; flex: 0 0 36px; margin: 0; }
+.pbook__art--empty { background: var(--surface); border: 1px dashed var(--dash); align-items: center; justify-content: center; }
+/* no cover yet: the title set as type on the kind's colour */
+.pbook__type { padding: 14px 12px; font-family: var(--font-display); font-weight: 700; font-size: 16px; line-height: 1.15; letter-spacing: -0.2px; color: #1e1e1e; text-wrap: balance; }
+.pbook--film .pbook__art { background: #fdd3d0; } .pbook--show .pbook__art { background: #eaf5ff; } .pbook--book .pbook__art { background: #c6fff3; }
+.pbook__art--sm { width: 36px; height: 54px; border-radius: 6px; flex: 0 0 36px; margin: 0; filter: none; }
 .pbook__art--sm .pbook__type { font-size: 6px; padding: 4px; }
-.pbook__tag { position: absolute; left: 8px; top: 8px; height: 20px; padding: 0 8px; display: flex; align-items: center; border-radius: 9999px; background: rgba(255, 255, 255, 0.9); color: #1e1e1e; font-size: 11px; font-weight: 600; font-variation-settings: "opsz" 14; }
-.pbook__you { position: absolute; right: 8px; top: 8px; height: 20px; padding: 0 8px; display: flex; align-items: center; border-radius: 9999px; background: #a8face; color: #0f4d2e; font-size: 11px; font-weight: 600; }
-.pbook p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 2px; }
+.pbook__tag { position: absolute; right: 10px; top: 15px; padding: 4px 8px; border-radius: 9999px; color: #1e1e1e; font-size: 12px; line-height: 1; font-weight: 400; box-shadow: 0 4px 2px rgba(12, 12, 13, 0.1), 0 4px 2px rgba(12, 12, 13, 0.05); font-variation-settings: "opsz" 14; }
+.pbook--film .pbook__tag { background: #fdd3d0; } .pbook--show .pbook__tag { background: #eaf5ff; } .pbook--book .pbook__tag { background: #c6fff3; }
+.pbook__you { position: absolute; left: 10px; top: 15px; padding: 4px 8px; border-radius: 9999px; background: #a8face; color: #0f4d2e; font-size: 12px; line-height: 1; font-weight: 600; }
+.pbook__cap { position: absolute; left: 0; right: 0; top: 216px; height: 32px; padding: 4px 12px 0 4px; display: flex; flex-direction: column; gap: 2px; justify-content: center; }
+.pbook__cap p { margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pbook__meta { font-size: 12px; line-height: 1.2; font-weight: 600; color: var(--secondary); min-height: 14px; }
 .pevent { align-items: center; }
 .pdate { flex: 0 0 50px; width: 50px; height: 50px; border-radius: 16px; background: var(--white); display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
 .pdate span { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #757575; }

@@ -18,7 +18,9 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
+html { height: 100%; }
+/* the page is the visual viewport: on a phone the keyboard shrinks it instead of covering it (main.js keeps --vvh current) */
+body { height: var(--vvh, 100%); }
 body {
   background: #0c0c0c;
   color: var(--white);

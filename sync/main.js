@@ -5,6 +5,26 @@
    per person and never changes with the carousel. */
 
 (() => {
+  // ── a phone: the device fills the visual viewport, so a keyboard shrinks the screen rather than
+  // covering the field and the button; the field being typed into is kept in view
+  (() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    let raf = 0;
+    const fit = () => {
+      raf = 0;
+      document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);   // iOS nudges the page up for a field: put it back, the field is scrolled into view instead
+      const el = document.activeElement;
+      if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && el.type !== 'file') el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+    const soon = () => { if (!raf) raf = requestAnimationFrame(fit); };
+    vv.addEventListener('resize', soon);
+    vv.addEventListener('scroll', soon);
+    window.addEventListener('orientationchange', () => setTimeout(fit, 300));
+    fit();
+  })();
+
   const PHOTO_SECONDS = 5;  // how long the progress track takes to fill on a photo
   const CONTROL_LINGER_MS = 1200; // how long the play/pause indicator stays after a tap
   const SWIPE_OPEN = 0.3;   // fraction of width a slow drag must cover to commit
@@ -824,7 +844,7 @@
     const setKb = () => {
       let h = 0;
       if (device.classList.contains('is-gifs-up') || device.classList.contains('is-keyboard-up')) h = keyboardHeight();
-      else if (coarse() && window.visualViewport) h = Math.max(0, window.innerHeight - window.visualViewport.height);
+      else if (coarse()) h = 0;   // the device already ends where the keyboard begins
       device.style.setProperty('--kb-h', `${h}px`);
     };
     // the unit in focus sits 11px above the panel (1062:4845). The page itself never moves:

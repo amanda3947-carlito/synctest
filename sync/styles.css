@@ -1417,8 +1417,15 @@ img { display: block; }
 @keyframes rec-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.25); } }
 /* the drawn keyboard on a desktop: it comes up for any text field in first run and the panel ends
    above it, as the real one makes the page do on a phone */
-.ob__kb { display: none; flex: 0 0 335px; height: 335px; background: rgb(225, 228, 232); }
+.ob__kb { display: none; position: relative; flex: 0 0 335px; height: 335px; background: rgb(225, 228, 232); }
 .ob__kb img { display: block; width: 401px; height: 335px; }
+/* the blue key, drawn at (302, 214) 92 × 42 in the image: a real button that reads Save while a prompt is open */
+.ob__kb-key { position: absolute; left: 302px; top: 214px; width: 92px; height: 42px; border-radius: 8.5px; background: #0a84ff; color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-system); font-size: 17px; font-weight: 500; letter-spacing: -0.2px; padding: 0; box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3); }
+.ob__kb-key:active { filter: brightness(0.9); }
+.ob__kb-key-save { display: none; }
+.ob__kb-key-return { font-size: 22px; line-height: 1; }
+.device__auth.is-composing .ob__kb-key-save { display: inline; }
+.device__auth.is-composing .ob__kb-key-return { display: none; }
 @media (pointer: fine) { .device__auth.has-kb .ob__kb { display: block; } .device__auth.has-kb .ob__toast { bottom: calc(335px + 72px); } }
 
 /* what best describes you: 3 × 2 */

@@ -321,10 +321,10 @@ window.SyncOnboard = (() => {
       const a = answers[pr.key] || {};
       cin.value = a.text || ''; cin.placeholder = pr.ph;
       ctext.textContent = cin.value || pr.label.replace('<br>', ' '); ctext.classList.toggle('is-ph', !cin.value);
-      panel().classList.add('is-composing'); panel().scrollTop = 0; comp.hidden = false;
+      panel().classList.add('is-composing'); root().classList.add('is-composing'); panel().scrollTop = 0; comp.hidden = false;
       setTimeout(() => cin.focus({ preventScroll: true }), 40);
     };
-    const hide = () => { open = null; comp.hidden = true; panel().classList.remove('is-composing'); cin.blur(); };
+    const hide = () => { open = null; comp.hidden = true; panel().classList.remove('is-composing'); root().classList.remove('is-composing'); cin.blur(); };
     const commit = async () => {
       if (!open) return;
       const text = cin.value.trim(); const pr = open;
@@ -797,8 +797,16 @@ window.SyncOnboard = (() => {
     const r = root();
     if (r.querySelector('.ob__kb')) return;
     const kb = document.createElement('div'); kb.className = 'ob__kb'; kb.setAttribute('aria-hidden', 'true');
-    kb.innerHTML = '<img src="assets/keyboard.png" width="401" height="335" alt="" draggable="false">';
+    kb.innerHTML = '<img src="assets/keyboard.png" width="401" height="335" alt="" draggable="false"><button class="ob__kb-key" type="button" tabindex="-1"><span class="ob__kb-key-save">Save</span><span class="ob__kb-key-return" aria-hidden="true">&#8629;</span></button>';
     r.appendChild(kb);
+    // the key acts like the phone's: it submits an open prompt, or sends Return to the field being typed into
+    kb.querySelector('.ob__kb-key').addEventListener('pointerdown', (e) => e.preventDefault());   // keep the field's focus
+    kb.querySelector('.ob__kb-key').addEventListener('click', () => {
+      const form = r.querySelector('#ob-cform');
+      if (form && !form.closest('[hidden]')) { form.requestSubmit(); return; }
+      const el = document.activeElement;
+      if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName)) el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    });
     const isField = (el) => el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && !/^(file|date|checkbox|radio|range)$/.test(el.type || '');
     let hideTimer = 0;
     r.addEventListener('focusin', (e) => { if (!isField(e.target)) return; clearTimeout(hideTimer); r.classList.add('has-kb'); });

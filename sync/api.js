@@ -61,6 +61,20 @@ window.SyncAPI = (() => {
   }
   // one kind at a time, the way the board asks
   const GIFS = [['hello-ladies.png', 'Hello ladies'], ['spinning-dancer.gif', 'Spinning dancer'], ['black-cat.gif', 'Black cat'], ['dj-caveman.gif', 'Caveman DJ'], ['disco.gif', 'Disco'], ['heart.gif', 'Heart'], ['horse.gif', 'Galloping horse'], ['thumbs-up.gif', 'Thumbs up'], ['dancing-men.gif', 'Dancing']];
+  // the GIF keyboard: an empty query is the reel to browse; typing narrows it. With a Giphy key
+  // in config.js it's trending + search from Giphy; without one it's the local reel.
+  async function searchGifs(term) {
+    const key = window.SYNC_CONFIG && window.SYNC_CONFIG.giphyKey;
+    if (key) {
+      try {
+        const u = term ? `https://api.giphy.com/v1/gifs/search?api_key=${key}&q=${encodeURIComponent(term)}&limit=24&rating=pg-13` : `https://api.giphy.com/v1/gifs/trending?api_key=${key}&limit=24&rating=pg-13`;
+        const { data } = await fetch(u).then((r) => r.json());
+        if (Array.isArray(data) && data.length) return data.map((g) => ({ kind: 'gif', key: 'giphy:' + g.id, title: g.title || 'GIF', meta: null, art: (g.images.fixed_width || g.images.original).url, thumb: (g.images.fixed_width_small || g.images.fixed_width).url }));
+      } catch (e) { /* fall through to the reel */ }
+    }
+    const t = term.toLowerCase();
+    return GIFS.filter(([, name]) => !t || name.toLowerCase().includes(t)).map(([file, name]) => ({ kind: 'gif', key: 'gif:' + file, title: name, meta: null, art: 'assets/gifs/' + file }));
+  }
   async function searchKind(kind, q) {
     const term = q.trim();
     if (kind === 'track') {
@@ -68,7 +82,7 @@ window.SyncAPI = (() => {
       return d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }));
     }
     if (kind === 'place') return (await searchPlaces(term)).map((x) => ({ kind: 'place', key: 'place:' + x.id, id: x.id, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' \u2022 '), art: null }));
-    if (kind === 'gif') return GIFS.filter(([, name]) => name.toLowerCase().includes(term.toLowerCase())).map(([file, name]) => ({ kind: 'gif', key: 'gif:' + file, title: name, meta: null, art: 'assets/gifs/' + file }));
+    if (kind === 'gif') return searchGifs(term);
     return searchShelf(kind, term);
   }
   // "search anything": tracks, films, shows, books and places, together
@@ -181,20 +195,41 @@ window.SyncAPI = (() => {
     await sb.from('profile_events').delete().eq('profile_id', id);
     if (ids.length) { const { error } = await sb.from('profile_events').insert(ids.map((event_id) => ({ profile_id: id, event_id }))); if (error) throw error; }
   }
-  // reading & watching: Apple's catalog answers cross-origin for films, shows and books, with covers
-  const SHELF = { film: 'media=movie&entity=movie', show: 'media=tvShow&entity=tvSeason', book: 'media=ebook&entity=ebook' };
+  // reading & watching. Apple's catalog has gone quiet on films and most shows (zero results for
+  // "Barbie" or "Inception"), so films and shows come from Wikipedia's search, which answers
+  // cross-origin and hands back the poster; books still come from Apple, with covers.
+  const WIKI = {
+    film: { suffix: ' film', ok: /\bfilms?\b/i, bad: /soundtrack|film score|film series|franchise|^list of|filmography|director|actor|actress|producer|screenwriter|studio|festival|award/i },
+    show: { suffix: ' television series', ok: /television|tv series|miniseries|web series|sitcom|anime|docuseries/i, bad: /episode|season \d|^list of|character|actor|actress|soundtrack|network|channel|presenter|host/i },
+  };
+  async function searchWiki(kind, q) {
+    const c = WIKI[kind];
+    const url = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q + c.suffix)}&gsrlimit=10&gsrnamespace=0&prop=pageimages%7Cdescription&piprop=thumbnail&pithumbsize=400&pilicense=any&format=json&formatversion=2&origin=*`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('catalog unavailable');
+    const pages = (((await res.json()).query || {}).pages || []).slice().sort((a, b) => (a.index || 0) - (b.index || 0));
+    const out = [];
+    for (const pg of pages) {
+      const desc = pg.description || '';
+      if (!c.ok.test(desc) || c.bad.test(desc)) continue;
+      const title = pg.title.replace(/\s*\([^)]*\)\s*$/, '').trim();
+      const year = (desc.match(/\b(19|20)\d{2}\b/) || [])[0];
+      const by = (desc.match(/\bby ([^,;(]+)/) || [])[1];
+      const meta = [year, by && by.trim()].filter(Boolean).join(' · ') || desc.replace(/\b(19|20)\d{2}\b/, '').replace(/\s+/g, ' ').trim();
+      out.push({ kind, key: 'wiki:' + pg.pageid, title, meta, art: pg.thumbnail ? pg.thumbnail.source : null });
+      if (out.length >= 8) break;
+    }
+    return out;
+  }
   async function searchShelf(kind, q) {
-    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&${SHELF[kind]}&limit=12&country=us`);
+    if (kind === 'film' || kind === 'show') return searchWiki(kind, q);
+    const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=ebook&entity=ebook&limit=12&country=us`);
     if (!res.ok) throw new Error('catalog unavailable');
     const { results } = await res.json();
-    const art = (r) => (r.artworkUrl100 || '').replace('100x100bb', '400x600bb') || null;
     const seen = new Set();
     const out = [];
     for (const r of results) {
-      let item;
-      if (kind === 'film') item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: [r.releaseDate && r.releaseDate.slice(0, 4), r.artistName].filter(Boolean).join(' · '), art: art(r) };
-      else if (kind === 'show') item = { key: 'itunes:' + r.artistId + ':' + (r.collectionName || '').replace(/,?\s*(season|series|vol\.?)\s*\d+.*$/i, '').trim().toLowerCase(), title: (r.collectionName || '').replace(/,?\s*(season|series|vol\.?)\s*\d+.*$/i, '').trim(), meta: r.artistName, art: art(r) };
-      else item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: r.artistName, art: art(r) };
+      const item = { key: 'itunes:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '400x600bb') || null };
       if (!item.title || seen.has(item.key)) continue;
       seen.add(item.key);
       out.push({ kind, ...item });

@@ -29,7 +29,12 @@ sync/
      it turns slowly and settles with one card facing you). Empty, the ring is a planet and four stars.
      A downward drag or a press lifts a card out to drop into Music, Vibes, Watching & Reading or
      Spots, which are squares. Ten on the ring is the cap. Then your profile, for real, with a way back.
-     GIFs come from the prototype's own set until a GIF service is connected.
+     Sources: tracks and books from Apple's catalog; movies and shows from Wikipedia's search (Apple's
+     film and show search answers almost nothing now), posters included; spots from the `places`
+     table. The GIFs tile opens a keyboard to browse and narrow (the prototype's reel, or Giphy's
+     trending and search once `giphyKey` is set in `config.js`). When a catalog comes up empty, and
+     always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
+     typographic card in its category colour.
 - **Editor** from your avatar: every piece above, plus rotation, your line, lyrics, going to, mutuals, cover.
 - **People** come from `feed()`; **profile** draws intro, details, rotation, style (your vibes), lyrics,
   taste, reading & watching, going to, mutuals and spots from the database. "You too" on shared spots

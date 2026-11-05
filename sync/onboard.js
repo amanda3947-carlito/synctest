@@ -337,11 +337,11 @@ window.SyncOnboard = (() => {
     setReady(true);
 
     const stage = $('#bd-stage');
-    const tileHTML = (it) => it.art ? `<img src="${esc(it.art)}" alt="" draggable="false">` : `<span class="tile__type">${esc(it.title)}</span>`;
+    const tileHTML = (it) => it.art ? `<img src="${esc(it.art)}" alt="" draggable="false">` : `<span class="orb__type">${esc(it.title)}</span>`;
     const drawFolders = () => {
       FOLDERS.forEach((f) => {
         const list = folders[f.id];
-        $(`#fs-${f.id}`).innerHTML = list.slice(-3).map((it, i) => `<span class="folder__mini" style="--i:${i}">${tileHTML(it)}</span>`).join('');
+        $(`#fs-${f.id}`).innerHTML = list.slice(-3).map((it, i) => `<span class="folder__mini folder__mini--${it.kind}" style="--i:${i}">${tileHTML(it)}</span>`).join('');
         const left = Math.max(0, f.min - list.length);
         $(`#fc-${f.id}`).textContent = left ? `${left} remaining` : `${list.length} added`;
         $(`[data-folder="${f.id}"]`).classList.toggle('is-met', !left);
@@ -389,8 +389,8 @@ window.SyncOnboard = (() => {
     const addToRing = (item) => {
       if (ring.cards.length >= ORBIT_MAX) { deps.notice('Your orbit is full. Drag a few into their sections first.'); stage.classList.add('is-shake'); setTimeout(() => stage.classList.remove('is-shake'), 500); return false; }
       const el = document.createElement('div');
-      el.className = 'tile tile--' + item.kind;
-      el.innerHTML = tileHTML(item) + `<span class="tile__tag">${esc(TAG[item.kind] || item.kind)}</span>`;
+      el.className = 'orb orb--' + item.kind;
+      el.innerHTML = tileHTML(item) + `<span class="orb__tag">${esc(TAG[item.kind] || item.kind)}</span>`;
       el.style.width = el.style.height = SIZE + 'px';
       const card = { item, el, bob: Math.random() * 6 };
       ring.cards.push(card);
@@ -408,7 +408,7 @@ window.SyncOnboard = (() => {
     let g = null;
     stage.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      const el = e.target.closest('.tile');
+      const el = e.target.closest('.orb');
       const card = el ? ring.cards.find((c) => c.el === el) : null;
       g = { id: e.pointerId, x: e.clientX, y: e.clientY, lx: e.clientX, lt: e.timeStamp, card, axis: null, rot0: ring.rot, hold: 0 };
       stage.setPointerCapture(e.pointerId);
@@ -491,29 +491,43 @@ window.SyncOnboard = (() => {
     const pickCat = (k) => {
       mode = 'results'; cat = k;
       cats.classList.add('is-out'); setTimeout(() => { if (mode === 'results') cats.hidden = true; }, 220);
-      results.hidden = false; results.innerHTML = `<p class="board__hint">Type to search ${CATS.find(([kk]) => kk === k)[1].toLowerCase()}</p>`;
-      q.placeholder = `Searching ${CATS.find(([kk]) => kk === k)[1].toLowerCase()}`;
+      const word = k === 'gif' ? 'GIFs' : CATS.find(([kk]) => kk === k)[1].toLowerCase();
+      results.hidden = false; results.innerHTML = `<p class="board__hint">Type to search ${word}</p>`;
+      q.placeholder = `Searching ${word}`;
       field.className = 'board__field is-open is-' + k;
-      if (q.value.trim()) search(); else q.focus({ preventScroll: true });
+      if (q.value.trim() || k === 'gif') search(); else q.focus({ preventScroll: true });
     };
     const closeSearch = () => { mode = 'idle'; cat = null; overlay.hidden = true; results.innerHTML = ''; q.value = ''; q.placeholder = PLACEHOLDER; q.blur(); field.className = 'board__field'; panel().classList.remove('is-searching'); };
     const rowHTML = (h, i) => {
       const art = h.art ? `<img src="${esc(h.art)}" alt="">` : `<i>${esc(h.title.slice(0, 1))}</i>`;
-      const two = h.kind === 'track' || h.kind === 'place' || h.kind === 'book';
-      return `<button class="board__hit" type="button" data-hit="${i}"><span class="board__thumb board__thumb--${h.kind}">${art}</span><span class="board__hit-text">${two && h.meta ? `<small>${esc(h.meta)}</small>` : ''}<b>${esc(h.title)}</b></span><span class="board__tag board__tag--${h.kind}">${TAG[h.kind]}</span></button>`;
+      return `<button class="board__hit" type="button" data-hit="${i}"><span class="board__thumb board__thumb--${h.kind}">${art}</span><span class="board__hit-text">${h.meta ? `<small>${esc(h.meta)}</small>` : ''}<b>${esc(h.title)}</b></span><span class="board__tag board__tag--${h.kind}">${TAG[h.kind]}</span></button>`;
+    };
+    const gifHTML = (h, i) => `<button class="board__gif" type="button" data-hit="${i}" aria-label="${esc(h.title)}"><img src="${esc(h.thumb || h.art)}" alt="" loading="lazy"></button>`;
+    // what the catalogs miss, you can still add by name: a spot, a film, a show, a book
+    const ADDABLE = { film: 'a movie', show: 'a show', book: 'a book', place: 'a spot' };
+    const addHTML = (text) => `<button class="board__hit board__hit--add" type="button" data-add><span class="board__thumb board__thumb--add"><img src="assets/plus-circle-dark.svg" width="20" height="20" alt=""></span><span class="board__hit-text"><small>Add ${ADDABLE[cat]}</small><b>“${esc(text)}”</b></span></button>`;
+    const addOwn = async (text) => {
+      if (cat === 'place') {
+        try { const pl = await api().addPlace({ name: text, kind: null, neighborhood: null }); return { kind: 'place', key: 'place:' + pl.id, id: pl.id, title: pl.name, meta: '', art: null }; }
+        catch (e) { deps.notice(deps.errText(e)); return null; }
+      }
+      return { kind: cat, key: 'own:' + cat + ':' + text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), title: text, meta: null, art: null };
     };
     const search = async () => {
       const text = q.value.trim(); const my = ++seq;
       if (!cat) return;
-      if (!text) { results.innerHTML = `<p class="board__hint">Type to search ${CATS.find(([kk]) => kk === cat)[1].toLowerCase()}</p>`; return; }
-      results.innerHTML = '<p class="board__hint">Looking…</p>';
+      if (!text && cat !== 'gif') { results.innerHTML = `<p class="board__hint">Type to search ${CATS.find(([kk]) => kk === cat)[1].toLowerCase()}</p>`; return; }
+      if (!results.querySelector('.board__gifgrid')) results.innerHTML = '<p class="board__hint">Looking…</p>';
       let hits = [];
       try { hits = await api().searchKind(cat, text); } catch (e) { hits = []; }
       if (my !== seq || mode !== 'results') return;
       const inRing = new Set(ring.cards.map((c) => c.item.key)); const filed = new Set(Object.values(folders).flat().map((i) => i.key));
       hits = hits.filter((h) => !inRing.has(h.key) && !filed.has(h.key));
-      results._hits = hits;
-      results.innerHTML = hits.length ? hits.map(rowHTML).join('') : `<p class="board__hint">Nothing matched that.</p>`;
+      results._hits = hits; results._text = text;
+      if (cat === 'gif') { results.innerHTML = hits.length ? `<div class="board__gifgrid">${hits.map(gifHTML).join('')}</div>` : `<p class="board__hint">No GIFs for that.</p>`; return; }
+      // spots are mostly yours to add; the catalogs get an "add" row only when they come up empty
+      const add = ADDABLE[cat] && (cat === 'place' || !hits.length) ? addHTML(text) : '';
+      results.innerHTML = (hits.length ? hits.map(rowHTML).join('') : (add ? '' : `<p class="board__hint">Nothing matched that.</p>`)) + add;
     };
     q.addEventListener('focus', () => { if (mode === 'idle') openCats(); });
     q.addEventListener('input', () => { if (mode === 'cats') { if (q.value.trim()) pickCat('track'); return; } clearTimeout(timer); timer = setTimeout(search, 260); });
@@ -522,6 +536,7 @@ window.SyncOnboard = (() => {
       const c = e.target.closest('[data-cat]'); if (c) { pickCat(c.dataset.cat); return; }
       const hit = e.target.closest('[data-hit]');
       if (hit) { const h = results._hits[Number(hit.dataset.hit)]; if (h) { closeSearch(); addToRing(h); } return; }
+      if (e.target.closest('[data-add]')) { const text = results._text; addOwn(text).then((item) => { if (item) { closeSearch(); addToRing(item); } }); return; }
       if (e.target.closest('[data-cats]')) { if (mode === 'idle') { openCats(); q.focus({ preventScroll: true }); } else openCats(); return; }
       if (e.target.closest('[data-gif]')) { if (mode === 'idle') openCats(); pickCat('gif'); return; }
       if (e.target.closest('[data-upload]')) { $('#bd-file').click(); return; }

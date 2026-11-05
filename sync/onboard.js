@@ -406,7 +406,7 @@ window.SyncOnboard = (() => {
     setReady(true);
     await step(async () => true);
   }
-  const stickerFor = (p) => { const k = p && p.taste && p.taste[0]; const d = DESCRIBES.find((x) => x[0] === k); return d ? d[2] : 'assets/disc.png'; };
+  const stickerFor = (p) => { const k = p && p.taste && p.taste[0]; return DESCRIBES.some((x) => x[0] === k) ? `assets/badges/${k}.png` : 'assets/badges/all_around.png'; };
 
   // ═══════════════ act three: make it yours ═══════════════
   const FOLDERS = [

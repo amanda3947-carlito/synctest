@@ -62,7 +62,7 @@
   const PEOPLE = [
     {
       name: 'Damon',
-      disc: 'assets/disc.png',
+      disc: 'assets/badges/collector.png',
       items: [
         { type: 'photo', src: 'assets/bg-damon.png' },
         { type: 'photo', src: 'assets/damon-2.png' },
@@ -74,7 +74,7 @@
     },
     {
       name: 'Olivia',
-      disc: 'assets/disc.png',
+      disc: 'assets/badges/collector.png',
       items: [
         { type: 'photo', src: 'assets/bg-imani.jpg' },
         { type: 'photo', src: 'assets/imani-2.png' },
@@ -86,7 +86,7 @@
     },
     {
       name: 'Theo',
-      disc: 'assets/disc.png',
+      disc: 'assets/badges/collector.png',
       items: [
         { type: 'photo', src: 'assets/bg-theo.jpg' },
         { type: 'photo', src: 'assets/theo-2.png' },
@@ -1356,6 +1356,24 @@
       if (next) { autoAdvancing = true; goToPage(cardIndex() + 1); }
       else resume();
     };
+    // a build between you has started: this person leaves the feed (they live on Builds now)
+    const leave = () => {
+      const i = cardIndex();
+      const target = card.nextElementSibling ? i + 1 : i - 1;
+      if (target >= 0) { autoAdvancing = true; goToPage(target); }
+      setTimeout(() => {
+        const keep = target >= 0 ? cards[target] : null;
+        io.unobserve(card); card.remove(); cards = cards.filter((c) => c.card !== card);
+        if (!cards.length) { feed.innerHTML = '<div class="feed__empty"><p>Nobody new right now.</p><p class="t-body-sm">Your builds are on the Builds tab. Check back soon.</p></div>'; return; }
+        stopPaging(); feed.scrollTop = pageTop(cards.indexOf(keep)); feed.classList.remove('is-paging');
+      }, target >= 0 ? PAGE_MS + 80 : 0);
+    };
+    // the database's one-in-flight rule, with the name of who it means
+    const buildError = async (e) => {
+      const text = errText(e);
+      if (/in flight/i.test(text)) { const who = await window.SyncAPI.inFlightWith().catch(() => null); notice(who ? `You have a build going with ${who}. Finish that one first.` : 'Finish the build you have going first.'); return; }
+      notice(text);
+    };
     // the tile and the profile row read the state of the build between you
     const mixTile = card.querySelector('.tile--mixtape');
     const mixRow = profile.querySelector('[data-action="mixtape"] .t-sub');
@@ -1380,18 +1398,18 @@
         else next = await window.SyncAPI.startBuild(person.mixtapeBuildId, payload);
         person.activeBuild = next;
         refresh();
-      } catch (e) { notice(errText(e)); resume(); return; }
+      } catch (e) { await buildError(e); resume(); return; }
       if (card.classList.contains('is-profile-open')) closeProfile(false);
-      celebrate(card, 'mix').then(moveOn);
+      celebrate(card, 'mix').then(leave);
     };
     const onAgree = async () => {
       try {
         const b = person.activeBuild;
         person.activeBuild = b.status === 'as_is' ? await window.SyncAPI.matchBack(b.id) : await window.SyncAPI.agree(b.id);
         refresh();
-      } catch (e) { notice(errText(e)); resume(); return; }
+      } catch (e) { await buildError(e); resume(); return; }
       if (card.classList.contains('is-profile-open')) closeProfile(false);
-      celebrate(card, person.activeBuild.status === 'agreed' ? 'msg' : 'mix', person.activeBuild.status === 'agreed' ? 'It\'s a mixtape' : 'Agreed. Their call now.').then(moveOn);
+      celebrate(card, person.activeBuild.status === 'agreed' ? 'msg' : 'mix', person.activeBuild.status === 'agreed' ? 'It\'s a mixtape' : 'Agreed. Their call now.').then(leave);
     };
     const openMixtape = (e) => {
       e.stopPropagation();
@@ -1426,12 +1444,12 @@
         try {
           person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, text || (gif ? 'Sent a GIF' : 'Loved it as is'));
           refresh();
-        } catch (e) { notice(errText(e)); resume(); return; }
+        } catch (e) { await buildError(e); resume(); return; }
         celebrate(card, 'msg', text || (gif ? 'Sent a GIF' : '')).then(() => {
           if (!card.classList.contains('is-profile-open')) return;
           closeProfile(false);
           return wait(600);
-        }).then(moveOn);
+        }).then(leave);
       }, resume);
     };
     mixTile.addEventListener('click', openMixtape);
@@ -1469,7 +1487,7 @@
     let drag = null;
     card.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (e.target.closest('.playlist')) return;   // the rotation row scrolls on its own
+      if (e.target.closest('.playlist, .pshelf, .pdetails')) return;   // the rotation row, the shelf and the chips scroll on their own
       if (e.target.closest('.preply')) return;     // the reply row's buttons are taps, not swipes
       drag = { x: e.clientX, y: e.clientY, dx: 0, dy: 0, axis: null, id: e.pointerId, open: card.classList.contains('is-profile-open'), inProfile: !!e.target.closest('.profile'), vx: 0, vy: 0, lastX: e.clientX, lastY: e.clientY, lastT: e.timeStamp, startTop: feed.scrollTop };
       suppressClick = false;
@@ -1549,7 +1567,7 @@
     // sideways burst toggles the profile, then locks until the gesture ends
     let wheelAcc = 0, wheelReset = 0, wheelLock = false;
     card.addEventListener('wheel', (e) => {
-      if (e.target.closest('.playlist, .ptaste, .sheet')) return;
+      if (e.target.closest('.playlist, .pshelf, .pdetails, .sheet')) return;
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.2) return;
       wheelAcc += e.deltaX;
       clearTimeout(wheelReset);

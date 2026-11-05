@@ -48,8 +48,11 @@ sync/
   names keep Damon's frame content. The sticker you picked sits beside your avatar and name; it is
   not a section. Going to, Mutuals and Taste are off the profile for now (their tables and API stay). "You too" on shared spots
   and titles.
-- **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. Realtime
-  on `builds` lights the Builds dot and plays the toast on a match.
+- **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. A send or a
+  note takes the person off the feed (a build in flight lives on the Builds tab, coming); the one-in-flight
+  rule's message names who it means. Realtime on `builds` lights the Builds dot and plays the toast on a
+  match. The charm beside a name is the taste badge (`assets/badges`, a white disc with the sticker, from
+  the "taste badges" frame). A shelf row saved without a cover gets one looked up when it is shown.
 
 ## Starting over
 Open `sync/?reset` to sign out first and land on the first screen. Signed in, `sync/?go=photos` (or

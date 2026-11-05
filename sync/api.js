@@ -251,6 +251,12 @@ window.SyncAPI = (() => {
     }
     return out;
   }
+  const coverCache = new Map();
+  async function coverFor(kind, title) {
+    const k = kind + '|' + title.toLowerCase();
+    if (!coverCache.has(k)) coverCache.set(k, searchShelf(kind, title).then((hits) => (hits.find((h) => h.art && h.title.toLowerCase() === title.toLowerCase()) || hits.find((h) => h.art) || {}).art || null).catch(() => null));
+    return coverCache.get(k);
+  }
   async function searchShelf(kind, q) {
     if (kind === 'book') return searchApple(kind, q);
     let hits = [];
@@ -304,11 +310,11 @@ window.SyncAPI = (() => {
     ].filter(Boolean);
     const url = await mediaUrls(paths);
     const u = (x) => (x ? url[x] || x : null);
-    const STICKER = { collector: 'assets/taste-collector.png', nostalgic: 'assets/taste-nostalgic.png', audiophile: 'assets/stickers/headphones.png', classics: 'assets/stickers/guitar.png', live_shows: 'assets/stickers/ticket-sm.png', all_around: 'assets/stickers/note.png' };
+    const STICKER = { collector: 'assets/badges/collector.png', nostalgic: 'assets/badges/nostalgic.png', audiophile: 'assets/badges/audiophile.png', classics: 'assets/badges/classics.png', live_shows: 'assets/badges/live_shows.png', all_around: 'assets/badges/all_around.png' };
     return {
       id: p.id,
       name: p.name,
-      disc: STICKER[(p.taste || [])[0]] || 'assets/disc.png',
+      disc: STICKER[(p.taste || [])[0]] || 'assets/badges/all_around.png',
       details: p.details || {},
       items: (media.data || []).map((m) => (m.kind === 'video'
         ? { type: 'video', src: u(m.path), poster: u(m.poster_path) }
@@ -327,7 +333,7 @@ window.SyncAPI = (() => {
         spots: (places.data || []).filter((r) => r.places).map((r) => ({ img: u(r.places.image_path), name: r.places.name, meta: `${r.places.kind || 'Spot'} • ${r.places.neighborhood || ''}`, shared: (shared || []).some((s) => s.id === r.places.id) })),
         events: (events.data || []).filter((r) => r.events).map((r) => r.events).sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
         mutuals: (mutuals || []).map((m) => ({ ...m, avatar: u(m.avatar_path) })),
-        shelf: (shelf.data || []).map((s) => ({ ...s, shared: (sharedShelf || []).some((x) => x.key === s.key) })),
+        shelf: await Promise.all((shelf.data || []).map(async (s) => ({ ...s, art: s.art || await coverFor(s.kind, s.title), shared: (sharedShelf || []).some((x) => x.key === s.key) }))),
       },
     };
   }
@@ -339,18 +345,15 @@ window.SyncAPI = (() => {
   // the feed as the screen shows it: people with a build in flight first (yours to move on
   // top), then everyone new. The feed() rule itself hides anyone you already have a build with.
   async function peopleForFeed(limit = 20) {
-    const me = await userId();
+    return feed(limit);
+  }
+  // who you have a build going with, by name, for the one-in-flight rule's message
+  async function inFlightWith() {
     const active = await myBuilds();
     const ids = Object.keys(active);
-    let inFlight = [];
-    if (ids.length) {
-      const { data } = await sb.from('profiles').select('*').in('id', ids);
-      inFlight = await Promise.all((data || []).map((p) => hydrate(p, me)));
-      inFlight.forEach((p) => { p.activeBuild = active[p.id]; });
-      inFlight.sort((a, b) => Number(b.activeBuild.mine) - Number(a.activeBuild.mine));
-    }
-    const fresh = await feed(limit);
-    return [...inFlight, ...fresh];
+    if (!ids.length) return null;
+    const { data } = await sb.from('profiles').select('id,name').in('id', ids);
+    return (data || []).map((p) => p.name).join(', ') || null;
   }
 
   // ── builds I'm part of, keyed by the other person
@@ -385,7 +388,7 @@ window.SyncAPI = (() => {
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
-           searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, inFlightWith, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

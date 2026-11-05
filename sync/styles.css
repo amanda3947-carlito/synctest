@@ -304,7 +304,7 @@ img { display: block; }
   color: var(--white);
   white-space: nowrap;
 }
-.name__disc { width: 27px; height: 30px; object-fit: contain; }
+.name__disc { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(12, 12, 13, 0.18)); }
 
 /* "bottom content": gap 8 */
 .bottom-content { width: 100%; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
@@ -451,7 +451,7 @@ img { display: block; }
    Both are transformed by the scroll handler as the header collapses. */
 .pavatar { position: absolute; left: 136px; top: 129px; width: 130px; height: 130px; border-radius: 999px; box-shadow: 0 0 0 3px #fff; overflow: hidden; background: #ddd; z-index: 6; transform-origin: 0 0; pointer-events: none; will-change: transform; }
 .pavatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
-.pavatar-disc { position: absolute; left: 230px; top: 220px; width: 40px; height: 45px; object-fit: contain; z-index: 7; transform-origin: 0 0; pointer-events: none; will-change: transform; }
+.pavatar-disc { position: absolute; left: 226px; top: 216px; width: 48px; height: 48px; object-fit: contain; z-index: 7; transform-origin: 0 0; pointer-events: none; will-change: transform; }
 
 /* "header scroll" (1021:30973): the collapsed bar, sticky over the sheet.
    Status bar on top, then the 56px row: px 20, py 10, gap 10. */
@@ -482,7 +482,7 @@ img { display: block; }
 .pbar__row { height: 56px; padding: 10px 20px; display: flex; gap: 10px; align-items: center; }
 .pbar__avatar { position: relative; width: 42px; height: 42px; flex: 0 0 42px; opacity: 0; }
 .pbar__face { width: 42px; height: 42px; border-radius: 999px; object-fit: cover; object-position: 50% 25%; }
-.pbar__disc { position: absolute; left: 30px; top: 25px; width: 18px; height: 20px; object-fit: contain; }
+.pbar__disc { position: absolute; left: 28px; top: 24px; width: 20px; height: 20px; object-fit: contain; }
 .pbar__title {
   width: 213px;
   height: 40px;
@@ -1454,7 +1454,7 @@ img { display: block; }
 @keyframes drift { 0% { transform: translate(0, 0) rotate(0deg) scale(1); } 50% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1.03); } 100% { transform: translate(calc(var(--dx) * -0.6), calc(var(--dy) * 0.8)) rotate(calc(var(--rot) * -0.5)) scale(0.98); } }
 .sky__me { position: absolute; left: 25px; top: 62px; width: 42px; height: 42px; }
 .sky__me > img:first-child { width: 42px; height: 42px; border-radius: 999px; object-fit: cover; object-position: 50% 25%; box-shadow: 0 0 0 2px #fff; }
-.sky__me-disc { position: absolute; left: 30px; top: 27px; width: 16px; height: 18px; object-fit: contain; }
+.sky__me-disc { position: absolute; left: 26px; top: 24px; width: 20px; height: 20px; object-fit: contain; }
 .sky__copy { position: absolute; left: 20px; right: 20px; top: 319px; }
 .sky__h { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1.3; letter-spacing: -0.5px; color: #1e1e1e; max-width: 9ch; }
 .sky__p { margin: 6px 0 0 2px; font-family: var(--font-display); font-weight: 600; font-size: 15px; color: #757575; }
@@ -1466,7 +1466,7 @@ img { display: block; }
 .auth--board .ob__h { text-align: center; }
 .board__me { position: relative; flex: 0 0 42px; width: 42px; height: 42px; }
 .board__me > img:first-child { width: 42px; height: 42px; border-radius: 999px; object-fit: cover; object-position: 50% 25%; }
-.board__me-disc { position: absolute; left: 30px; top: 25px; width: 18px; height: 20px; object-fit: contain; }
+.board__me-disc { position: absolute; left: 26px; top: 24px; width: 20px; height: 20px; object-fit: contain; }
 .board__me--ghost { visibility: hidden; }
 .auth--board .ob__body { padding: 22px 0 0; gap: 0; }
 .board__search { position: relative; }
@@ -1610,7 +1610,7 @@ img { display: block; }
 .ob__cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* "Details" chips on the profile */
-.pdetails { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
+.pdetails { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; touch-action: pan-x; }
 .pdetails::-webkit-scrollbar { display: none; }
 .pdetails::after { content: ""; flex: 0 0 10px; }
 /* "collector" (1092:13997): 120 × 68, p 12, radius 16, icon 24 over a 14 semibold label */
@@ -1621,7 +1621,7 @@ img { display: block; }
 /* ── "Reading & watching", "Going to", "Mutuals" on the profile ───────── */
 /* "watching & reading" (1018:30280): 133-wide cards, cover 133 × 202 at radius 32 with the kind's tag
    top right, caption 14 semibold over 12 subtle at y 216; the last card adds */
-.pshelf { display: flex; align-items: flex-start; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; }
+.pshelf { display: flex; align-items: flex-start; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; touch-action: pan-x; }
 .pshelf::-webkit-scrollbar { display: none; }
 .pshelf::after { content: ""; flex: 0 0 10px; }
 .pbook { position: relative; flex: 0 0 133px; width: 133px; min-height: 248px; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; text-align: left; padding: 0; }

@@ -630,6 +630,8 @@ window.SyncOnboard = (() => {
   }
   async function run() {
     const a = api();
+    // ?reset on the URL signs out first, so a link can land on the very first screen
+    if (new URLSearchParams(location.search).has('reset')) { try { await a.signOut(); } catch (e) { /* fine */ } history.replaceState(null, '', location.pathname); }
     if (!(await a.session())) {
       let r;
       do { await stepName(false); r = await stepPhone(); } while (r === 'back');

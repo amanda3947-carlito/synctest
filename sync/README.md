@@ -46,6 +46,11 @@ sync/
 - **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. Realtime
   on `builds` lights the Builds dot and plays the toast on a match.
 
+## Starting over
+Open `sync/?reset` to sign out first and land on the first screen. Test numbers 555 000 0010 through
+0019 take the code 123456; a number that has finished onboarding goes straight to the feed, so pick
+an unused one for a full run (0010 and 0011 are used).
+
 ## Not yet
 
 Text and voice prompts in the essentials (coming), Builds and Chats tabs (nothing designed for them yet),

@@ -46,7 +46,11 @@ sync/
      trending and search once `giphyKey` is set in `config.js`). When a catalog comes up empty, and
      always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
      typographic card in its category colour.
-- **Editor** from your avatar: every piece above, plus rotation and cover (a redesign in context of the profile is coming).
+- **Your profile** from your avatar: the profile as people see it, with a pencil on each unit and the
+  cover, avatar, name and badge as taps; each opens that piece's editor (with a way back) and returns.
+  What is not on the profile yet sits under "Still to add"; the dots open the section list (Sign out
+  lives there). The taste badge is the frame's sticker on a glass disc drawn in CSS (white at 20%
+  over a blur of what's behind, two soft shadows), so it reads as glass on a photo.
 - **The feed** (":: home feed", 1098:27924): the aux wordmark, the name with its badge and a » into the
   profile. A reply or a note from the profile can be typed, a GIF, or a voice note recorded in the
   field ("on select audio": bars and seconds while recording, then play and send); a voice note goes

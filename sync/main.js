@@ -1741,7 +1741,7 @@
     const header = device.querySelector('.header__me img');
     if (me.avatar_path) { const u = await api.mediaUrls([me.avatar_path]); if (u[me.avatar_path]) header.src = u[me.avatar_path]; }
     device.querySelector('.header__me').addEventListener('click', async () => {
-      const updated = await window.SyncOnboard.edit();
+      const updated = await window.SyncOnboard.viewMine();
       if (updated && updated.avatar_path) { const u = await api.mediaUrls([updated.avatar_path]); if (u[updated.avatar_path]) header.src = u[updated.avatar_path]; }
     });
     let people;

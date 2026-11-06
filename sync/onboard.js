@@ -26,8 +26,8 @@ window.SyncOnboard = (() => {
   const coverOf = (id) => COVERS.find((c) => c.id === (COVER_ALIAS[id] || id)) || COVERS[0];
   // "What best describes you": one sticker, shown beside the name on the card
   const DESCRIBES = [
-    ['collector', 'Collector', 'assets/taste-collector.png'], ['nostalgic', 'Nostalgic', 'assets/taste-nostalgic.png'], ['audiophile', 'Audiophile', 'assets/stickers/headphones.png'],
-    ['classics', 'Classics', 'assets/stickers/guitar.png'], ['live_shows', 'Live Shows', 'assets/stickers/ticket-sm.png'], ['all_around', 'All Around', 'assets/stickers/note.png'],
+    ['collector', 'Collector', 'assets/stickers/taste-collector.png'], ['nostalgic', 'Nostalgic', 'assets/stickers/taste-nostalgic.png'], ['audiophile', 'Audiophile', 'assets/stickers/taste-audiophile.png'],
+    ['classics', 'Classics', 'assets/stickers/taste-classics.png'], ['live_shows', 'Live Shows', 'assets/stickers/taste-live_shows.png'], ['all_around', 'All Around', 'assets/stickers/taste-all_around.png'],
   ];
   // "Now for the basics"
   // "Now for the basics" (5 of 7): typed, or picked from a short list; Kids takes more than one
@@ -112,7 +112,7 @@ window.SyncOnboard = (() => {
   const draft = { name: '', last: '' };
 
   async function stepName(editing) {
-    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next',
+    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: !!editing,
       body: `<label class="ob__fld"><input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}"><span class="ob__fld-label">First name</span></label>
              <div><label class="ob__fld"><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><span class="ob__fld-label">Last name</span></label><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
     liveReady(() => $('#ob-name').value.trim().length > 0);
@@ -216,7 +216,7 @@ window.SyncOnboard = (() => {
       }).join('');
       setReady(slots.length > 0);
     };
-    frame({ step: editing ? 0 : 4, total: 7, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next',
+    frame({ step: editing ? 0 : 4, total: 7, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next', back: !!editing,
       body: `<p class="ob__cap ob__cap--lead">Drag to reorder. The first photo will be your profile photo</p>
              <div class="ob__grid" id="ob-grid"></div>
              <p class="ob__cap">Add up to 4 videos and photos. At least 1 of these has to be a video. This helps us with verification.</p>
@@ -294,7 +294,7 @@ window.SyncOnboard = (() => {
           <div class="ob__acc-body" hidden>${body}</div>
         </div>`;
     };
-    frame({ step: editing ? 0 : 5, total: 7, title: 'Now for the basics', cta: editing ? 'Save' : 'Next',
+    frame({ step: editing ? 0 : 5, total: 7, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: !!editing,
       body: `<div class="ob__acc">${BASICS.map(rowHTML).join('')}</div>` });
     setReady(true);
     const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = $(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); };
@@ -349,7 +349,7 @@ window.SyncOnboard = (() => {
       return `<button class="ob__ptile" type="button" data-prompt="${pr.key}"><span class="ob__ptile-label">${pr.label}</span></button>`;
     };
     const capHTML = () => { const left = Math.max(0, PROMPT_MIN - done()); return left ? `Add ${left} or more, and remember you can also include voice` : 'Tap a prompt to change it, and remember you can also include voice'; };
-    frame({ step: editing ? 0 : 6, total: 7, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', ready: done() >= PROMPT_MIN,
+    frame({ step: editing ? 0 : 6, total: 7, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', back: !!editing, ready: done() >= PROMPT_MIN,
       body: `<p class="ob__cap ob__cap--lead ob__cap--prompts">Select from the prompts below to add a response</p>
              <div class="ob__ptiles" id="ob-ptiles">${PROMPTS.map(tileHTML).join('')}</div>
              <p class="ob__cap ob__cap--prompts" id="ob-pcap">${capHTML()}</p>
@@ -425,7 +425,7 @@ window.SyncOnboard = (() => {
 
   async function stepDescribes(editing) {
     let pick = (me && me.taste && me.taste[0]) || null;
-    frame({ step: editing ? 0 : 7, total: 7, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', ready: !!pick,
+    frame({ step: editing ? 0 : 7, total: 7, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', back: !!editing, ready: !!pick,
       body: `<div class="ob__describe">${DESCRIBES.map(([k, label, src]) => `<button class="ob__dtile${k === pick ? ' is-on' : ''}" type="button" data-pick="${k}"><img src="${src}" alt="" draggable="false"><span>${esc(label)}</span></button>`).join('')}</div>
              <p class="ob__cap">This appears along with your profile avatar</p>` });
     panel().addEventListener('click', (e) => { const b = e.target.closest('[data-pick]'); if (!b) return; pick = b.dataset.pick; $$('[data-pick]').forEach((x) => x.classList.toggle('is-on', x === b)); setReady(true); });
@@ -738,17 +738,8 @@ window.SyncOnboard = (() => {
   }
 
   // the profile, for real: your own page as others see it, with a way back to the board
-  async function stepRealView() {
-    const prof = await api().myProfile();
-    const person = await api().hydrate(prof, prof.id);
-    freshPanel('auth--real').innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>
-      <div class="ob__realbar"><button class="ob__cta ob__cta--quiet" type="button" data-board>Make it yours</button><button class="ob__cta is-ready" type="button" data-next><span>Looks good</span><img src="assets/arrow-right.svg" width="15" height="15" alt="" class="ob__cta-arrow"></button></div>`;
-    root().hidden = false;
-    const real = panel().querySelector('.ob__real');
-    real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is your profile as people see it. Everything on it can change from your avatar, any time.</p>';
-    real.querySelectorAll('.pnav__btn, .preply__field, [data-action]:not([data-action="shelf"]):not([data-action="spot"]), .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
-    // the shelf and the spots add from a sheet that follows the mixtape's: search, reorder, delete, save
-    const openAdd = (kind) => new Promise((res) => {
+  // the shelf and the spots are edited in a sheet that follows the mixtape's: search, reorder, delete, save
+  const openAdd = (kind, person) => new Promise((res) => {
       const own = kind === 'shelf' ? person.profile.shelf.map((x) => ({ key: x.key, kind: x.kind, art: x.art, artist: x.meta || '', title: x.title })) : person.profile.spots.map((x) => ({ key: 'place:' + x.id, id: x.id, art: x.img, artist: x.meta, title: x.name }));
       const search = kind === 'shelf'
         ? async (q) => (await Promise.all(['film', 'show', 'book'].map((k) => api().searchShelf(k, q).catch(() => [])))).flat().slice(0, 10).map((h) => ({ key: h.key, kind: h.kind, art: h.art, artist: [({ film: 'Movie', show: 'Show', book: 'Book' })[h.kind], h.meta].filter(Boolean).join(' · '), title: h.title }))
@@ -763,15 +754,71 @@ window.SyncOnboard = (() => {
       }, kind === 'shelf'
         ? { title: 'Watching and reading', sub: 'Search, reorder and add titles', sendLabel: 'Save', addLimit: Infinity, kind: 'shelf', search, placeholder: 'Search movies, shows and books' }
         : { title: 'Your spots', sub: 'Search, reorder and add places', sendLabel: 'Save', addLimit: Infinity, kind: 'place', search, placeholder: 'Search for a spot' });
-    });
+  });
+  async function stepRealView() {
+    const prof = await api().myProfile();
+    const person = await api().hydrate(prof, prof.id);
+    freshPanel('auth--real').innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>
+      <div class="ob__realbar"><button class="ob__cta ob__cta--quiet" type="button" data-board>Make it yours</button><button class="ob__cta is-ready" type="button" data-next><span>Looks good</span><img src="assets/arrow-right.svg" width="15" height="15" alt="" class="ob__cta-arrow"></button></div>`;
+    root().hidden = false;
+    const real = panel().querySelector('.ob__real');
+    real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is your profile as people see it. Everything on it can change from your avatar, any time.</p>';
+    real.querySelectorAll('.pnav__btn, .preply__field, [data-action]:not([data-action="shelf"]):not([data-action="spot"]), .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
     return new Promise((res) => {
       panel().addEventListener('click', async (e) => {
         if (e.target.closest('[data-board]')) { res('board'); return; }
         if (e.target.closest('[data-next]')) { res('next'); return; }
         const act = e.target.closest('[data-action="shelf"], [data-action="spot"]');
-        if (act) { if (await openAdd(act.dataset.action)) res('refresh'); }
+        if (act) { if (await openAdd(act.dataset.action, person)) res('refresh'); }
       });
     });
+  }
+
+  // ═══════════════ your profile, as people see it, with every piece a tap from its editor ═══════════════
+  // Tapping your avatar opens this instead of a list of sections: the cover, the avatar, your name and
+  // the badge beside it, then each unit, each with a small pencil. What's not on the profile yet is a
+  // row at the end. The dots open the old list (where Sign out lives); the caret goes back to the feed.
+  const PENCIL = '<svg viewBox="0 0 256 256" aria-hidden="true"><path fill="#1e1e1e" d="M227.31 73.37 182.63 28.68a16 16 0 0 0-22.63 0L36.69 152A15.86 15.86 0 0 0 32 163.31V208a16 16 0 0 0 16 16h44.69a15.86 15.86 0 0 0 11.31-4.69L227.31 96a16 16 0 0 0 0-22.63ZM92.69 208H48v-44.69l88-88L180.69 120ZM192 108.68 147.31 64l24-24L216 84.68Z"/></svg>';
+  const UNIT_EDIT = { 'Intro': 'prompts', 'Rotation': 'rotation', 'Details': 'basics', 'Vibes': 'board', 'Lyrics to live by': 'prompts', 'Deal-breakers': 'prompts', 'Current obsession': 'prompts', 'Watching and Reading': 'shelf', 'Spots': 'spot' };
+  const UNIT_ORDER = [['Intro', 'prompts'], ['Rotation', 'rotation'], ['Details', 'basics'], ['Vibes', 'board'], ['Lyrics to live by', 'prompts'], ['Watching and Reading', 'shelf'], ['Spots', 'spot']];
+  async function viewMine() {
+    const a = api();
+    while (true) {
+      await loadMe();
+      const prof = await a.myProfile();
+      const person = await a.hydrate(prof, prof.id);
+      freshPanel('auth--real auth--mine').innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>`;
+      root().hidden = false;
+      const real = panel().querySelector('.ob__real');
+      real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is you, as people see you. Tap anything to change it.</p>';
+      real.querySelectorAll('.preply__field, [data-action="not-interested"], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
+      const chip = `<button class="punit__edit" type="button" aria-label="Edit">${PENCIL}</button>`;
+      real.querySelectorAll('.punit').forEach((u) => { const t = u.querySelector('.punit__title'); const key = t && UNIT_EDIT[t.textContent.trim()]; if (!key) return; u.dataset.edit = key; t.insertAdjacentHTML('beforeend', chip); });
+      const tag = (sel, key) => { const el = real.querySelector(sel); if (el) el.dataset.edit = key; };
+      tag('.pcover', 'cover'); tag('.pavatar', 'photos'); tag('.pavatar-disc', 'describes'); tag('.pnav__title', 'name');
+      const have = new Set([...real.querySelectorAll('.punit__title')].map((t) => t.textContent.trim()));
+      const missing = UNIT_ORDER.filter(([n]) => !have.has(n));
+      if (missing.length) real.querySelector('.pcta').insertAdjacentHTML('beforebegin', `<section class="punit"><p class="punit__title">Still to add</p><div class="ob__addlist">${missing.map(([n, k]) => `<button class="ob__addrow" type="button" data-edit="${k}"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="20" height="20" alt=""></span><span class="t-sub">${esc(n)}</span></button>`).join('')}</div></section>`);
+      const choice = await new Promise((res) => {
+        const h = (e) => {
+          if (e.target.closest('.profile__back')) { done('done'); return; }
+          if (e.target.closest('.pnav__btn')) { done('menu'); return; }
+          const act = e.target.closest('[data-action="shelf"], [data-action="spot"]');
+          if (act) { done(act.dataset.action); return; }
+          const ed = e.target.closest('[data-edit]');
+          if (ed) done(ed.dataset.edit);
+        };
+        const done = (v) => { panel().removeEventListener('click', h); res(v); };
+        panel().addEventListener('click', h);
+      });
+      if (choice === 'done') break;
+      if (choice === 'menu') { await edit(); continue; }
+      if (choice === 'shelf' || choice === 'spot') { await openAdd(choice, person); continue; }
+      const sec = SECTIONS.find(([k]) => k === choice);
+      if (sec) await sec[2]();
+    }
+    root().hidden = true;
+    return me;
   }
 
   // ═══════════════ the rest of the editor's pieces (kept from the first pass) ═══════════════
@@ -792,7 +839,7 @@ window.SyncOnboard = (() => {
   }
   async function stepCoverPick(editing) {
     let pick = coverOf(me && me.cover).id;
-    frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', ready: true,
+    frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', back: !!editing, ready: true,
       body: `<p class="punit__title ob__covers-cap">Choose a cover image</p>
              <div class="ob__covergrid">${COVERS.map((c) => `<button class="ob__coverpick${c.id === pick ? ' is-on' : ''}" type="button" data-cover="${c.id}" aria-label="${c.id}" aria-pressed="${c.id === pick}"><img src="${c.src}" alt="" draggable="false"><span class="ob__coverpick-grad"></span></button>`).join('')}</div>` });
     panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
@@ -842,15 +889,17 @@ window.SyncOnboard = (() => {
     return me;
   }
 
+  const SECTIONS = [
+    ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
+    ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
+    ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', () => stepCoverPick(true)],
+  ];
+  // the list of sections, behind the dots on your profile (Sign out lives here); ?go=<step> runs one step then shows your profile
   async function edit(initial) {
     const a = api();
     await loadMe();
-    const sections = [
-      ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
-      ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
-      ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', () => stepCoverPick(true)],
-    ];
-    if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } }
+    const sections = SECTIONS;
+    if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } return viewMine(); }
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true,
         body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button></div>` });
@@ -886,5 +935,5 @@ window.SyncOnboard = (() => {
     r.addEventListener('focusin', (e) => { if (!isField(e.target)) return; clearTimeout(hideTimer); r.classList.add('has-kb'); });
     r.addEventListener('focusout', () => { clearTimeout(hideTimer); hideTimer = setTimeout(() => { if (!isField(document.activeElement) || !r.contains(document.activeElement)) r.classList.remove('has-kb'); }, 160); });
   }
-  return { init(d) { deps = d; initKeyboard(); }, run, edit, stickerFor, get me() { return me; } };
+  return { init(d) { deps = d; initKeyboard(); }, run, edit, viewMine, stickerFor, get me() { return me; } };
 })();

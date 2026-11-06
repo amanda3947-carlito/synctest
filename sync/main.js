@@ -200,7 +200,7 @@
       </div>`).join('');
     const spotCards = p.spots.map((s) => `
       <div class="pspot">
-        <div class="pspot__img"><img src="${s.img || 'assets/spot-1.png'}" alt="">${s.shared ? '<span class="pspot__you">you too</span>' : ''}</div>
+        <div class="pspot__img${s.img ? '' : ' pspot__img--pin'}">${s.img ? `<img src="${s.img}" alt="">` : '<img class="pspot__pin" src="assets/details/map-pin-line.svg" alt="">'}${s.shared ? '<span class="pspot__you">you too</span>' : ''}</div>
         <div class="pspot__cap">
           <p class="t-sub">${esc(s.name)}</p>
           <p class="t-body-sm">${esc(s.meta)}</p>

@@ -89,7 +89,7 @@ window.SyncAPI = (() => {
       const d = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=10&country=us`).then((r) => r.json());
       return d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }));
     }
-    if (kind === 'place') return (await searchPlaces(term)).map((x) => ({ kind: 'place', key: 'place:' + x.id, id: x.id, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' \u2022 '), art: null }));
+    if (kind === 'place') return (await searchPlaces(term)).map(placeHit);
     if (kind === 'gif') return searchGifs(term);
     return searchShelf(kind, term);
   }
@@ -99,7 +99,7 @@ window.SyncAPI = (() => {
     const tracks = fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=5&country=us`).then((r) => r.json())
       .then((d) => d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }))).catch(() => []);
     const [t, f, s, b, p] = await Promise.all([tracks, searchShelf('film', term).catch(() => []), searchShelf('show', term).catch(() => []), searchShelf('book', term).catch(() => []), searchPlaces(term).catch(() => [])]);
-    const places = p.map((x) => ({ kind: 'place', key: 'place:' + x.id, id: x.id, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' • '), art: null }));
+    const places = p.map(placeHit);
     // interleave so no one kind hogs the list
     const buckets = [t.slice(0, 4), places.slice(0, 3), f.slice(0, 3), s.slice(0, 3), b.slice(0, 3)];
     const out = [];
@@ -165,23 +165,77 @@ window.SyncAPI = (() => {
     return data;
   }
   // orbit
-  async function searchPlaces(q) {
-    const { data, error } = await sb.from('places').select('id,name,kind,neighborhood').ilike('name', `%${q.replace(/[%_]/g, '')}%`).order('name').limit(8);
-    if (error) throw error;
-    return data || [];
+  // ── spots: OpenStreetMap through Photon (free, no key), biased to where you are (Brooklyn until the
+  //    phone says otherwise), plus the spots people here have already added. A pick is only written to
+  //    `places` when you save, so searching never litters the table.
+  const PLACE_KIND = { bar: 'Bar', pub: 'Bar', biergarten: 'Beer garden', nightclub: 'Club', restaurant: 'Restaurant', fast_food: 'Restaurant', cafe: 'Café', coffee: 'Coffee', ice_cream: 'Ice cream', bakery: 'Bakery', deli: 'Deli', cinema: 'Cinema', theatre: 'Theatre', music_venue: 'Venue', arts_centre: 'Arts center', events_venue: 'Venue', library: 'Library', park: 'Park', garden: 'Garden', nature_reserve: 'Park', playground: 'Park', pitch: 'Field', stadium: 'Stadium', beach: 'Beach', marina: 'Marina', pier: 'Pier', museum: 'Museum', gallery: 'Gallery', artwork: 'Art', attraction: 'Landmark', viewpoint: 'Viewpoint', hotel: 'Hotel', books: 'Bookstore', music: 'Record store', records: 'Record store', clothes: 'Shop', second_hand: 'Vintage', supermarket: 'Market', marketplace: 'Market', place_of_worship: 'Church', university: 'Campus', college: 'Campus', sports_centre: 'Gym', fitness_centre: 'Gym', dance: 'Dance', swimming_pool: 'Pool', bowling_alley: 'Bowling', escape_game: 'Escape room', amusement_arcade: 'Arcade', zoo: 'Zoo', aquarium: 'Aquarium', studio: 'Studio', community_centre: 'Community center', food_court: 'Food hall' };
+  const PLACE_TAGS = ['amenity', 'shop', 'leisure', 'tourism', 'historic'].map((t) => 'osm_tag=' + t).join('&');
+  let bias = { lat: 40.68, lon: -73.97 };
+  let biasAsked = false;
+  const askBias = () => {
+    if (biasAsked || typeof navigator === 'undefined' || !navigator.geolocation) return;
+    biasAsked = true;
+    try { navigator.geolocation.getCurrentPosition((pos) => { bias = { lat: pos.coords.latitude, lon: pos.coords.longitude }; }, () => {}, { timeout: 4000, maximumAge: 600000 }); } catch (e) { /* no location: Brooklyn it is */ }
+  };
+  const placeKind = (p) => PLACE_KIND[p.osm_value] || (p.osm_key === 'shop' ? 'Store' : String(p.osm_value || 'Spot').replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase()));
+  let placeAbort = null;
+  let photonAt = 0;
+  async function photon(term) {
+    if (placeAbort) placeAbort.abort();
+    const ctl = new AbortController(); placeAbort = ctl;
+    const wait = Math.max(0, photonAt + 450 - Date.now());
+    if (wait) await new Promise((r) => setTimeout(r, wait));
+    if (ctl.signal.aborted) return [];
+    photonAt = Date.now();
+    // near you first (about 80 km around), the whole map only when that finds nothing
+    const near = 0.75;
+    const bbox = [bias.lon - near, bias.lat - near * 0.75, bias.lon + near, bias.lat + near * 0.75].map((n) => n.toFixed(3)).join(',');
+    const url = (box) => `https://photon.komoot.io/api/?q=${encodeURIComponent(term)}&limit=8&lang=en&lat=${bias.lat}&lon=${bias.lon}&location_bias_scale=0.3&zoom=14&${PLACE_TAGS}${box ? '&bbox=' + box : ''}`;
+    let r = await fetch(url(bbox), { signal: ctl.signal });
+    let d = r.ok ? await r.json() : {};
+    if (!(d.features || []).length && !ctl.signal.aborted) { r = await fetch(url(''), { signal: ctl.signal }); d = r.ok ? await r.json() : {}; }
+    return (d.features || []).filter((f) => f.properties && f.properties.name).map((f) => {
+      const p = f.properties;
+      const [lng, lat] = f.geometry.coordinates;
+      return { id: null, osm: p.osm_type + p.osm_id, name: p.name, kind: placeKind(p), neighborhood: p.locality || p.district || p.city || p.state || null, lat, lng };
+    });
   }
-  async function addPlace({ name, kind, neighborhood }) {
+  async function searchPlaces(q) {
+    askBias();
+    const term = q.trim();
+    const own = sb.from('places').select('id,name,kind,neighborhood,lat,lng').ilike('name', `%${term.replace(/[%_]/g, '')}%`).order('name').limit(4).then(({ data }) => data || []).catch(() => []);
+    const osm = photon(term).catch(() => []);
+    const [mine, found] = await Promise.all([own, osm]);
+    const seen = new Set(mine.map((x) => x.name.toLowerCase() + '|' + (x.neighborhood || '').toLowerCase()));
+    return mine.concat(found.filter((x) => { const k = x.name.toLowerCase() + '|' + (x.neighborhood || '').toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })).slice(0, 8);
+  }
+  const placeHit = (x) => ({ kind: 'place', key: 'place:' + (x.id || x.osm), id: x.id, place: x, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' \u2022 '), art: null });
+  async function addPlace({ name, kind, neighborhood, lat, lng }) {
     const id = await userId();
-    const { data, error } = await sb.from('places').upsert({ name, kind, neighborhood, created_by: id }, { onConflict: 'name,neighborhood' }).select('id,name,kind,neighborhood').single();
+    const row = { name, kind: kind || null, neighborhood: neighborhood || null, created_by: id };
+    if (lat != null && lng != null) { row.lat = lat; row.lng = lng; }
+    const { data, error } = await sb.from('places').upsert(row, { onConflict: 'name,neighborhood' }).select('id,name,kind,neighborhood').single();
     if (error) throw error;
     return data;
+  }
+  // a saved spot is a `places` row; a fresh pick from the map becomes one here
+  const isUuid = (v) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(v);
+  async function placeIds(list) {
+    const ids = [];
+    for (const it of list) {
+      if (typeof it === 'string') { if (it) ids.push(it); }
+      else if (it && it.id && (isUuid(it.id) || !it.place)) ids.push(it.id);
+      else if (it && it.place) ids.push((await addPlace(it.place)).id);
+    }
+    return [...new Set(ids)];
   }
   async function myPlaces() {
     const id = await userId();
     const { data } = await sb.from('profile_places').select('position,places(id,name,kind,neighborhood)').eq('profile_id', id).order('position');
     return (data || []).filter((r) => r.places).map((r) => r.places);
   }
-  async function setMyPlaces(ids) {
+  async function setMyPlaces(list) {
+    const ids = await placeIds(list);
     const id = await userId();
     await sb.from('profile_places').delete().eq('profile_id', id);
     if (ids.length) { const { error } = await sb.from('profile_places').insert(ids.map((place_id, position) => ({ profile_id: id, place_id, position }))); if (error) throw error; }

@@ -726,7 +726,7 @@ window.SyncOnboard = (() => {
       b.textContent = 'Saving your shelf…';
       await api().setMyShelf(folders.shelf.map((s) => ({ kind: s.kind, key: s.key, title: s.title, meta: s.meta, art: s.art })));
       b.textContent = 'Saving your spots…';
-      await api().setMyPlaces(folders.spots.map((p) => p.id));
+      await api().setMyPlaces(folders.spots);
       const newVibes = folders.vibes.filter((v) => v.file);
       const paths = folders.vibes.filter((v) => v.saved || v.kind === 'gif').map((v) => v.path || v.art);
       for (let i = 0; i < newVibes.length; i++) { b.textContent = `Uploading vibe ${i + 1} of ${newVibes.length}…`; paths.push(await api().uploadStyle(newVibes[i].file)); }
@@ -752,12 +752,12 @@ window.SyncOnboard = (() => {
       const own = kind === 'shelf' ? person.profile.shelf.map((x) => ({ key: x.key, kind: x.kind, art: x.art, artist: x.meta || '', title: x.title })) : person.profile.spots.map((x) => ({ key: 'place:' + x.id, id: x.id, art: x.img, artist: x.meta, title: x.name }));
       const search = kind === 'shelf'
         ? async (q) => (await Promise.all(['film', 'show', 'book'].map((k) => api().searchShelf(k, q).catch(() => [])))).flat().slice(0, 10).map((h) => ({ key: h.key, kind: h.kind, art: h.art, artist: [({ film: 'Movie', show: 'Show', book: 'Book' })[h.kind], h.meta].filter(Boolean).join(' · '), title: h.title }))
-        : async (q) => (await api().searchKind('place', q)).map((h) => ({ key: h.key, id: h.id, art: null, artist: h.meta || 'Spot', title: h.title }));
+        : async (q) => (await api().searchKind('place', q)).map((h) => ({ key: h.key, id: h.id, place: h.place, art: null, artist: h.meta || 'Spot', title: h.title }));
       root().hidden = true;
       deps.openSheet({ name: me.name, sheetItems: own }, () => { root().hidden = false; res(false); }, async (items) => {
         try {
           if (kind === 'shelf') await api().setMyShelf(items.map((t) => ({ kind: t.kind, key: t.key, title: t.title, meta: (t.artist || '').replace(/^(Movie|Show|Book)( · )?/, '') || null, art: t.art })));
-          else await api().setMyPlaces(items.map((t) => t.id));
+          else await api().setMyPlaces(items);
           root().hidden = false; res(true);
         } catch (e) { root().hidden = false; deps.notice(deps.errText(e)); res(false); }
       }, kind === 'shelf'

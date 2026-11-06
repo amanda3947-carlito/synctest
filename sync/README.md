@@ -39,8 +39,10 @@ sync/
      Spots, which are squares. Ten on the ring is the cap. Music needs three tracks before the board
      lets you on; the folder counts down. Then your profile, for real, with a way back.
      Sources: tracks and books from Apple's catalog; movies and shows from Wikipedia's search (Apple's
-     film and show search answers almost nothing now), posters included; spots from the `places`
-     table. The GIFs tile opens a keyboard to browse and narrow (the prototype's reel, or Giphy's
+     film and show search answers almost nothing now), posters included; spots from OpenStreetMap
+     through Photon (free, no key; the search is biased to where the phone is, Brooklyn until it
+     says otherwise, and bounded to about 80 km before it tries the whole map), merged with the
+     spots people here have already added. A picked spot only becomes a `places` row when you save. The GIFs tile opens a keyboard to browse and narrow (the prototype's reel, or Giphy's
      trending and search once `giphyKey` is set in `config.js`). When a catalog comes up empty, and
      always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
      typographic card in its category colour.

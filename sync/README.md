@@ -18,8 +18,9 @@ sync/
 ## What's live
 
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
-  1. *Essentials, 1 of 7 to 7 of 7*: name, number and code, birthday, photos (2 × 2, drag to reorder,
-     first is the card), the basics (an accordion: occupation, hometown, location and height are typed;
+  1. *Essentials, 1 of 7 to 7 of 7*: name, number and code (a focused pill goes white with its label on
+     the border), birthday (MM / DD / YYYY with a calendar picker: month and year menus, a 7-wide grid),
+     photos (2 × 2, drag to reorder, first is the card, × top right), the basics (an accordion: occupation, hometown, location and height are typed;
      education, activity and smoking are one pick; kids takes several), the prompts ("Let's learn more
      about you": Intro, Lyrics to Live By, Deal-breakers, Current Obsession as four tiles; tapping one
      opens a card over the keyboard with the emoji row and a field; the waveform records a voice note

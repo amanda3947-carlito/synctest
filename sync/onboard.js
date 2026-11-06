@@ -100,8 +100,8 @@ window.SyncOnboard = (() => {
 
   async function stepName(editing) {
     frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next',
-      body: `<input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}">
-             <div><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
+      body: `<label class="ob__fld"><input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}"><span class="ob__fld-label">First name</span></label>
+             <div><label class="ob__fld"><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><span class="ob__fld-label">Last name</span></label><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
     liveReady(() => $('#ob-name').value.trim().length > 0);
     return step(async () => {
       const name = $('#ob-name').value.trim(), last = $('#ob-last').value.trim();
@@ -118,7 +118,7 @@ window.SyncOnboard = (() => {
     let phone = '';
     while (true) {
       frame({ step: 2, total: 7, title: 'What’s your phone number?', cta: 'Next', back: true,
-        body: `<div><input class="ob__input" id="ob-phone" type="tel" inputmode="tel" placeholder="+1" autocomplete="tel" value="${esc(phone)}"><p class="ob__cap">Your phone number will never be shared</p></div>` });
+        body: `<div><label class="ob__fld"><input class="ob__input" id="ob-phone" type="tel" inputmode="tel" placeholder="+1" autocomplete="tel" value="${esc(phone || '+1 ')}"><span class="ob__fld-label">Phone number</span></label><p class="ob__cap">Your phone number will never be shared</p></div>` });
       liveReady(() => $('#ob-phone').value.replace(/\D/g, '').length >= 10);
       const r = await step(async () => {
         phone = $('#ob-phone').value;
@@ -143,11 +143,43 @@ window.SyncOnboard = (() => {
   }
 
   async function stepBirthday(editing) {
+    const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let value = (me && me.birthdate) || '';   // ISO
+    const fmt = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${m} / ${d} / ${y}`; };
+    const thisYear = new Date().getFullYear();
+    let view = value ? { y: +value.slice(0, 4), m: +value.slice(5, 7) - 1 } : { y: thisYear - 25, m: new Date().getMonth() };
     frame({ step: editing ? 0 : 3, total: 7, title: 'What’s your birthday?', cta: editing ? 'Save' : 'Next', back: !editing,
-      body: `<div><input class="ob__input" id="ob-bday" type="date" value="${esc(me ? me.birthdate : '')}"><p class="ob__cap">This information is used only for helping you find the right people</p></div>` });
-    liveReady(() => !!$('#ob-bday').value);
+      body: `<div class="ob__datewrap">
+               <button class="ob__input ob__dateb${value ? ' has-value' : ''}" type="button" id="ob-bday-btn" aria-haspopup="dialog" aria-expanded="false"><span id="ob-bday-text">${value ? fmt(value) : 'MM / DD / YYYY'}</span><svg class="ob__date-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg></button>
+               <p class="ob__cap">This information is used only for helping you find the right people</p>
+               <div class="ob__cal" id="ob-cal" role="dialog" aria-label="Pick your birthday" hidden></div>
+             </div>` });
+    const btn = $('#ob-bday-btn'), cal = $('#ob-cal'), text = $('#ob-bday-text');
+    const years = []; for (let y = thisYear - 18; y >= thisYear - 100; y--) years.push(y);
+    const drawCal = () => {
+      const first = new Date(view.y, view.m, 1); const lead = first.getDay(); const days = new Date(view.y, view.m + 1, 0).getDate(); const prevDays = new Date(view.y, view.m, 0).getDate();
+      const cells = [];
+      for (let i = lead - 1; i >= 0; i--) cells.push(`<span class="ob__cal-day is-out">${prevDays - i}</span>`);
+      for (let d = 1; d <= days; d++) { const iso = `${view.y}-${String(view.m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`; cells.push(`<button class="ob__cal-day${iso === value ? ' is-on' : ''}" type="button" data-day="${iso}">${d}</button>`); }
+      for (let d = 1; cells.length % 7; d++) cells.push(`<span class="ob__cal-day is-out">${d}</span>`);
+      cal.innerHTML = `<div class="ob__cal-head"><button class="ob__cal-nav" type="button" data-nav="-1" aria-label="Previous month"><img src="assets/caret-left-dark.svg" width="20" height="20" alt=""></button>
+          <select class="ob__cal-sel" data-sel="m" aria-label="Month">${MONTHS.map((n, i) => `<option value="${i}"${i === view.m ? ' selected' : ''}>${n}</option>`).join('')}</select>
+          <select class="ob__cal-sel" data-sel="y" aria-label="Year">${years.map((y) => `<option value="${y}"${y === view.y ? ' selected' : ''}>${y}</option>`).join('')}</select>
+          <button class="ob__cal-nav" type="button" data-nav="1" aria-label="Next month"><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="transform:scaleX(-1)"></button></div>
+        <div class="ob__cal-grid">${['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => `<span class="ob__cal-dow">${d}</span>`).join('')}${cells.join('')}</div>`;
+    };
+    const openCal = () => { drawCal(); cal.hidden = false; btn.setAttribute('aria-expanded', 'true'); };
+    const closeCal = () => { cal.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+    panel().addEventListener('click', (e) => {
+      if (e.target.closest('#ob-bday-btn')) { cal.hidden ? openCal() : closeCal(); return; }
+      const nav = e.target.closest('[data-nav]'); if (nav) { view.m += +nav.dataset.nav; if (view.m < 0) { view.m = 11; view.y -= 1; } if (view.m > 11) { view.m = 0; view.y += 1; } drawCal(); return; }
+      const day = e.target.closest('[data-day]'); if (day) { value = day.dataset.day; text.textContent = fmt(value); btn.classList.add('has-value'); setReady(true); setTimeout(closeCal, 120); return; }
+      if (!cal.hidden && !e.target.closest('#ob-cal')) closeCal();
+    });
+    panel().addEventListener('change', (e) => { const sel = e.target.closest('[data-sel]'); if (!sel) return; if (sel.dataset.sel === 'm') view.m = +sel.value; else view.y = +sel.value; drawCal(); });
+    setReady(!!value);
     return step(async () => {
-      const birthdate = $('#ob-bday').value;
+      const birthdate = value;
       if (!birthdate) { err('Your birthday, so we know you’re 18.'); return false; }
       try {
         me = me ? await api().updateProfile({ birthdate }) : await api().createProfile({ name: draft.name, last_name: draft.last || null, birthdate });

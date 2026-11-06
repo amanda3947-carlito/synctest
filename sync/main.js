@@ -99,17 +99,13 @@
   ];
 
   // Header images (abstract, musical). The frame's own is first; static for now, picking comes with onboarding.
+  // the covers (":: making it you._cover selection", 1100:31538), in the frame's order; older ids map onto them
   const COVERS = [
-    { id: 'reeded', src: 'assets/cover-damon.png' },
-    { id: 'holo', src: 'assets/cover-opt-1.jpg' },
-    { id: 'grain', src: 'assets/cover-opt-2.jpg' },
-    { id: 'cyan', src: 'assets/cover-opt-3.jpg' },
-    { id: 'vinyl', src: 'assets/cover-opt-4.jpg' },
-    { id: 'iridescent', src: 'assets/cover-opt-5.jpg' },
-    { id: 'reeded-warm', src: 'assets/cover-opt-6.jpg' },
-    { id: 'waveform', src: 'assets/cover-opt-7.jpg' },
-    { id: 'dusk', src: 'assets/cover-opt-8.jpg' },
+    { id: 'vinyl', src: 'assets/covers/1.jpg' }, { id: 'waveform', src: 'assets/covers/2.jpg' }, { id: 'holo', src: 'assets/covers/3.jpg' }, { id: 'reeded-warm', src: 'assets/covers/4.jpg' },
+    { id: 'stripes', src: 'assets/covers/5.jpg' }, { id: 'discs', src: 'assets/covers/6.jpg' }, { id: 'reeded', src: 'assets/covers/7.jpg' }, { id: 'rain', src: 'assets/covers/8.jpg' },
   ];
+  const COVER_ALIAS = { iridescent: 'holo', grain: 'rain', cyan: 'rain', dusk: 'rain' };
+  const coverOf = (id) => COVERS.find((c) => c.id === (COVER_ALIAS[id] || id)) || COVERS[0];
 
   // Profile content. Damon is the Figma frame verbatim; Olivia and Theo reuse
   // his Style / Lyrics / Taste / Spots as placeholders until they get their own.
@@ -125,9 +121,9 @@
     ],
   };
   const PROFILES = {
-    Damon: { cover: 'reeded', avatar: 'assets/avatar-damon.png', ...DAMON_SECTIONS },
-    Olivia: { cover: 'iridescent', avatar: 'assets/imani-4.png', ...DAMON_SECTIONS },
-    Theo: { cover: 'vinyl', avatar: 'assets/theo-4.png', ...DAMON_SECTIONS },
+    Damon: { cover: 'vinyl', avatar: 'assets/avatar-damon.png', ...DAMON_SECTIONS },
+    Olivia: { cover: 'holo', avatar: 'assets/imani-4.png', ...DAMON_SECTIONS },
+    Theo: { cover: 'waveform', avatar: 'assets/theo-4.png', ...DAMON_SECTIONS },
   };
 
   // Taste stickers: two are clean exports, two are crops of the sticker sheets (as in the frame)
@@ -141,8 +137,8 @@
     all_around: { label: 'All Around', art: `<img class="ptile__art" src="assets/stickers/note.png" width="51" height="51" alt="" style="left:7.5px;top:4px">` },
   };
   // "the basics" chips on the profile ("Details", 1087:10751)
-  const DETAIL_ICONS = { occupation: 'briefcase', education: 'graduation-cap', height: 'ruler', activity: 'barbell', hometown: 'house-line', location: 'map-pin-line', kids: 'baby', smoking: 'cigarette' };
-  const DETAIL_ORDER = ['occupation', 'education', 'height', 'activity', 'hometown', 'location', 'kids', 'smoking'];
+  const DETAIL_ICONS = { occupation: 'briefcase', education: 'graduation-cap', height: 'ruler', activity: 'barbell', hometown: 'house-line', location: 'map-pin-line', kids: 'baby', smoking: 'cigarette', drinking: 'wine' };
+  const DETAIL_ORDER = ['occupation', 'education', 'height', 'activity', 'hometown', 'location', 'kids', 'smoking', 'drinking'];
 
   const PLAY_BTN = (label) => `<button class="pplay" type="button" aria-label="Play ${label}" aria-pressed="false"><img class="ico-play" src="assets/play-16.svg" width="16" height="16" alt=""><svg class="ico-pause" viewBox="0 0 256 256" aria-hidden="true"><path fill="#000" d="M216 48v160a16 16 0 0 1-16 16h-40a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h40a16 16 0 0 1 16 16ZM96 32H56a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h40a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16Z"/></svg></button>`;
 
@@ -168,7 +164,7 @@
     p.style = (p.style || []).filter(Boolean);
     p.spots = p.spots || [];
     p.intro = p.intro || {}; p.lyric = p.lyric || {};
-    const cover = COVERS.find((c) => c.id === p.cover) || COVERS[0];
+    const cover = coverOf(p.cover);
     const statusbar = `
       <div class="statusbar" aria-hidden="true">
         <div class="statusbar__time"><span>9:41</span></div>
@@ -364,6 +360,8 @@
   let sheetOnSend = null;
   let sheetOnAgree = null;
   let sheetMin = 0;
+  let sheetKind = 'track';
+  let sheetSearch = null;
 
   // the working tracklist: a fresh copy of what's on the table every time the sheet opens
   // (the person's rotation, or the live build when one is in flight)
@@ -393,17 +391,17 @@
   const trackRowHTML = (t) => `
       <div class="srow${t.added ? ' srow--added' : ''}" data-title="${esc(t.title)}">
         ${t.added ? '<span class="srow__badge">Your add</span>' : ''}
-        <div class="srow__art"><img src="${t.art}" alt="" draggable="false"></div>
+        <div class="srow__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="" draggable="false">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
         <div class="srow__details">
           <p class="t-body-sm">${esc(t.artist)}</p>
           <p class="t-sub">${esc(t.title)}</p>
         </div>
-        <div class="srow__action">${PLAY_BTN(esc(t.title))}</div>
+        <div class="srow__action">${sheetKind === 'track' ? PLAY_BTN(esc(t.title)) : ''}</div>
         <button class="srow__handle" type="button" aria-label="Drag to reorder ${esc(t.title)}" tabindex="-1"><img src="assets/drag-handle.svg" width="12" height="5.5" alt="" draggable="false"></button>
       </div>`;
   const resultRowHTML = (t, i, disabled) => `
       <div class="sres" data-index="${i}">
-        <div class="sres__art"><img src="${t.art}" alt=""></div>
+        <div class="sres__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
         <div class="sres__body">
           <div class="sres__details">
             <p class="t-body-sm">${esc(t.artist)}</p>
@@ -432,12 +430,12 @@
   const BLANK_NONE = () => blankHTML('Nothing matched that', 'Try another song or artist.');
   const showResults = (tracks, note) => {
     shownResults = tracks;
-    const inList = new Set(mixtapeOf(sheetPerson).map((t) => t.artist + '|' + t.title));
+    const inList = new Set(mixtapeOf(sheetPerson).flatMap((t) => [t.artist + '|' + t.title, t.key].filter(Boolean)));
     if (!tracks.length) {
       sheetResults.innerHTML = note === 'start' ? BLANK_START() : note === 'none' ? BLANK_NONE() : '';
       return;
     }
-    sheetResults.innerHTML = tracks.map((t, i) => resultRowHTML(t, i, sheetPerson.added || inList.has(t.artist + '|' + t.title))).join('')
+    sheetResults.innerHTML = tracks.map((t, i) => resultRowHTML(t, i, sheetPerson.added || inList.has(t.artist + '|' + t.title) || (t.key && inList.has(t.key)))).join('')
       + (note && note !== 'start' && note !== 'none' ? `<p class="sheet__empty">${esc(note)}</p>` : '');
   };
   const localHits = (q) => CATALOG.filter((t) => !q || (t.artist + ' ' + t.title).toLowerCase().includes(q));
@@ -461,7 +459,7 @@
     if (blank) blank.classList.add('is-loading');
     searchTimer = setTimeout(async () => {
       let tracks;
-      try { tracks = await liveSearch(q); } catch (e) { tracks = localHits(q); }
+      try { tracks = sheetSearch ? await sheetSearch(q) : await liveSearch(q); } catch (e) { tracks = sheetSearch ? [] : localHits(q); }
       if (seq !== searchSeq) return;
       showResults(tracks, tracks.length ? '' : 'none');
     }, 200);
@@ -483,6 +481,9 @@
     sheetOnSend = onSend;
     sheetOnAgree = opts.onAgree || null;
     sheetMin = opts.minItems || 0;
+    sheetKind = opts.kind || 'track';
+    sheetSearch = opts.search || null;
+    sheetInput.placeholder = opts.placeholder || 'Search for a track to make it a mixtape';
     person.addLimit = opts.addLimit || 1;
     resetMixtape(person);
     sheet.querySelector('.sheet__title').textContent = opts.title || 'Make it a mixtape';
@@ -835,6 +836,45 @@
     const coarse = () => window.matchMedia('(pointer: coarse)').matches;
     let session = null;      // { unit, punit, scope, fieldBtn, draftHost, prompt, title, onSend, onClose, hideNav, lift }
     let attachment = null;
+    let voice = null;        // { blob, seconds, url } once a note is recorded
+    let rec = null;          // { mr, stream, started, timer } while recording
+    const voiceRow = root.querySelector('.compose__voice');
+    const voiceBars = voiceRow.querySelector('.compose__vbars');
+    const voiceTime = voiceRow.querySelector('.compose__vtime');
+    voiceBars.innerHTML = Array.from({ length: 36 }, (_, i) => `<i style="--h:${6 + Math.round(10 * Math.abs(Math.sin(i * 0.9) * Math.cos(i * 0.37)))}px"></i>`).join('');
+    const voiceMode = (m) => { field.classList.toggle('has-voice', !!m); voiceRow.hidden = !m; voiceRow.classList.toggle('is-rec', m === 'rec'); voiceRow.classList.toggle('is-done', m === 'done'); input.hidden = !!m; root.querySelector('.compose__tools').hidden = !!m; };
+    const stopRec = () => { if (!rec) return; const r = rec; rec = null; clearInterval(r.timer); r.mr.stop(); };
+    const startRec = async () => {
+      if (!navigator.mediaDevices || !window.MediaRecorder) { notice('Voice needs a microphone'); return; }
+      let stream;
+      try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { notice('The microphone isn’t available'); return; }
+      const mr = new MediaRecorder(stream); const chunks = []; const started = Date.now();
+      mr.addEventListener('dataavailable', (e) => chunks.push(e.data));
+      mr.addEventListener('stop', () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const seconds = Math.max(1, Math.round((Date.now() - started) / 1000));
+        const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+        voice = { blob, seconds, url: URL.createObjectURL(blob) };
+        voiceTime.textContent = `${String(seconds).padStart(2, '0')}s`;
+        voiceMode('done'); refresh();
+      });
+      rec = { mr, stream, started, timer: 0 };
+      mr.start();
+      voiceTime.textContent = '00s';
+      voiceMode('rec');
+      rec.timer = setInterval(() => { voiceTime.textContent = `${String(Math.round((Date.now() - started) / 1000)).padStart(2, '0')}s`; }, 250);
+      setTimeout(() => { if (rec && rec.mr === mr) stopRec(); }, 60000);
+    };
+    const dropVoice = () => { stopRec(); if (voice && voice.url) URL.revokeObjectURL(voice.url); voice = null; voiceMode(null); };
+    let voicePlayer = null;
+    const playVoice = () => {
+      if (!voice) return;
+      if (voicePlayer && !voicePlayer.paused) { voicePlayer.pause(); voiceRow.classList.remove('is-playing'); return; }
+      voicePlayer = new Audio(voice.url);
+      voicePlayer.addEventListener('ended', () => voiceRow.classList.remove('is-playing'));
+      voiceRow.classList.add('is-playing');
+      voicePlayer.play().catch(() => voiceRow.classList.remove('is-playing'));
+    };
     let placeTimer = 0;
 
     grid.innerHTML = GIFS.map((g, i) => `<button class="compose__tile" type="button" data-index="${i}" aria-label="${esc(g.alt)}"><img src="${g.src}" alt="" loading="lazy" draggable="false"></button>`).join('');
@@ -843,7 +883,7 @@
       const hasText = input.value.trim().length > 0;
       field.classList.toggle('has-text', hasText);
       field.classList.toggle('has-attach', !!attachment);
-      field.classList.toggle('is-ready', hasText || !!attachment);
+      field.classList.toggle('is-ready', (hasText || !!attachment) && !voice);
     };
     // the keyboard's height: the drawn one, the drawer, or (on a phone) the real one
     const setKb = () => {
@@ -910,7 +950,8 @@
       // restore the draft left behind last time
       const draft = draftHost._draft || { text: '', gif: null };
       input.value = draft.text;
-      input.placeholder = prompt;
+      input.placeholder = unit && unit.querySelector('.pvoice') ? 'Tap and hold to send or record audio' : prompt;
+      dropVoice();
       attachment = draft.gif;
       if (attachment) thumb.src = attachment.src;
       refresh();
@@ -946,6 +987,7 @@
       input.blur();
       input.value = '';
       attachment = null;
+      dropVoice();
       refresh();
       if (unit) {
         unit.classList.remove('is-composing');
@@ -958,12 +1000,16 @@
       nav.show();
       if (!sending && onClose) onClose();
     }
-    const send = () => {
+    const send = async () => {
       if (!session) return;
       const text = input.value.trim();
-      if (!text && !attachment) { close(); return; }
+      if (!text && !attachment && !voice) { close(); return; }
       const onSend = session.onSend;
-      const payload = { text, gif: attachment };
+      const payload = { text, gif: attachment, voice: null, seconds: 0 };
+      if (voice) {
+        try { payload.voice = await window.SyncAPI.uploadVoice('reply', voice.blob); payload.seconds = voice.seconds; }
+        catch (e) { notice(errText(e)); return; }
+      }
       close(false, true);
       onSend(payload);
     };
@@ -986,7 +1032,12 @@
       placeSoon();      // the unit rides up to stay above the taller field
     });
     removeBtn.addEventListener('click', () => { attachment = null; refresh(); placeSoon(); });
-    root.querySelectorAll('.compose__tool[data-tool]').forEach((b) => b.addEventListener('click', () => b.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.86)' }, { transform: 'scale(1)' }], { duration: 180 })));   // photo and voice: not built yet
+    root.querySelectorAll('.compose__tool[data-tool]').forEach((b) => b.addEventListener('click', () => b.animate([{ transform: 'scale(1)' }, { transform: 'scale(0.86)' }, { transform: 'scale(1)' }], { duration: 180 })));   // photo: not built yet
+    root.querySelector('.compose__tool[data-tool="voice"]').addEventListener('click', () => { if (!rec && !voice) startRec(); });
+    voiceRow.querySelector('[data-vstop]').addEventListener('click', stopRec);
+    voiceRow.querySelector('[data-vplay]').addEventListener('click', playVoice);
+    voiceRow.querySelector('[data-vsend]').addEventListener('click', send);
+    voiceRow.querySelector('[data-vdrop]').addEventListener('click', () => { dropVoice(); refresh(); });
     input.addEventListener('input', refresh);
     input.addEventListener('focus', () => { if (session && !device.classList.contains('is-gifs-up') && !coarse()) device.classList.add('is-keyboard-up'); });
     input.addEventListener('keydown', (e) => {
@@ -1290,6 +1341,7 @@
     const openProfile = () => { profile.scrollTop = 0; collapse(); card.classList.add('is-profile-open'); device.classList.add('is-sheet-up'); profile.setAttribute('aria-hidden', 'false'); pause(); afterSlide(() => { if (card.classList.contains('is-profile-open')) { device.classList.add('is-nav-dark'); nav.show(); } }); };
     const closeProfile = (resumeVideo = true) => { if (compose.active) compose.close(); card.classList.remove('is-profile-open'); device.classList.remove('is-sheet-up'); profile.setAttribute('aria-hidden', 'true'); if (active && resumeVideo) play(); afterSlide(() => { if (!card.classList.contains('is-profile-open')) { device.classList.remove('is-nav-dark'); nav.show(); } }); };
     card.querySelector('.profile__back').addEventListener('click', closeProfile);
+    card.querySelector('.name__more').addEventListener('click', (e) => { e.stopPropagation(); openProfile(); });
     profile.querySelector('.pbar__back').addEventListener('click', closeProfile);
 
     // header collapse: over the first 150px of scroll the cover nav fades out, the
@@ -1329,8 +1381,10 @@
     // prompts ("intro" 1062:5702): the GIF, photo and field pills open compose mode. Sending
     // follows the mixtape pattern: the toast plays here on the profile, then the profile
     // slides back to the feed and the feed moves on to the next person.
-    const onReplySent = ({ text, gif }) => {
-      celebrate(card, 'msg', text || (gif ? 'Sent a GIF' : '')).then(() => {
+    const noteText = ({ text, gif, voice, seconds }) => text || (voice ? `Voice note · ${seconds}s [voice:${voice}]` : gif ? 'Sent a GIF' : '');
+    const onReplySent = (payload) => {
+      const { text, gif, voice } = payload;
+      celebrate(card, 'msg', text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '')).then(() => {
         closeProfile(false);
         return wait(600);
       }).then(() => {
@@ -1440,12 +1494,13 @@
       if (!person.mixtapeBuildId) { notice('Nothing of theirs to love yet'); return; }
       const open = card.classList.contains('is-profile-open');
       if (!open) hold();
-      compose.openNote(open ? profile : card, person.name, card, async ({ text, gif }) => {
+      compose.openNote(open ? profile : card, person.name, card, async (payload) => {
+        const { text, gif, voice } = payload;
         try {
-          person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, text || (gif ? 'Sent a GIF' : 'Loved it as is'));
+          person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, noteText(payload) || 'Loved it as is');
           refresh();
         } catch (e) { await buildError(e); resume(); return; }
-        celebrate(card, 'msg', text || (gif ? 'Sent a GIF' : '')).then(() => {
+        celebrate(card, 'msg', text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '')).then(() => {
           if (!card.classList.contains('is-profile-open')) return;
           closeProfile(false);
           return wait(600);

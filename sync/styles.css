@@ -170,7 +170,7 @@ img { display: block; }
 .header { flex: 0 0 auto; width: calc(100% + 40px); height: 56px; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
 .header__me { position: relative; width: 36px; height: 36px; padding: 0; border-radius: 999px; overflow: hidden; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); pointer-events: auto; transition: transform 0.15s; }
 .header__me img { position: absolute; left: 0; top: -24.96%; width: 100%; height: 149.93%; max-width: none; display: block; }   /* the frame's crop */
-.header__mark { display: block; width: 77px; height: 28px; }
+.header__mark { display: block; width: 81px; height: 20px; }
 /* the filter wears the nav's glass (the frame's white-on-surface disc lost the icon over a
    bright photo); the Faders icon is painted in the nav's ink like the tab icons */
 .header__filter { width: 36px; height: 36px; padding: 0; border-radius: 999px; background: var(--glass-bg); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); display: flex; align-items: center; justify-content: center; pointer-events: auto; transition: transform 0.15s; }
@@ -305,6 +305,9 @@ img { display: block; }
   white-space: nowrap;
 }
 .name__disc { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(12, 12, 13, 0.18)); }
+/* "CaretDoubleRight" (1098:27961): the way into the profile, at the row's right */
+.name__more { width: 24px; height: 24px; padding: 0; display: flex; pointer-events: auto; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25)); }
+.name__more img { display: block; width: 24px; height: 24px; }
 
 /* "bottom content": gap 8 */
 .bottom-content { width: 100%; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
@@ -547,7 +550,7 @@ img { display: block; }
 .profile.is-composing > :not(.pbody, .pbar),
 .profile.is-composing .pbar > *, .profile.is-composing .pbar::before, .profile.is-composing .pbar::after,   /* the bar's own opacity is scroll-driven: dim its contents instead */
 .profile.is-composing .pbody > :not(.is-focus),
-.profile.is-composing .punit.is-focus > :not(.pbento-wide) { opacity: 0.25 !important; filter: blur(6px); }   /* 25% and frosted: the page recedes behind the reply */
+.profile.is-composing .punit.is-focus > :not(.pbento-wide) { opacity: 0.12 !important; filter: blur(8px); }   /* near white and frosted: the page recedes behind the reply (1100:32104) */
 .profile.is-composing .punit.is-focus { position: relative; z-index: 8; }   /* the unit in focus sits above the avatar and disc */
 
 /* the unit's own prompt pill (as first built): one 48px white pill; while composing it is
@@ -584,7 +587,7 @@ img { display: block; }
 .profile.is-locked { overflow: hidden; }
 /* a note from the feed: the photo and its chrome recede the same way behind the panel */
 .card__media, .card__top { transition: opacity 0.3s, filter 0.3s; }
-.card.is-composing .card__media, .card.is-composing .card__top, .card.is-composing .card__bottom { opacity: 0.25; filter: blur(6px); }
+.card.is-composing .card__media, .card.is-composing .card__top, .card.is-composing .card__bottom { opacity: 0.12; filter: blur(8px); }
 
 /* ── the compose layer: a panel above the keyboard, the drawn keyboard, and the GIF drawer ── */
 .device { --kb-h: 335px; }
@@ -686,6 +689,33 @@ img { display: block; }
 /* the frame's "profile like" close glyph: a 22px mark with its glow, drawn from a 102px svg */
 .compose__remove { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; padding: 0; }
 .compose__remove img { position: absolute; left: -40px; top: -32px; width: 102px; height: 102px; max-width: none; display: block; }
+
+/* a voice note in the field ("on select audio", 1100:32218 → 32430 → 32745): bars, the seconds, stop; then play and send */
+.compose__voice { flex: 1 1 auto; min-width: 0; height: 31px; display: flex; align-items: center; gap: 8px; }
+.compose__voice[hidden] { display: none; }
+.compose__vplay { display: none; width: 22px; height: 22px; padding: 0; border-radius: 11px; border: 1.25px solid #1e1e1e; flex: 0 0 22px; align-items: center; justify-content: center; }
+.compose__vplay img, .compose__vplay svg { width: 10px; height: 10px; display: block; }
+.compose__vplay .ico-pause { display: none; }
+.compose__voice.is-playing .compose__vplay .ico-play { display: none; }
+.compose__voice.is-playing .compose__vplay .ico-pause { display: block; }
+.compose__vbars { flex: 1 1 auto; min-width: 0; height: 22px; display: flex; align-items: center; justify-content: space-between; overflow: hidden; }
+.compose__vbars i { display: block; width: 2px; height: var(--h, 8px); border-radius: 80px; background: #1e1e1e; }
+.compose__voice.is-rec .compose__vbars i { animation: vbar 0.9s ease-in-out infinite alternate; }
+.compose__voice.is-rec .compose__vbars i:nth-child(3n) { animation-delay: -0.3s; }
+.compose__voice.is-rec .compose__vbars i:nth-child(3n + 1) { animation-delay: -0.6s; }
+@keyframes vbar { from { transform: scaleY(0.4); } to { transform: scaleY(1.3); } }
+.compose__vtime { flex: 0 0 auto; font-size: 13px; color: #757575; font-variation-settings: "opsz" 14; }
+.compose__vstop { width: 24px; height: 24px; padding: 0; border-radius: 12px; border: 1.5px solid #e23b3b; display: flex; align-items: center; justify-content: center; flex: 0 0 24px; }
+.compose__vstop span { width: 9px; height: 9px; border-radius: 2px; background: #e23b3b; }
+.compose__vdrop { display: none; width: 24px; height: 24px; padding: 0; border-radius: 12px; align-items: center; justify-content: center; flex: 0 0 24px; opacity: 0.7; }
+.compose__vsend { display: none; width: 31px; height: 31px; padding: 0; border-radius: 16px; background: #2c2c2c; align-items: center; justify-content: center; flex: 0 0 31px; }
+.compose__vsend img { display: block; width: 18px; height: 18px; filter: invert(1); }
+.compose__voice.is-done .compose__vstop { display: none; }
+.compose__voice.is-done .compose__vplay, .compose__voice.is-done .compose__vsend, .compose__voice.is-done .compose__vdrop { display: flex; }
+.compose__field.has-voice .compose__send { display: none !important; }
+/* a sheet row without art: the first letter on surface */
+.srow__art--type, .sres__art.srow__art--type { background: var(--surface); display: flex; align-items: center; justify-content: center; }
+.srow__art--type i { font-style: normal; font-family: var(--font-display); font-weight: 700; font-size: 16px; color: #1e1e1e; }
 
 .device__keyboard {
   position: absolute;
@@ -1482,6 +1512,19 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .sky__h { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 36px; line-height: 1.3; letter-spacing: -0.5px; color: #1e1e1e; max-width: 9ch; }
 .sky__p { margin: 6px 0 0 2px; font-family: var(--font-display); font-weight: 600; font-size: 15px; color: #757575; }
 @media (prefers-reduced-motion: reduce) { .sky__sticker, .sky__cloud { animation: none; } }
+/* the splash (1098:28252): the wordmark on the sky, 345 wide, a touch above centre */
+.auth--splash .ob__foot { display: none; }
+.splash__mark { position: absolute; left: 50%; top: 50%; width: 345px; height: auto; transform: translate(-50%, -56%); animation: splash-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); filter: drop-shadow(0 18px 30px rgba(12, 12, 13, 0.12)); }
+@keyframes splash-in { from { opacity: 0; transform: translate(-50%, -52%) scale(0.94); } to { opacity: 1; transform: translate(-50%, -56%) scale(1); } }
+/* the cover (1100:31538): two columns of 175 × 101.7 at radius 24, the pick lifted */
+.auth--covers .ob__body { padding-top: 22px; gap: 10px; }
+.ob__covers-cap { padding: 0; margin: 0 0 0 17px; }
+.ob__covergrid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ob__coverpick { position: relative; aspect-ratio: 175 / 101.7; border-radius: 24px; overflow: hidden; padding: 0; background: #222; box-shadow: 0 0 0 0 rgba(12, 12, 13, 0); transition: transform 0.2s, box-shadow 0.2s; }
+.ob__coverpick img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ob__coverpick-grad { position: absolute; inset: 0 0 auto; height: 58%; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0) 97%); pointer-events: none; }
+.ob__coverpick.is-on { transform: scale(1.03); box-shadow: 0 10px 24px -6px rgba(12, 12, 13, 0.35), 0 0 0 2px #fff, 0 0 0 3.5px #1e1e1e; }
+.ob__coverpick:active { transform: scale(0.98); }
 
 /* ── make it yours: the field, the quiet page under search, the categories, the ring, the folders ── */
 .auth--board { padding-top: 62px; position: relative; }
@@ -1494,14 +1537,22 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .auth--board .ob__body { padding: 22px 0 0; gap: 0; }
 .board__search { position: relative; }
 .board__field { position: relative; z-index: 210; }
-.board__field { height: 48px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 8px; background: var(--white); border-radius: 24px; border: 1px solid #ededed; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); transition: border-color 0.2s; }
-.board__field.is-open { border-color: #1e1e1e; }
+.board__field { height: 48px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 8px; background: var(--surface); border-radius: 24px; border: 1px solid transparent; transition: border-color 0.2s, background 0.2s; }
+.board__field.is-open { background: var(--white); border-color: #1e1e1e; }
 .board__field.is-track { border-color: #cfe9a0; } .board__field.is-film { border-color: #f3b9b6; } .board__field.is-show { border-color: #bcd9f5; } .board__field.is-place { border-color: #f0d995; } .board__field.is-gif { border-color: #e0bde8; } .board__field.is-book { border-color: #9ee9d6; }
 .board__glass { width: 28px; height: 28px; padding: 4px; display: flex; align-items: center; justify-content: center; opacity: 0.8; }
 .board__field input { flex: 1 1 auto; min-width: 0; height: 32px; border: 0; background: none; outline: none; font-family: var(--font-body); font-size: 14px; color: #1e1e1e; }
 .board__field input::placeholder { color: #757575; }
 .board__fbtn { display: none; height: 28px; min-width: 28px; padding: 0 4px; align-items: center; justify-content: center; border-radius: 14px; font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.02em; color: #1e1e1e; }
 .board__field.is-open .board__fbtn { display: flex; }
+.board__field.is-picked .board__fbtn--gif, .board__field.is-picked [data-upload], .board__field.is-picked .board__glass { display: none; }
+.board__fbtn--clear { display: none; }
+.board__field.is-picked .board__fbtn--clear { display: flex; }
+.board__field.is-picked { background: var(--surface); border-color: transparent; padding-left: 10px; }
+/* the picked category as a chip in the field (1100:31297) */
+.board__chip { flex: 0 0 auto; height: 22px; padding: 0 8px; display: flex; align-items: center; border-radius: 9999px; font-size: 12px; font-weight: 600; color: #1e1e1e; font-variation-settings: "opsz" 14; }
+.board__chip[hidden] { display: none; }
+.board__chip--track { background: #e7fbb3; } .board__chip--film { background: #fdd3d0; } .board__chip--show { background: #eaf5ff; } .board__chip--place { background: #fff1c2; } .board__chip--gif { background: #f7e1fa; } .board__chip--book { background: #c6fff3; }
 .board__fbtn img { display: block; }
 .board__cap { margin: 10px 28px 0; font-size: 11px; line-height: 1.2; color: #757575; }
 /* the empty orbit: a planet and four stars, placed as drawn, breathing a little */

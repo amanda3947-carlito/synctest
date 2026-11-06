@@ -17,18 +17,21 @@ sync/
 
 ## What's live
 
+- **The splash** (":: splash ::"): the aux wordmark on the sky, a moment, then act one.
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
   1. *Essentials, 1 of 7 to 7 of 7*: name, number and code (a focused pill goes white with its label on
      the border), birthday (MM / DD / YYYY with a calendar picker: month and year menus, a 7-wide grid),
      photos (2 × 2, drag to reorder, first is the card, × top right), the basics (an accordion: occupation, hometown, location and height are typed;
-     education, activity and smoking are one pick; kids takes several), the prompts ("Let's learn more
+     education, activity, smoking and drinking are one pick; kids takes several), the prompts ("Let's learn more
      about you": Intro, Lyrics to Live By, Deal-breakers, Current Obsession as four tiles; tapping one
      opens a card over the keyboard with the emoji row and a field; the waveform records a voice note
      instead; two or more to go on; migration 0006 adds `profiles.prompts`), and what best describes you
      (one sticker, shown beside your name).
-  2. *The celebration*: a sky with drifting stickers. "Get plugged in" opens act three.
-  3. *Make it yours*: tap the field and the page goes quiet under white; pick a category (Tracks,
-     Movies, Shows, Spots, GIFs, Books, each with its pastel) and the field reads "Searching tracks";
+  2. *The celebration*: a sky with drifting stickers. "Get plugged in" opens the cover pick (":: making it
+     you._cover selection": eight covers in two columns, the pick lifted), then act three.
+  3. *Make it yours*: tap the field (a surface pill) and the page goes quiet under white; pick a category
+     (Tracks, Movies, Shows, Spots, GIFs, Books, each with its pastel) and it sits in the field as a chip
+     with an × to clear;
      results are rows with a 36px cover and a colour-matched tag. A pick lands on a ring of cards you
      spin with a sideways drag (the front one big and bright, the back ones small and dim; left alone
      it turns slowly and settles with one card facing you). Empty, the ring is a planet and four stars.
@@ -42,6 +45,12 @@ sync/
      always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
      typographic card in its category colour.
 - **Editor** from your avatar: every piece above, plus rotation and cover (a redesign in context of the profile is coming).
+- **The feed** (":: home feed", 1098:27924): the aux wordmark, the name with its badge and a » into the
+  profile. A reply or a note from the profile can be typed, a GIF, or a voice note recorded in the
+  field ("on select audio": bars and seconds while recording, then play and send); a voice note goes
+  into the note's text as `Voice note · 7s [voice:<path>]` until Chats can play it. On your own
+  profile (the real view in first run) the shelf's add card and "Suggest a spot" open a sheet that
+  follows the mixtape's: search, reorder, delete, save.
 - **People** come from `feed()`; **profile** is the ":: profile view" frame (1092:13901), nothing
   more: Intro, Rotation, Details (120 × 68 chips with Phosphor icons), Vibes, Lyrics to live by,
   Watching and Reading (133 × 202 covers with the kind's tag), Spots, then "Not interested". The

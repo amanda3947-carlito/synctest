@@ -22,9 +22,9 @@ values
 on conflict (id) do nothing;
 
 insert into public.profiles (id, phone_hash, name, birthdate, neighborhood, cover, avatar_path, intro_quote, lyric_quote, taste, style_paths) values
-  ('00000000-0000-4000-8000-000000000001', encode(sha256('+15550000001'::bytea), 'hex'), 'Damon',  '1996-04-12', 'Gowanus',      'reeded',     'demo/avatar-damon.png', 'Jazz on vinyl. Rap in the kitchen.', 'This may be the night that my dreams might let me know / All the stars are closer.', '{collector,nostalgic,audiophile,throwback}', '{demo/style-1.png,demo/style-2.png,demo/style-3.png,demo/style-4.png}'),
-  ('00000000-0000-4000-8000-000000000002', encode(sha256('+15550000002'::bytea), 'hex'), 'Olivia', '1998-09-03', 'Fort Greene',  'iridescent', 'demo/imani-4.png',      'Sunday records, Tuesday karaoke.', 'I was enchanted to meet you.', '{nostalgic,throwback}', '{}'),
-  ('00000000-0000-4000-8000-000000000003', encode(sha256('+15550000003'::bytea), 'hex'), 'Theo',   '1995-01-27', 'Bushwick',     'vinyl',      'demo/theo-4.png',       'Will trade tacos for a good opener.', 'Northern attitude, I was raised on little light.', '{audiophile,collector}', '{}')
+  ('00000000-0000-4000-8000-000000000001', encode(sha256('+15550000001'::bytea), 'hex'), 'Damon',  '1996-04-12', 'Gowanus',      'vinyl',     'demo/avatar-damon.png', 'Jazz on vinyl. Rap in the kitchen.', 'This may be the night that my dreams might let me know / All the stars are closer.', '{collector,nostalgic,audiophile,throwback}', '{demo/style-1.png,demo/style-2.png,demo/style-3.png,demo/style-4.png}'),
+  ('00000000-0000-4000-8000-000000000002', encode(sha256('+15550000002'::bytea), 'hex'), 'Olivia', '1998-09-03', 'Fort Greene',  'holo', 'demo/imani-4.png',      'Sunday records, Tuesday karaoke.', 'I was enchanted to meet you.', '{nostalgic,throwback}', '{}'),
+  ('00000000-0000-4000-8000-000000000003', encode(sha256('+15550000003'::bytea), 'hex'), 'Theo',   '1995-01-27', 'Bushwick',     'waveform',      'demo/theo-4.png',       'Will trade tacos for a good opener.', 'Northern attitude, I was raised on little light.', '{audiophile,collector}', '{}')
 on conflict (id) do update set name = excluded.name, neighborhood = excluded.neighborhood, cover = excluded.cover, avatar_path = excluded.avatar_path,
   intro_quote = excluded.intro_quote, lyric_quote = excluded.lyric_quote, taste = excluded.taste, style_paths = excluded.style_paths;
 

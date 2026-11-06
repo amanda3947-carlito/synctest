@@ -17,11 +17,13 @@ window.SyncOnboard = (() => {
   const $$ = (sel) => [...panel().querySelectorAll(sel)];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+  // the covers (":: making it you._cover selection", 1100:31538), in the frame's order; older ids map onto them
   const COVERS = [
-    { id: 'reeded', src: 'assets/cover-damon.png' }, { id: 'holo', src: 'assets/cover-opt-1.jpg' }, { id: 'grain', src: 'assets/cover-opt-2.jpg' },
-    { id: 'cyan', src: 'assets/cover-opt-3.jpg' }, { id: 'vinyl', src: 'assets/cover-opt-4.jpg' }, { id: 'iridescent', src: 'assets/cover-opt-5.jpg' },
-    { id: 'reeded-warm', src: 'assets/cover-opt-6.jpg' }, { id: 'waveform', src: 'assets/cover-opt-7.jpg' }, { id: 'dusk', src: 'assets/cover-opt-8.jpg' },
+    { id: 'vinyl', src: 'assets/covers/1.jpg' }, { id: 'waveform', src: 'assets/covers/2.jpg' }, { id: 'holo', src: 'assets/covers/3.jpg' }, { id: 'reeded-warm', src: 'assets/covers/4.jpg' },
+    { id: 'stripes', src: 'assets/covers/5.jpg' }, { id: 'discs', src: 'assets/covers/6.jpg' }, { id: 'reeded', src: 'assets/covers/7.jpg' }, { id: 'rain', src: 'assets/covers/8.jpg' },
   ];
+  const COVER_ALIAS = { iridescent: 'holo', grain: 'rain', cyan: 'rain', dusk: 'rain' };
+  const coverOf = (id) => COVERS.find((c) => c.id === (COVER_ALIAS[id] || id)) || COVERS[0];
   // "What best describes you": one sticker, shown beside the name on the card
   const DESCRIBES = [
     ['collector', 'Collector', 'assets/taste-collector.png'], ['nostalgic', 'Nostalgic', 'assets/taste-nostalgic.png'], ['audiophile', 'Audiophile', 'assets/stickers/headphones.png'],
@@ -38,6 +40,7 @@ window.SyncOnboard = (() => {
     { key: 'activity', label: 'Activity', icon: 'barbell', options: ['Active', 'Moderately active', 'Sometimes active', 'Not active'] },
     { key: 'kids', label: 'Kids', icon: 'baby', options: ['Has kids', 'No kids', 'Wants kids', 'Not sure yet'], multi: true },
     { key: 'smoking', label: 'Smoking', icon: 'cigarette', options: ['Smokes', 'Doesn’t smoke', 'Socially'] },
+    { key: 'drinking', label: 'Drinking', icon: 'wine', options: ['Drinks', 'Doesn’t drink', 'Socially'] },
   ];
   const icon = (k) => `<img class="ob__ic" src="assets/details/${k}.svg" width="24" height="24" alt="">`;
   const KINDS = ['Bar', 'Restaurant', 'Café', 'Venue', 'Store', 'Park', 'Cinema', 'Gallery'];
@@ -94,6 +97,16 @@ window.SyncOnboard = (() => {
     });
   }
   const liveReady = (check) => { const on = () => setReady(check()); panel().addEventListener('input', on); on(); };
+
+  // ═══════════════ the splash: the sky and the wordmark, a moment, then act one ═══════════════
+  async function stepSplash() {
+    frame({ cls: 'auth--sky auth--splash', title: '', body: `
+      <div class="sky" aria-hidden="true">
+        <span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span>
+      </div>
+      <img class="splash__mark" src="assets/aux-splash.png" alt="aux" draggable="false">` });
+    await wait(1700);
+  }
 
   // ═══════════════ act one: essentials ═══════════════
   const draft = { name: '', last: '' };
@@ -465,7 +478,7 @@ window.SyncOnboard = (() => {
     frame({ cls: 'auth--board', title: 'Make it yours', cta: editing ? 'Save' : 'See your profile',
       body: `
       <div class="board__search" id="bd-search">
-        <div class="board__field"><button class="board__glass" type="button" data-cats aria-label="Pick a category"><img src="assets/magnifying-glass.svg" width="20" height="20" alt=""></button><input id="bd-q" type="text" placeholder="Search books, movies, albums and more" autocomplete="off" autocorrect="off" spellcheck="false"><button class="board__fbtn board__fbtn--gif" type="button" data-gif aria-label="Search GIFs">GIF</button><button class="board__fbtn" type="button" data-upload aria-label="Upload a photo"><img src="assets/icon-image.svg" width="18" height="18" alt=""></button></div>
+        <div class="board__field"><button class="board__glass" type="button" data-cats aria-label="Pick a category"><img src="assets/magnifying-glass.svg" width="20" height="20" alt=""></button><span class="board__chip" id="bd-chip" hidden></span><input id="bd-q" type="text" placeholder="Search books, movies, albums and more" autocomplete="off" autocorrect="off" spellcheck="false"><button class="board__fbtn board__fbtn--gif" type="button" data-gif aria-label="Search GIFs">GIF</button><button class="board__fbtn" type="button" data-upload aria-label="Upload a photo"><img src="assets/icon-image.svg" width="18" height="18" alt=""></button><button class="board__fbtn board__fbtn--clear" type="button" data-clear aria-label="Clear"><img src="assets/x-16.svg" width="16" height="16" alt=""></button></div>
         <p class="board__cap">All searched items will get added to your orbit below, drag and drop them into each folder for the perfect representation of you</p>
         <input type="file" id="bd-file" accept="image/*" multiple hidden>
       </div>
@@ -636,20 +649,21 @@ window.SyncOnboard = (() => {
 
     // ── search: tap the field and the page goes quiet under white; pick a category, then search
     //    that one kind. A pick lands on the ring and the page comes back.
-    const q = $('#bd-q'), overlay = $('#bd-overlay'), cats = $('#bd-cats'), results = $('#bd-results'), field = $('.board__field');
+    const q = $('#bd-q'), overlay = $('#bd-overlay'), cats = $('#bd-cats'), results = $('#bd-results'), field = $('.board__field'), chip = $('#bd-chip');
     let mode = 'idle', cat = null, timer = 0, seq = 0;
     const PLACEHOLDER = q.placeholder;
-    const openCats = () => { mode = 'cats'; cat = null; overlay.hidden = false; cats.hidden = false; cats.classList.remove('is-out'); results.hidden = true; results.innerHTML = ''; q.placeholder = ''; q.value = ''; field.classList.add('is-open'); panel().classList.add('is-searching'); };
+    const openCats = () => { chip.hidden = true; mode = 'cats'; cat = null; overlay.hidden = false; cats.hidden = false; cats.classList.remove('is-out'); results.hidden = true; results.innerHTML = ''; q.placeholder = ''; q.value = ''; field.classList.add('is-open'); panel().classList.add('is-searching'); };
     const pickCat = (k) => {
       mode = 'results'; cat = k;
       cats.classList.add('is-out'); setTimeout(() => { if (mode === 'results') cats.hidden = true; }, 220);
-      const word = k === 'gif' ? 'GIFs' : CATS.find(([kk]) => kk === k)[1].toLowerCase();
+      const label = CATS.find(([kk]) => kk === k)[1]; const word = k === 'gif' ? 'GIFs' : label.toLowerCase();
       results.hidden = false; results.innerHTML = `<p class="board__hint">Type to search ${word}</p>`;
-      q.placeholder = `Searching ${word}`;
-      field.className = 'board__field is-open is-' + k;
+      q.placeholder = `Search ${word}`;
+      chip.textContent = label; chip.className = 'board__chip board__chip--' + k; chip.hidden = false;
+      field.className = 'board__field is-open is-picked is-' + k;
       if (q.value.trim() || k === 'gif') search(); else q.focus({ preventScroll: true });
     };
-    const closeSearch = () => { mode = 'idle'; cat = null; overlay.hidden = true; results.innerHTML = ''; q.value = ''; q.placeholder = PLACEHOLDER; q.blur(); field.className = 'board__field'; panel().classList.remove('is-searching'); };
+    const closeSearch = () => { chip.hidden = true; mode = 'idle'; cat = null; overlay.hidden = true; results.innerHTML = ''; q.value = ''; q.placeholder = PLACEHOLDER; q.blur(); field.className = 'board__field'; panel().classList.remove('is-searching'); };
     const rowHTML = (h, i) => {
       const art = h.art ? `<img src="${esc(h.art)}" alt="">` : `<i>${esc(h.title.slice(0, 1))}</i>`;
       return `<button class="board__hit" type="button" data-hit="${i}"><span class="board__thumb board__thumb--${h.kind}">${art}</span><span class="board__hit-text">${h.meta ? `<small>${esc(h.meta)}</small>` : ''}<b>${esc(h.title)}</b></span><span class="board__tag board__tag--${h.kind}">${TAG[h.kind]}</span></button>`;
@@ -692,6 +706,7 @@ window.SyncOnboard = (() => {
       if (e.target.closest('[data-cats]')) { if (mode === 'idle') { openCats(); q.focus({ preventScroll: true }); } else openCats(); return; }
       if (e.target.closest('[data-gif]')) { if (mode === 'idle') openCats(); pickCat('gif'); return; }
       if (e.target.closest('[data-upload]')) { $('#bd-file').click(); return; }
+      if (e.target.closest('[data-clear]')) { if (q.value) { q.value = ''; search(); q.focus({ preventScroll: true }); } else { openCats(); q.focus({ preventScroll: true }); } return; }
       if (e.target === overlay) { closeSearch(); return; }
     });
     $('#bd-file').addEventListener('change', () => {
@@ -731,9 +746,31 @@ window.SyncOnboard = (() => {
     root().hidden = false;
     const real = panel().querySelector('.ob__real');
     real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is your profile as people see it. Everything on it can change from your avatar, any time.</p>';
-    real.querySelectorAll('.pnav__btn, .preply__field, [data-action], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
+    real.querySelectorAll('.pnav__btn, .preply__field, [data-action]:not([data-action="shelf"]):not([data-action="spot"]), .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
+    // the shelf and the spots add from a sheet that follows the mixtape's: search, reorder, delete, save
+    const openAdd = (kind) => new Promise((res) => {
+      const own = kind === 'shelf' ? person.profile.shelf.map((x) => ({ key: x.key, kind: x.kind, art: x.art, artist: x.meta || '', title: x.title })) : person.profile.spots.map((x) => ({ key: 'place:' + x.id, id: x.id, art: x.img, artist: x.meta, title: x.name }));
+      const search = kind === 'shelf'
+        ? async (q) => (await Promise.all(['film', 'show', 'book'].map((k) => api().searchShelf(k, q).catch(() => [])))).flat().slice(0, 10).map((h) => ({ key: h.key, kind: h.kind, art: h.art, artist: [({ film: 'Movie', show: 'Show', book: 'Book' })[h.kind], h.meta].filter(Boolean).join(' · '), title: h.title }))
+        : async (q) => (await api().searchKind('place', q)).map((h) => ({ key: h.key, id: h.id, art: null, artist: h.meta || 'Spot', title: h.title }));
+      root().hidden = true;
+      deps.openSheet({ name: me.name, sheetItems: own }, () => { root().hidden = false; res(false); }, async (items) => {
+        try {
+          if (kind === 'shelf') await api().setMyShelf(items.map((t) => ({ kind: t.kind, key: t.key, title: t.title, meta: (t.artist || '').replace(/^(Movie|Show|Book)( · )?/, '') || null, art: t.art })));
+          else await api().setMyPlaces(items.map((t) => t.id));
+          root().hidden = false; res(true);
+        } catch (e) { root().hidden = false; deps.notice(deps.errText(e)); res(false); }
+      }, kind === 'shelf'
+        ? { title: 'Watching and reading', sub: 'Search, reorder and add titles', sendLabel: 'Save', addLimit: Infinity, kind: 'shelf', search, placeholder: 'Search movies, shows and books' }
+        : { title: 'Your spots', sub: 'Search, reorder and add places', sendLabel: 'Save', addLimit: Infinity, kind: 'place', search, placeholder: 'Search for a spot' });
+    });
     return new Promise((res) => {
-      panel().addEventListener('click', (e) => { if (e.target.closest('[data-board]')) res('board'); else if (e.target.closest('[data-next]')) res('next'); });
+      panel().addEventListener('click', async (e) => {
+        if (e.target.closest('[data-board]')) { res('board'); return; }
+        if (e.target.closest('[data-next]')) { res('next'); return; }
+        const act = e.target.closest('[data-action="shelf"], [data-action="spot"]');
+        if (act) { if (await openAdd(act.dataset.action)) res('refresh'); }
+      });
     });
   }
 
@@ -753,12 +790,14 @@ window.SyncOnboard = (() => {
       if (!current) setTimeout(deps.focusSearch, 400);
     }));
   }
-  async function stepCover() {
-    let pick = (me && me.cover) || 'reeded';
-    frame({ title: 'Your cover', sub: 'The header on your profile.', cta: 'Save', back: true,
-      body: `<div class="ob__cover-preview"><img id="ob-cover-img" src="${COVERS.find((c) => c.id === pick).src}" alt=""><div class="pcover__grad"></div><img class="ob__cover-avatar" src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""></div><div class="ob__covers">${COVERS.map((c) => `<button class="tile ob__cover${c.id === pick ? ' is-on' : ''}" type="button" data-cover="${c.id}"><img src="${c.src}" alt=""></button>`).join('')}</div>` });
-    setReady(true);
-    panel().addEventListener('click', (e) => { const b = e.target.closest('[data-cover]'); if (!b) return; pick = b.dataset.cover; $$('[data-cover]').forEach((x) => x.classList.toggle('is-on', x === b)); $('#ob-cover-img').src = COVERS.find((c) => c.id === pick).src; });
+  async function stepCoverPick(editing) {
+    let pick = coverOf(me && me.cover).id;
+    frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', ready: true,
+      body: `<p class="punit__title ob__covers-cap">Choose a cover image</p>
+             <div class="ob__covergrid">${COVERS.map((c) => `<button class="ob__coverpick${c.id === pick ? ' is-on' : ''}" type="button" data-cover="${c.id}" aria-label="${c.id}" aria-pressed="${c.id === pick}"><img src="${c.src}" alt="" draggable="false"><span class="ob__coverpick-grad"></span></button>`).join('')}</div>` });
+    panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
+    panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="board__me board__me--ghost" aria-hidden="true"></span>');
+    panel().addEventListener('click', (e) => { const b = e.target.closest('[data-cover]'); if (!b) return; pick = b.dataset.cover; $$('[data-cover]').forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b); }); });
     return step(async () => { me = await api().updateProfile({ cover: pick }); return true; });
   }
 
@@ -773,6 +812,7 @@ window.SyncOnboard = (() => {
     // ?reset on the URL signs out first, so a link can land on the very first screen
     if (new URLSearchParams(location.search).has('reset')) { try { await a.signOut(); } catch (e) { /* fine */ } history.replaceState(null, '', location.pathname); }
     if (!(await a.session())) {
+      await stepSplash();
       let r;
       do { await stepName(false); r = await stepPhone(); } while (r === 'back');
     }
@@ -789,10 +829,12 @@ window.SyncOnboard = (() => {
     if (!me.taste || !me.taste.length) await stepDescribes(false);
     await loadMe();
     await stepCelebration();
+    await stepCoverPick(false);
     let r = await stepBoard(false);
     while (true) {
       const v = await stepRealView();
       if (v === 'board') { r = await stepBoard(false); continue; }
+      if (v === 'refresh') continue;
       break;
     }
     try { me = await a.updateProfile({ onboarded: true }); } catch (e) { /* fine */ }
@@ -806,7 +848,7 @@ window.SyncOnboard = (() => {
     const sections = [
       ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
       ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
-      ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', stepCover],
+      ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', () => stepCoverPick(true)],
     ];
     if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } }
     while (true) {

@@ -99,13 +99,43 @@ window.SyncOnboard = (() => {
   const liveReady = (check) => { const on = () => setReady(check()); panel().addEventListener('input', on); on(); };
 
   // ═══════════════ the splash: the sky and the wordmark, a moment, then act one ═══════════════
+  // ═══════════════ the splash: "animation frames" (1107:14029), left to right ═══════════════
+  // The chrome letters hang in the sky, then shrink into a point. As they go a soft glow gathers
+  // behind them (the look of a slow, blurred gradient), tightens into a small glass bubble with the
+  // letters inside, swells, and bursts to fill the screen. On the lightened sky the pieces of a
+  // profile drift in, with "Pass the aux" and a button that starts the build. A tap skips ahead.
   async function stepSplash() {
     frame({ cls: 'auth--sky auth--splash', title: '', body: `
       <div class="sky" aria-hidden="true">
         <span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span>
       </div>
-      <img class="splash__mark" src="assets/aux-splash.png" alt="aux" draggable="false">` });
-    await wait(1700);
+      <div class="splash" id="splash">
+        <div class="splash__bubble" aria-hidden="true"></div>
+        <div class="splash__glow" aria-hidden="true"><i></i><i></i><i></i></div>
+        <img class="splash__mark" src="assets/aux-splash.png" alt="aux" draggable="false">
+        <div class="splash__final">
+          <img class="splash__piece splash__photo splash__photo--1" src="assets/splash/photo-1.jpg" alt="" draggable="false">
+          <img class="splash__piece splash__photo splash__photo--3" src="assets/splash/photo-3.jpg" alt="" draggable="false">
+          <img class="splash__piece splash__photo splash__photo--2" src="assets/splash/photo-2.jpg" alt="" draggable="false">
+          <img class="splash__piece splash__sticker splash__sticker--heart" src="assets/stickers/heart.png" alt="" draggable="false">
+          <img class="splash__piece splash__sticker splash__sticker--note" src="assets/stickers/taste-all_around.png" alt="" draggable="false">
+          <p class="splash__piece splash__tag">Pass the <b>aux</b></p>
+          <button class="splash__piece splash__go" type="button" data-go>Let’s build</button>
+        </div>
+      </div>` });
+    const splash = $('#splash');
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let timer = 0;
+    const toFinal = () => { clearTimeout(timer); splash.classList.add('is-final'); };
+    if (reduce) toFinal();
+    else { requestAnimationFrame(() => splash.classList.add('is-playing')); timer = setTimeout(toFinal, 4400); }
+    await new Promise((res) => {
+      const h = (e) => {
+        if (e.target.closest('[data-go]')) { panel().removeEventListener('click', h); res(); return; }
+        if (!splash.classList.contains('is-final')) toFinal();
+      };
+      panel().addEventListener('click', h);
+    });
   }
 
   // ═══════════════ act one: essentials ═══════════════

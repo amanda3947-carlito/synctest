@@ -1518,8 +1518,80 @@ button.ob__cal-day:active { background: #e9e7e3; }
 @media (prefers-reduced-motion: reduce) { .sky__sticker, .sky__cloud { animation: none; } }
 /* the splash (1098:28252): the wordmark on the sky, 345 wide, a touch above centre */
 .auth--splash .ob__foot { display: none; }
-.splash__mark { position: absolute; left: 50%; top: 50%; width: 345px; height: auto; transform: translate(-50%, -56%); animation: splash-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); filter: drop-shadow(0 18px 30px rgba(12, 12, 13, 0.12)); }
-@keyframes splash-in { from { opacity: 0; transform: translate(-50%, -52%) scale(0.94); } to { opacity: 1; transform: translate(-50%, -56%) scale(1); } }
+/* ── the splash ("animation frames", 1107:14029): a 402 × 779 stage centred in the device ── */
+.splash { position: absolute; left: 50%; top: 50%; width: 402px; height: 779px; transform: translate(-50%, -50%); overflow: visible; }
+.splash > * { position: absolute; }
+/* the letters: 345 wide, centred on (200, 352) like the frames */
+.splash__mark { left: 200px; top: 352px; width: 345px; height: auto; transform: translate(-50%, -50%); transform-origin: 50% 50%; filter: drop-shadow(0 18px 30px rgba(12, 12, 13, 0.12)); will-change: transform, opacity, filter; }
+/* the glow: three blurred blobs of coral, pink and violet turning slowly over a white heart, like a slow lava lamp */
+.splash__glow { left: 200px; top: 352px; width: 240px; height: 240px; transform: translate(-50%, -50%) scale(0.4); opacity: 0; pointer-events: none; mix-blend-mode: normal; }
+.splash__glow i { position: absolute; border-radius: 50%; filter: blur(32px); opacity: 0.9; }
+.splash__glow i:nth-child(1) { left: 10%; top: 6%; width: 62%; height: 62%; background: radial-gradient(circle at 40% 40%, #ffb199 0%, #ff7a6e 45%, rgba(255, 122, 110, 0) 72%); animation: glow-a 5s ease-in-out infinite alternate; }
+.splash__glow i:nth-child(2) { left: 34%; top: 26%; width: 62%; height: 62%; background: radial-gradient(circle at 50% 50%, #ff7ac6 0%, #ff4fb0 45%, rgba(255, 79, 176, 0) 72%); animation: glow-b 4.2s ease-in-out infinite alternate; }
+.splash__glow i:nth-child(3) { left: 6%; top: 36%; width: 66%; height: 66%; background: radial-gradient(circle at 50% 55%, #b07cff 0%, #7b3cf5 45%, rgba(123, 60, 245, 0) 72%); animation: glow-c 4.6s ease-in-out infinite alternate; }
+.splash__glow::after { content: ''; position: absolute; left: 50%; top: 50%; width: 54%; height: 54%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 40%, rgba(255, 255, 255, 0) 70%); filter: blur(8px); }
+@keyframes glow-a { to { transform: translate(14%, 10%) scale(1.12); } }
+@keyframes glow-b { to { transform: translate(-16%, 8%) scale(1.08); } }
+@keyframes glow-c { to { transform: translate(8%, -14%) scale(1.15); } }
+/* the bubble: white at 40% over a blur, 246 at rest, a hair of edge light */
+.splash__bubble { left: 200px; top: 352px; width: 246px; height: 246px; border-radius: 50%; transform: translate(-50%, -50%) scale(0); opacity: 0; background: rgba(255, 255, 255, 0.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5), inset 0 -18px 40px rgba(255, 255, 255, 0.35), 0 24px 60px rgba(12, 12, 13, 0.06); will-change: transform, opacity; }
+/* playing: one 4.4s timeline, the pieces keyed to the frames */
+.splash.is-playing .splash__mark { animation: splash-mark 4.4s cubic-bezier(0.55, 0, 0.45, 1) forwards; }
+.splash.is-playing .splash__glow { animation: splash-glow 4.4s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+.splash.is-playing .splash__bubble { animation: splash-bubble 4.4s cubic-bezier(0.45, 0, 0.55, 1) forwards; }
+@keyframes splash-mark {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; filter: drop-shadow(0 18px 30px rgba(12, 12, 13, 0.12)) blur(0); }
+  10%  { transform: translate(-50%, -50%) scale(1); }
+  30%  { transform: translate(-50%, -50%) scale(0.72); opacity: 1; filter: drop-shadow(0 12px 20px rgba(12, 12, 13, 0.1)) blur(0); }
+  44%  { transform: translate(-50%, -50%) scale(0.32); opacity: 0.9; filter: drop-shadow(0 4px 8px rgba(12, 12, 13, 0.08)) blur(1px); }
+  56%  { transform: translate(-50%, -50%) scale(0.13); opacity: 0.6; filter: blur(1.5px); }
+  64%  { transform: translate(-50%, -50%) scale(0.13); opacity: 0.8; filter: blur(0.5px); }
+  80%  { transform: translate(-50%, -50%) scale(0.7); opacity: 1; filter: drop-shadow(0 10px 20px rgba(12, 12, 13, 0.1)) blur(0); }
+  92%  { transform: translate(-50%, -50%) scale(1.85); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+@keyframes splash-glow {
+  0%, 32% { transform: translate(-50%, -50%) scale(0.4); opacity: 0; }
+  48%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  56%  { transform: translate(-50%, -50%) scale(0.92); opacity: 1; }
+  66%  { transform: translate(-50%, -50%) scale(0.42); opacity: 0.85; }
+  78%  { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+}
+@keyframes splash-bubble {
+  0%, 54% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  64%  { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
+  80%  { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(4.2); opacity: 1; }
+}
+/* the end: the bubble stays as the lightened sky, the pieces drift in one after another */
+.splash__final { inset: 0; pointer-events: none; }
+.splash__final > * { position: absolute; opacity: 0; }
+.splash.is-final .splash__glow, .splash.is-final .splash__mark { animation: none; opacity: 0; }
+.splash.is-final .splash__bubble { animation: none; transform: translate(-50%, -50%) scale(4.2); opacity: 1; }
+.splash.is-final .splash__final { pointer-events: auto; }
+.splash.is-final .splash__piece { animation: piece-in 0.8s cubic-bezier(0.2, 0.9, 0.25, 1.15) forwards; }
+.splash.is-final .splash__photo--1 { animation-delay: 0.05s; }
+.splash.is-final .splash__photo--3 { animation-delay: 0.16s; }
+.splash.is-final .splash__photo--2 { animation-delay: 0.27s; }
+.splash.is-final .splash__sticker--heart { animation-delay: 0.38s; }
+.splash.is-final .splash__sticker--note { animation-delay: 0.5s; }
+.splash.is-final .splash__tag { animation-delay: 0.72s; }
+.splash.is-final .splash__go { animation-delay: 0.86s; }
+@keyframes piece-in { from { opacity: 0; transform: translateY(28px) scale(0.86); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.splash__photo { object-fit: cover; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.1), 0 1px 4px rgba(12, 12, 13, 0.05); }
+.splash__photo--1 { left: -14px; top: 110px; width: 111px; height: 175px; border-radius: 32px; }
+.splash__photo--2 { left: 197px; top: 216px; width: 98px; height: 98px; border-radius: 16px; }
+.splash__photo--3 { left: 263px; top: 95px; width: 111px; height: 111px; border-radius: 16px; }
+.splash__sticker { object-fit: contain; filter: drop-shadow(0 10px 18px rgba(12, 12, 13, 0.14)); }
+.splash__sticker--heart { left: 12px; top: 318px; width: 180px; height: 172px; }
+.splash__sticker--note { left: 190px; top: 362px; width: 176px; height: 170px; }
+.splash__tag { left: 0; right: 0; top: 588px; margin: 0; text-align: center; font-family: var(--font-body); font-size: 24px; line-height: 1.2; color: #000; }
+.splash__tag b { font-weight: 600; }
+.splash__go { left: 50%; top: 635px; transform: translateX(-50%); height: 48px; padding: 0 24px; border: 0; border-radius: 24px; background: var(--mint, #a8face); font-family: var(--font-body); font-weight: 600; font-size: 14px; color: #1e1e1e; cursor: pointer; }
+.splash.is-final .splash__go { animation-name: go-in; }
+@keyframes go-in { from { opacity: 0; transform: translate(-50%, 28px) scale(0.86); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .splash__glow i { animation: none; } .splash.is-final .splash__piece { animation-duration: 0.01s; } }
 /* the cover (1100:31538): two columns of 175 × 101.7 at radius 24, the pick lifted */
 .auth--covers .ob__body { padding-top: 22px; gap: 10px; }
 .ob__covers-cap { padding: 0; margin: 0 0 0 17px; }

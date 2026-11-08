@@ -134,7 +134,7 @@ window.SyncOnboard = (() => {
       </div>
       <div class="splash" id="splash">
         <div class="splash__orbit" aria-hidden="true">${ORBIT_PIECES.map((p) => `<img class="splash__piece ${p.cls || ''}" src="${p.src}" alt="" draggable="false">`).join('')}</div>
-        <div class="splash__glow" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+        <div class="splash__glow" aria-hidden="true"></div>
         <img class="splash__mark" src="assets/aux-splash.png" alt="aux" draggable="false">
         <div class="splash__words"><p class="splash__tag">Pass the <b>aux</b></p><button class="splash__go" type="button" data-go>Let’s build</button></div>
       </div>` });
@@ -167,8 +167,8 @@ window.SyncOnboard = (() => {
     else {
       requestAnimationFrame(() => splash.classList.add('is-playing'));
       loop();
-      setTimeout(() => splash.classList.add('is-orbit'), 3450);   // the colour owns the screen first; the orbit slides up as it lifts
-      setTimeout(() => splash.classList.add('is-title'), 3700);
+      setTimeout(() => splash.classList.add('is-orbit'), 3350);   // the colour owns the screen first; the orbit slides up as it lifts
+      setTimeout(() => splash.classList.add('is-title'), 3650);
     }
     const skip = () => { splash.classList.remove('is-playing'); splash.querySelector('.splash__mark').style.opacity = '0'; splash.querySelector('.splash__glow').style.opacity = '0'; splash.classList.add('is-orbit', 'is-title'); if (!raf && !reduce) loop(); };
     await new Promise((res) => {

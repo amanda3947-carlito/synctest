@@ -1528,12 +1528,12 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .splash__mark { left: 200px; top: 352px; width: 345px; height: auto; transform: translate(-50%, -50%) scale(0.84); opacity: 0; transform-origin: 50% 50%; filter: drop-shadow(0 18px 30px rgba(12, 12, 13, 0.12)); will-change: transform, opacity, filter; z-index: 3; }
 /* the colour: four blurred blobs of coral, pink, violet and lilac drifting over a white heart, under one
    wide wash so that at full size it reads as one gradient, not four spots */
-.splash__glow { left: 200px; top: 352px; width: 260px; height: 260px; transform: translate(-50%, -50%) scale(0.2); opacity: 0; pointer-events: none; z-index: 2; will-change: transform, opacity; }
-.splash__glow::before { content: ''; position: absolute; inset: -30%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 150, 190, 0.5) 0%, rgba(190, 120, 255, 0.42) 38%, rgba(168, 250, 206, 0.45) 60%, rgba(168, 250, 206, 0) 78%); filter: blur(18px); }
-.splash__glow i { position: absolute; border-radius: 50%; filter: blur(30px); opacity: 0.9; }
-.splash__glow i:nth-child(1) { left: 6%; top: 2%; width: 64%; height: 64%; background: radial-gradient(circle at 40% 40%, #ffb199 0%, #ff7a6e 45%, rgba(255, 122, 110, 0) 72%); animation: glow-a 5s ease-in-out infinite alternate; }
-.splash__glow i:nth-child(2) { left: 36%; top: 22%; width: 64%; height: 64%; background: radial-gradient(circle at 50% 50%, #ff7ac6 0%, #ff4fb0 45%, rgba(255, 79, 176, 0) 72%); animation: glow-b 4.2s ease-in-out infinite alternate; }
-.splash__glow i:nth-child(3) { left: 2%; top: 36%; width: 68%; height: 68%; background: radial-gradient(circle at 50% 55%, #b07cff 0%, #7b3cf5 45%, rgba(123, 60, 245, 0) 72%); animation: glow-c 4.6s ease-in-out infinite alternate; }
+.splash__glow { left: 200px; top: 352px; width: 200px; height: 200px; transform: translate(-50%, -50%) scale(0.2); opacity: 0; pointer-events: none; z-index: 2; will-change: transform, opacity; }
+.splash__glow::before { content: ''; position: absolute; inset: -12%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 190, 215, 0.5) 0%, rgba(205, 184, 255, 0.45) 38%, rgba(168, 250, 206, 0.5) 60%, rgba(168, 250, 206, 0) 78%); filter: blur(18px); }
+.splash__glow i { position: absolute; border-radius: 50%; filter: blur(22px); opacity: 0.85; }
+.splash__glow i:nth-child(1) { left: 6%; top: 2%; width: 64%; height: 64%; background: radial-gradient(circle at 40% 40%, #ffe0cf 0%, #ffb8a6 45%, rgba(255, 184, 166, 0) 72%); animation: glow-a 5s ease-in-out infinite alternate; }
+.splash__glow i:nth-child(2) { left: 36%; top: 22%; width: 64%; height: 64%; background: radial-gradient(circle at 50% 50%, #ffc4dd 0%, #ff8ec4 45%, rgba(255, 142, 196, 0) 72%); animation: glow-b 4.2s ease-in-out infinite alternate; }
+.splash__glow i:nth-child(3) { left: 2%; top: 36%; width: 68%; height: 68%; background: radial-gradient(circle at 50% 55%, #d9c6ff 0%, #b394ff 45%, rgba(179, 148, 255, 0) 72%); animation: glow-c 4.6s ease-in-out infinite alternate; }
 .splash__glow i:nth-child(4) { left: 40%; top: 44%; width: 60%; height: 60%; background: radial-gradient(circle at 50% 50%, #c9ffe4 0%, #a8face 42%, rgba(168, 250, 206, 0) 72%); animation: glow-d 5.4s ease-in-out infinite alternate; }
 .splash__glow i:nth-child(5) { left: -6%; top: -4%; width: 54%; height: 54%; background: radial-gradient(circle at 50% 50%, #d4fff0 0%, #a8face 40%, rgba(168, 250, 206, 0) 72%); animation: glow-e 4.8s ease-in-out infinite alternate; }
 .splash__glow::after { content: ''; position: absolute; left: 50%; top: 50%; width: 50%; height: 50%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 42%, rgba(255, 255, 255, 0) 70%); filter: blur(8px); }
@@ -1545,30 +1545,31 @@ button.ob__cal-day:active { background: #e9e7e3; }
 /* playing: one 3.8s motion. The letters ease in and forward (0–1.1s), then fall back into the colour
    (1.1–2.3s) while it grows behind them; the colour keeps growing until it owns the screen (2.3–3.1s),
    then fades off fast (3.1–3.8s) onto the title screen, whose orbit is already turning underneath. */
-.splash.is-playing .splash__mark { animation: splash-mark 3.8s linear forwards; }
-.splash.is-playing .splash__glow { animation: splash-glow 3.8s linear forwards; }
+.splash.is-playing .splash__mark { animation: splash-mark 4.2s linear forwards; }
+.splash.is-playing .splash__glow { animation: splash-glow 4.2s linear forwards; }
 @keyframes splash-mark {
   0%   { transform: translate(-50%, -50%) scale(0.84); opacity: 0; filter: drop-shadow(0 18px 30px rgba(12, 12, 13, 0.12)) blur(0); animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1); }
-  29%  { transform: translate(-50%, -50%) scale(1.06); opacity: 1; filter: drop-shadow(0 22px 34px rgba(12, 12, 13, 0.14)) blur(0); animation-timing-function: cubic-bezier(0.6, 0, 0.4, 1); }
-  60%  { transform: translate(-50%, -50%) scale(0.12); opacity: 0.85; filter: drop-shadow(0 2px 4px rgba(12, 12, 13, 0.06)) blur(1px); animation-timing-function: ease-in; }
-  70%  { transform: translate(-50%, -50%) scale(0.04); opacity: 0; filter: blur(2px); }
+  28%  { transform: translate(-50%, -50%) scale(1.06); opacity: 1; filter: drop-shadow(0 22px 34px rgba(12, 12, 13, 0.14)) blur(0); animation-timing-function: cubic-bezier(0.6, 0, 0.4, 1); }
+  57%  { transform: translate(-50%, -50%) scale(0.12); opacity: 0.85; filter: drop-shadow(0 2px 4px rgba(12, 12, 13, 0.06)) blur(1px); animation-timing-function: ease-in; }
+  66%  { transform: translate(-50%, -50%) scale(0.04); opacity: 0; filter: blur(2px); }
   100% { transform: translate(-50%, -50%) scale(0.04); opacity: 0; }
 }
 @keyframes splash-glow {
-  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1); }
-  26%  { transform: translate(-50%, -50%) scale(0.3); opacity: 0; animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1); }
-  60%  { transform: translate(-50%, -50%) scale(1.15); opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.6); }
-  82%  { transform: translate(-50%, -50%) scale(6.5); opacity: 1; animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
-  100% { transform: translate(-50%, -50%) scale(7.5); opacity: 0; }
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; filter: saturate(0.85); animation-timing-function: cubic-bezier(0.3, 0, 0.6, 1); }
+  26%  { transform: translate(-50%, -50%) scale(0.3); opacity: 0; filter: saturate(0.85); animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1); }
+  57%  { transform: translate(-50%, -50%) scale(0.8); opacity: 0.7; filter: saturate(0.85); animation-timing-function: cubic-bezier(0.7, 0, 0.8, 0.5); }
+  72%  { transform: translate(-50%, -50%) scale(11); opacity: 1; filter: saturate(2.4) contrast(1.18); animation-timing-function: linear; }
+  83%  { transform: translate(-50%, -50%) scale(11.5); opacity: 1; filter: saturate(2.4) contrast(1.18); animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1); }
+  100% { transform: translate(-50%, -50%) scale(12); opacity: 0; filter: saturate(1.8) contrast(1.1); }
 }
 /* the title screen: the orbit turns behind the words, the pieces placed by script on an ellipse seen from
    a little above, the front ones large and bright, the back ones small and soft, like the board's ring */
-.splash__orbit { inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity 0.9s ease; }
-.splash.is-orbit .splash__orbit { opacity: 1; }
+.splash__orbit { inset: 0; z-index: 1; pointer-events: none; opacity: 0; transform: translateY(56px) scale(0.96); transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.splash.is-orbit .splash__orbit { opacity: 1; transform: none; }
 .splash__piece { position: absolute; left: 0; top: 0; width: 92px; height: 92px; object-fit: cover; border-radius: 18px; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.1), 0 10px 24px rgba(12, 12, 13, 0.08); will-change: transform, opacity; }
 .splash__piece--tall { height: 128px; border-radius: 26px; }
 .splash__piece--sticker { object-fit: contain; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 18px rgba(12, 12, 13, 0.14)); width: 112px; height: 112px; }
-.splash__words { left: 0; right: 0; top: 560px; z-index: 4; text-align: center; opacity: 0; transform: translateY(18px); transition: opacity 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
+.splash__words { left: 0; right: 0; top: 560px; z-index: 4; text-align: center; opacity: 0; transform: translateY(44px); transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
 .splash.is-title .splash__words { opacity: 1; transform: none; pointer-events: auto; }
 .splash__tag { margin: 0 0 22px; font-family: var(--font-body); font-size: 24px; line-height: 1.2; color: #000; }
 .splash__tag b { font-weight: 600; }

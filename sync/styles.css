@@ -1540,7 +1540,7 @@ button.ob__cal-day:active { background: #e9e7e3; }
    turning wash over it for life. It zooms toward you from the first frame with no steps, so the letters read as
    falling back into a background that is coming forward. */
 .splash__glow { left: 200px; top: 352px; width: 260px; height: 260px; border-radius: 50%; transform: translate(-50%, -50%) scale(0.5); opacity: 0; pointer-events: none; z-index: 2; will-change: transform, opacity;
-  background: radial-gradient(circle at 50% 50%, #f7effd 0%, #ffc9df 9%, #d6c3ff 19%, #b6e6e4 27%, #a8face 34%, #c9ecf8 48%, rgba(219, 239, 254, 0.5) 62%, rgba(219, 239, 254, 0) 78%); filter: blur(10px); }
+  background: radial-gradient(circle at 50% 50%, #f3e4fb 0%, #ffb3d2 9%, #c9b0ff 19%, #a9e2e0 27%, #a8face 34%, #c9ecf8 48%, rgba(219, 239, 254, 0.5) 62%, rgba(219, 239, 254, 0) 78%); filter: blur(10px); }
 .splash__glow::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, rgba(255, 196, 221, 0.55), rgba(205, 184, 255, 0.5), rgba(168, 250, 206, 0.5), rgba(255, 214, 230, 0.45), rgba(205, 184, 255, 0.5), rgba(255, 196, 221, 0.55)); -webkit-mask: radial-gradient(circle, #000 0%, #000 48%, transparent 78%); mask: radial-gradient(circle, #000 0%, #000 48%, transparent 78%); filter: blur(18px); animation: wash-turn 11s linear infinite; }
 .splash__glow::after { content: ''; position: absolute; left: 50%; top: 50%; width: 36%; height: 36%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.35) 45%, rgba(255, 255, 255, 0) 72%); filter: blur(6px); }
 @keyframes wash-turn { to { transform: rotate(360deg); } }

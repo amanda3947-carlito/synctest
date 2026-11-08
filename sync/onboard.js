@@ -104,12 +104,18 @@ window.SyncOnboard = (() => {
   // owns the screen, and fades off fast onto the title screen: "Pass the aux", a button that starts the
   // build, and behind them an orbit of pieces (photos, covers, stickers) that keeps turning, the way the
   // board's ring does, to hint at what this is. A tap skips ahead.
+  // each piece: its own size, its own ellipse (radii, tilt, a nudge off centre) and pace, so the paths cross
+  // rather than queue; the widest ones carry a piece off the edge of the screen and back in
   const ORBIT_PIECES = [
-    { src: 'assets/splash/photo-1.jpg', cls: 'splash__piece--tall' }, { src: 'assets/stickers/heart.png', cls: 'splash__piece--sticker' },
-    { src: 'assets/splash/photo-3.jpg' }, { src: 'assets/stickers/taste-all_around.png', cls: 'splash__piece--sticker' },
-    { src: 'assets/album-2.png' }, { src: 'assets/stickers/taste-collector.png', cls: 'splash__piece--sticker' },
-    { src: 'assets/splash/photo-2.jpg' }, { src: 'assets/stickers/taste-nostalgic.png', cls: 'splash__piece--sticker' },
-    { src: 'assets/album-4.png' },
+    { src: 'assets/splash/photo-1.jpg', cls: 'splash__piece--tall', size: 1.25, rx: 150, ry: 96, tilt: -10, cx: 0, cy: 0, speed: 1 },
+    { src: 'assets/stickers/heart.png', cls: 'splash__piece--sticker', size: 0.9, rx: 250, ry: 70, tilt: 14, cx: 10, cy: -40, speed: 0.8 },
+    { src: 'assets/splash/photo-3.jpg', size: 1.05, rx: 180, ry: 120, tilt: 6, cx: -10, cy: 20, speed: 1.15 },
+    { src: 'assets/stickers/taste-all_around.png', cls: 'splash__piece--sticker', size: 1.3, rx: 140, ry: 140, tilt: -22, cx: 20, cy: -10, speed: 0.7 },
+    { src: 'assets/album-2.png', size: 0.75, rx: 270, ry: 90, tilt: -6, cx: 0, cy: 50, speed: 1.3 },
+    { src: 'assets/stickers/taste-collector.png', cls: 'splash__piece--sticker', size: 1.1, rx: 165, ry: 80, tilt: 18, cx: -20, cy: -30, speed: 0.9 },
+    { src: 'assets/splash/photo-2.jpg', size: 0.7, rx: 230, ry: 150, tilt: 10, cx: 0, cy: -20, speed: 1.05 },
+    { src: 'assets/stickers/taste-nostalgic.png', cls: 'splash__piece--sticker', size: 0.95, rx: 120, ry: 110, tilt: -14, cx: 30, cy: 30, speed: 1.25 },
+    { src: 'assets/album-4.png', size: 1.15, rx: 200, ry: 72, tilt: 4, cx: -30, cy: 10, speed: 0.85 },
   ];
   async function stepSplash() {
     frame({ cls: 'auth--sky auth--splash', title: '', body: `
@@ -118,7 +124,7 @@ window.SyncOnboard = (() => {
       </div>
       <div class="splash" id="splash">
         <div class="splash__orbit" aria-hidden="true">${ORBIT_PIECES.map((p) => `<img class="splash__piece ${p.cls || ''}" src="${p.src}" alt="" draggable="false">`).join('')}</div>
-        <div class="splash__glow" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+        <div class="splash__glow" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
         <img class="splash__mark" src="assets/aux-splash.png" alt="aux" draggable="false">
         <div class="splash__words"><p class="splash__tag">Pass the <b>aux</b></p><button class="splash__go" type="button" data-go>Let’s build</button></div>
       </div>` });
@@ -126,19 +132,22 @@ window.SyncOnboard = (() => {
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     // the orbit: an ellipse seen from a little above, centred on the stage, one turn in about 34s
     const pieces = [...splash.querySelectorAll('.splash__piece')];
-    const CX = 200, CY = 290, RX = 158, RY = 96, N = pieces.length;
+    const CX = 200, CY = 290, N = pieces.length, TAU = Math.PI * 2;
     let raf = 0;
     const place = (t) => {
-      const base = (t / 27000) * Math.PI * 2;
       pieces.forEach((el, i) => {
-        const a = base + (i / N) * Math.PI * 2;
+        const o = ORBIT_PIECES[i];
+        const a = (t / (30000 / o.speed)) * TAU + (i / N) * TAU;
         const depth = (Math.sin(a) + 1) / 2;                       // 0 at the back, 1 at the front
-        const x = CX + RX * Math.cos(a), y = CY + RY * Math.sin(a) + Math.sin(t / 1900 + i) * 5;
-        const sc = 0.42 + 0.58 * depth;
-        el.style.transform = `translate(${x - 46}px, ${y - 46}px) scale(${sc}) rotate(${Math.sin(t / 2600 + i * 1.3) * 5}deg)`;
-        el.style.opacity = (0.35 + 0.65 * depth).toFixed(3);
+        const ex = o.rx * Math.cos(a), ey = o.ry * Math.sin(a);
+        const tr = (o.tilt * Math.PI) / 180;                        // the ellipse itself is tilted
+        const x = CX + o.cx + ex * Math.cos(tr) - ey * Math.sin(tr);
+        const y = CY + o.cy + ex * Math.sin(tr) + ey * Math.cos(tr) + Math.sin(t / 1900 + i) * 5;
+        const sc = o.size * (0.48 + 0.6 * depth);
+        el.style.transform = `translate(${(x - 46).toFixed(1)}px, ${(y - 46).toFixed(1)}px) scale(${sc.toFixed(3)}) rotate(${(Math.sin(t / 2600 + i * 1.3) * 7).toFixed(2)}deg)`;
+        el.style.opacity = (0.4 + 0.6 * depth).toFixed(3);
         el.style.zIndex = String(Math.round(depth * 10));
-        el.style.filter = depth < 0.35 ? `blur(${((0.35 - depth) * 4).toFixed(2)}px)` : '';
+        el.style.filter = depth < 0.3 ? `blur(${((0.3 - depth) * 4).toFixed(2)}px)` : '';
       });
     };
     const start = performance.now() - 9000;

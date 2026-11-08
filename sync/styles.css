@@ -1529,7 +1529,7 @@ button.ob__cal-day:active { background: #e9e7e3; }
 /* the colour: four blurred blobs of coral, pink, violet and lilac drifting over a white heart, under one
    wide wash so that at full size it reads as one gradient, not four spots */
 .splash__glow { left: 200px; top: 352px; width: 200px; height: 200px; transform: translate(-50%, -50%) scale(0.2); opacity: 0; pointer-events: none; z-index: 2; will-change: transform, opacity; }
-.splash__glow::before { content: ''; position: absolute; inset: -12%; border-radius: 50%; background: radial-gradient(circle, rgba(255, 190, 215, 0.5) 0%, rgba(205, 184, 255, 0.45) 38%, rgba(168, 250, 206, 0.5) 60%, rgba(168, 250, 206, 0) 78%); filter: blur(18px); }
+.splash__glow::before { content: ''; position: absolute; inset: -12%; border-radius: 50%; background: radial-gradient(circle at 46% 44%, rgba(255, 196, 221, 0.8) 0%, rgba(205, 184, 255, 0.78) 34%, rgba(168, 250, 206, 0.85) 58%, rgba(168, 250, 206, 0) 78%); filter: blur(14px); }
 .splash__glow i { position: absolute; border-radius: 50%; filter: blur(22px); opacity: 0.85; }
 .splash__glow i:nth-child(1) { left: 6%; top: 2%; width: 64%; height: 64%; background: radial-gradient(circle at 40% 40%, #ffe0cf 0%, #ffb8a6 45%, rgba(255, 184, 166, 0) 72%); animation: glow-a 5s ease-in-out infinite alternate; }
 .splash__glow i:nth-child(2) { left: 36%; top: 22%; width: 64%; height: 64%; background: radial-gradient(circle at 50% 50%, #ffc4dd 0%, #ff8ec4 45%, rgba(255, 142, 196, 0) 72%); animation: glow-b 4.2s ease-in-out infinite alternate; }

@@ -1536,7 +1536,10 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .splash__glow i:nth-child(3) { left: 2%; top: 36%; width: 68%; height: 68%; background: radial-gradient(circle at 50% 55%, #d9c6ff 0%, #b394ff 45%, rgba(179, 148, 255, 0) 72%); animation: glow-c 4.6s ease-in-out infinite alternate; }
 .splash__glow i:nth-child(4) { left: 40%; top: 44%; width: 60%; height: 60%; background: radial-gradient(circle at 50% 50%, #c9ffe4 0%, #a8face 42%, rgba(168, 250, 206, 0) 72%); animation: glow-d 5.4s ease-in-out infinite alternate; }
 .splash__glow i:nth-child(5) { left: -6%; top: -4%; width: 54%; height: 54%; background: radial-gradient(circle at 50% 50%, #d4fff0 0%, #a8face 40%, rgba(168, 250, 206, 0) 72%); animation: glow-e 4.8s ease-in-out infinite alternate; }
-.splash__glow::after { content: ''; position: absolute; left: 50%; top: 50%; width: 50%; height: 50%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 42%, rgba(255, 255, 255, 0) 70%); filter: blur(8px); }
+.splash__glow::after { content: ''; position: absolute; left: 50%; top: 50%; width: 44%; height: 44%; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.5) 42%, rgba(255, 255, 255, 0) 70%); filter: blur(8px); }
+/* the white heart belongs to the small state: it fades as the colour zooms, so the screen fills with colour, not white */
+.splash.is-playing .splash__glow::after { animation: splash-heart 4.2s linear forwards; }
+@keyframes splash-heart { 0%, 60% { opacity: 1; } 72%, 100% { opacity: 0.08; } }
 @keyframes glow-a { to { transform: translate(14%, 10%) scale(1.12); } }
 @keyframes glow-b { to { transform: translate(-16%, 8%) scale(1.08); } }
 @keyframes glow-c { to { transform: translate(8%, -14%) scale(1.15); } }

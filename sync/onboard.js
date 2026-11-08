@@ -49,7 +49,7 @@ window.SyncOnboard = (() => {
   // ── the frame: title row with the "n of 6" pill, body, one pill button that goes mint when the step is ready
   // every frame gets a fresh panel element, so the last step's listeners go with it
   const freshPanel = (cls) => { const old = panel(); const el = document.createElement('section'); el.className = 'auth ' + (cls || ''); el.setAttribute('role', 'dialog'); old.replaceWith(el); return el; };
-  function frame({ step, total, title, sub, body, cta, back, skip, ready, cancel, cls = '' }) {
+  function frame({ step, total, title, sub, body, cta, back, skip, ready, cancel, focus = true, cls = '' }) {
     const showCancel = cta && cancel !== false;
     freshPanel(cls).innerHTML = `
       <div class="ob__head">
@@ -64,7 +64,7 @@ window.SyncOnboard = (() => {
     root().hidden = false;
     root().scrollTop = 0;
     panel().scrollTop = 0;
-    const first = cls.includes('auth--board') ? null : $('.ob__body input:not([type=file]):not([type=date]), .ob__body textarea');
+    const first = !focus || cls.includes('auth--board') ? null : $('.ob__body input:not([type=file]):not([type=date]), .ob__body textarea');
     if (first) setTimeout(() => first.focus({ preventScroll: true }), 60);
   }
   const err = (t) => { const el = $('.ob__err'); if (el) el.textContent = t || ''; };
@@ -185,7 +185,7 @@ window.SyncOnboard = (() => {
   const draft = { name: '', last: '' };
 
   async function stepName(editing) {
-    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: true,
+    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: true, focus: !!editing,
       body: `<label class="ob__fld"><input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}"><span class="ob__fld-label">First name</span></label>
              <div><label class="ob__fld"><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><span class="ob__fld-label">Last name</span></label><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
     liveReady(() => $('#ob-name').value.trim().length > 0);

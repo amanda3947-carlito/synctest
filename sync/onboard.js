@@ -49,17 +49,18 @@ window.SyncOnboard = (() => {
   // ── the frame: title row with the "n of 6" pill, body, one pill button that goes mint when the step is ready
   // every frame gets a fresh panel element, so the last step's listeners go with it
   const freshPanel = (cls) => { const old = panel(); const el = document.createElement('section'); el.className = 'auth ' + (cls || ''); el.setAttribute('role', 'dialog'); old.replaceWith(el); return el; };
-  function frame({ step, total, title, sub, body, cta, back, skip, ready, cls = '' }) {
+  function frame({ step, total, title, sub, body, cta, back, skip, ready, cancel, cls = '' }) {
+    const showCancel = cta && cancel !== false;
     freshPanel(cls).innerHTML = `
       <div class="ob__head">
-        ${back ? '<button class="ob__back" type="button" data-back aria-label="Back"><img src="assets/caret-left-dark.svg" width="24" height="24" alt=""></button>' : ''}
+        ${back ? '<button class="ob__back" type="button" data-back aria-label="Back"><img src="assets/chevron-left.svg" width="9" height="17" alt=""></button>' : ''}
         <h2 class="ob__h">${esc(title)}</h2>
         ${step ? `<span class="ob__pill">${step} of ${total}</span>` : ''}${skip ? `<button class="ob__skip" type="button" data-skip>${esc(skip)}</button>` : ''}
       </div>
       ${sub ? `<p class="ob__p">${sub}</p>` : ''}
       <div class="ob__body">${body}</div>
       <p class="ob__err" aria-live="polite"></p>
-      ${cta ? `<div class="ob__foot"><button class="ob__cta${ready ? ' is-ready' : ''}" type="button" data-next><span>${esc(cta)}</span><img src="assets/arrow-right.svg" width="15" height="15" alt="" class="ob__cta-arrow"></button></div>` : ''}`;
+      ${cta ? `<div class="ob__foot"><button class="ob__cta${ready ? ' is-ready' : ''}" type="button" data-next><span>${esc(cta)}</span><img src="assets/arrow-right.svg" width="15" height="15" alt="" class="ob__cta-arrow"></button>${showCancel ? `<button class="ob__cta ob__cta--ghost" type="button" data-cancel>${esc(typeof cancel === 'string' ? cancel : 'Cancel')}</button>` : ''}</div>` : ''}`;
     root().hidden = false;
     root().scrollTop = 0;
     panel().scrollTop = 0;
@@ -85,6 +86,7 @@ window.SyncOnboard = (() => {
       const onClick = async (e) => {
         if (e.target.closest('[data-skip]')) { panel().removeEventListener('click', onClick); resolve('skip'); return; }
         if (e.target.closest('[data-back]')) { panel().removeEventListener('click', onClick); resolve('back'); return; }
+        if (e.target.closest('[data-cancel]')) { panel().removeEventListener('click', onClick); resolve('cancel'); return; }
         if (!e.target.closest('[data-next]')) return;
         busy(true);
         let ok = false;
@@ -183,7 +185,7 @@ window.SyncOnboard = (() => {
   const draft = { name: '', last: '' };
 
   async function stepName(editing) {
-    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: !!editing,
+    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: true,
       body: `<label class="ob__fld"><input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}"><span class="ob__fld-label">First name</span></label>
              <div><label class="ob__fld"><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><span class="ob__fld-label">Last name</span></label><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
     liveReady(() => $('#ob-name').value.trim().length > 0);
@@ -232,7 +234,7 @@ window.SyncOnboard = (() => {
     const fmt = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${m} / ${d} / ${y}`; };
     const thisYear = new Date().getFullYear();
     let view = value ? { y: +value.slice(0, 4), m: +value.slice(5, 7) - 1 } : { y: thisYear - 25, m: new Date().getMonth() };
-    frame({ step: editing ? 0 : 3, total: 7, title: 'What’s your birthday?', cta: editing ? 'Save' : 'Next', back: !editing,
+    frame({ step: editing ? 0 : 3, total: 7, title: 'When’s your birthday?', cta: editing ? 'Save' : 'Next', back: true,
       body: `<div class="ob__datewrap">
                <button class="ob__input ob__dateb${value ? ' has-value' : ''}" type="button" id="ob-bday-btn" aria-haspopup="dialog" aria-expanded="false"><span id="ob-bday-text">${value ? fmt(value) : 'MM / DD / YYYY'}</span><svg class="ob__date-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg></button>
                <p class="ob__cap">This information is used only for helping you find the right people</p>
@@ -287,7 +289,7 @@ window.SyncOnboard = (() => {
       }).join('');
       setReady(slots.length > 0);
     };
-    frame({ step: editing ? 0 : 4, total: 7, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next', back: !!editing,
+    frame({ step: editing ? 0 : 4, total: 7, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next', back: true,
       body: `<p class="ob__cap ob__cap--lead">Drag to reorder. The first photo will be your profile photo</p>
              <div class="ob__grid" id="ob-grid"></div>
              <p class="ob__cap">Add up to 4 videos and photos. At least 1 of these has to be a video. This helps us with verification.</p>
@@ -365,7 +367,7 @@ window.SyncOnboard = (() => {
           <div class="ob__acc-body" hidden>${body}</div>
         </div>`;
     };
-    frame({ step: editing ? 0 : 5, total: 7, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: !!editing,
+    frame({ step: editing ? 0 : 5, total: 7, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: true,
       body: `<div class="ob__acc">${BASICS.map(rowHTML).join('')}</div>` });
     setReady(true);
     const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = $(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); };
@@ -420,7 +422,7 @@ window.SyncOnboard = (() => {
       return `<button class="ob__ptile" type="button" data-prompt="${pr.key}"><span class="ob__ptile-label">${pr.label}</span></button>`;
     };
     const capHTML = () => { const left = Math.max(0, PROMPT_MIN - done()); return left ? `Add ${left} or more, and remember you can also include voice` : 'Tap a prompt to change it, and remember you can also include voice'; };
-    frame({ step: editing ? 0 : 6, total: 7, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', back: !!editing, ready: done() >= PROMPT_MIN,
+    frame({ step: editing ? 0 : 6, total: 7, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', back: true, ready: done() >= PROMPT_MIN,
       body: `<p class="ob__cap ob__cap--lead ob__cap--prompts">Select from the prompts below to add a response</p>
              <div class="ob__ptiles" id="ob-ptiles">${PROMPTS.map(tileHTML).join('')}</div>
              <p class="ob__cap ob__cap--prompts" id="ob-pcap">${capHTML()}</p>
@@ -496,7 +498,7 @@ window.SyncOnboard = (() => {
 
   async function stepDescribes(editing) {
     let pick = (me && me.taste && me.taste[0]) || null;
-    frame({ step: editing ? 0 : 7, total: 7, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', back: !!editing, ready: !!pick,
+    frame({ step: editing ? 0 : 7, total: 7, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', back: true, ready: !!pick,
       body: `<div class="ob__describe">${DESCRIBES.map(([k, label, src]) => `<button class="ob__dtile${k === pick ? ' is-on' : ''}" type="button" data-pick="${k}"><img src="${src}" alt="" draggable="false"><span>${esc(label)}</span></button>`).join('')}</div>
              <p class="ob__cap">This appears along with your profile avatar</p>` });
     panel().addEventListener('click', (e) => { const b = e.target.closest('[data-pick]'); if (!b) return; pick = b.dataset.pick; $$('[data-pick]').forEach((x) => x.classList.toggle('is-on', x === b)); setReady(true); });
@@ -509,7 +511,7 @@ window.SyncOnboard = (() => {
 
   // ═══════════════ act two: the celebration ═══════════════
   async function stepCelebration() {
-    frame({ cls: 'auth--sky', cta: 'Get plugged in', title: '', body: `
+    frame({ cancel: false, cls: 'auth--sky', cta: 'Get plugged in', title: '', body: `
       <div class="sky" aria-hidden="true">
         <span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span>
         <img class="sky__sticker sky__sticker--heart" src="assets/stickers/heart.png" alt="">
@@ -910,7 +912,7 @@ window.SyncOnboard = (() => {
   }
   async function stepCoverPick(editing) {
     let pick = coverOf(me && me.cover).id;
-    frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', back: !!editing, ready: true,
+    frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', back: true, ready: true,
       body: `<p class="punit__title ob__covers-cap">Choose a cover image</p>
              <div class="ob__covergrid">${COVERS.map((c) => `<button class="ob__coverpick${c.id === pick ? ' is-on' : ''}" type="button" data-cover="${c.id}" aria-label="${c.id}" aria-pressed="${c.id === pick}"><img src="${c.src}" alt="" draggable="false"><span class="ob__coverpick-grad"></span></button>`).join('')}</div>` });
     panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
@@ -929,26 +931,50 @@ window.SyncOnboard = (() => {
     const a = api();
     // ?reset on the URL signs out first, so a link can land on the very first screen
     if (new URLSearchParams(location.search).has('reset')) { try { await a.signOut(); } catch (e) { /* fine */ } history.replaceState(null, '', location.pathname); }
+    // Cancel on any step leaves the run: whatever is saved stays with the account, the splash comes back
+    const leave = async () => { try { await a.signOut(); } catch (e) { /* fine */ } location.reload(); return new Promise(() => {}); };
     if (!(await a.session())) {
       await stepSplash();
-      let r;
-      do { await stepName(false); r = await stepPhone(); } while (r === 'back');
+      while (true) {
+        const n = await stepName(false);
+        if (n === 'back') { await stepSplash(); continue; }
+        if (n === 'cancel') { location.reload(); return new Promise(() => {}); }
+        const r = await stepPhone();
+        if (r === 'back') continue;
+        if (r === 'cancel') return leave();
+        break;
+      }
     }
     await loadMe();
-    if (!me) { if (!draft.name) await stepName(false); let r; do { r = await stepBirthday(false); if (r === 'back') await stepName(false); } while (r === 'back'); }
     // ?go=<step> opens that step of the editor first, finished or not; an unfinished run then carries on where it was
     const go = new URLSearchParams(location.search).get('go');
-    if (go) { history.replaceState(null, '', location.pathname); await edit(go); }
-    if (me.onboarded) { root().hidden = true; return me; }
-    const state = await a.myState();
-    if (!state.photos) await stepPhotos(false);
-    if (!me.details || !Object.keys(me.details).length) await stepBasics(false);
-    if (!me.prompts || Object.keys(me.prompts).length < PROMPT_MIN) await stepPrompts(false);
-    if (!me.taste || !me.taste.length) await stepDescribes(false);
+    if (go && me) { history.replaceState(null, '', location.pathname); await edit(go); }
+    if (me && me.onboarded) { root().hidden = true; return me; }
+    // the essentials, in order; the run starts at the first one not done and the chevron walks back through them
+    const state = me ? await a.myState() : { photos: false };
+    const chain = [
+      ['birthday', () => stepBirthday(false), () => !me],
+      ['photos', () => stepPhotos(false), () => !state.photos],
+      ['basics', () => stepBasics(false), () => !me.details || !Object.keys(me.details).length],
+      ['prompts', () => stepPrompts(false), () => !me.prompts || Object.keys(me.prompts).length < PROMPT_MIN],
+      ['describes', () => stepDescribes(false), () => !me.taste || !me.taste.length],
+    ];
+    let i = chain.findIndex(([, , todo]) => todo());
+    if (i < 0) i = chain.length;
+    while (i < chain.length) {
+      const r = await chain[i][1]();
+      if (r === 'cancel') return leave();
+      if (r === 'back') {
+        if (i === 0) { const n = await stepName(false); if (n === 'cancel') return leave(); continue; }   // before the birthday there is only the name
+        i -= 1; continue;
+      }
+      i += 1;
+    }
     await loadMe();
     await stepCelebration();
-    await stepCoverPick(false);
+    while (true) { const c = await stepCoverPick(false); if (c === 'cancel') return leave(); if (c === 'back') { await stepCelebration(); continue; } break; }
     let r = await stepBoard(false);
+    if (r === 'cancel') return leave();
     while (true) {
       const v = await stepRealView();
       if (v === 'board') { r = await stepBoard(false); continue; }
@@ -972,7 +998,7 @@ window.SyncOnboard = (() => {
     const sections = SECTIONS;
     if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } return viewMine(); }
     while (true) {
-      frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true,
+      frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true, cancel: false,
         body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button></div>` });
       const choice = await new Promise((res) => {
         const h = (e) => { const s = e.target.closest('[data-section]'); if (s) { panel().removeEventListener('click', h); res(s.dataset.section); return; } if (e.target.closest('[data-signout]')) { panel().removeEventListener('click', h); res('signout'); return; } if (e.target.closest('[data-next]')) { panel().removeEventListener('click', h); res('done'); } };

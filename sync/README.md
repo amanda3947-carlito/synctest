@@ -22,6 +22,10 @@ sync/
   screen and fades off fast onto the title screen: "Pass the aux", a "Let's build" button that starts
   act one, and behind them an orbit of pieces (photos, covers, stickers) that keeps turning the way the
   board's ring does. A tap skips to the title; reduced motion goes straight there.
+- **Every step's chrome** (1105:5031): a thin chevron before the title walks back a step (from the
+  first step, back to the splash), the step pill sits right, and under the mint Next an outlined
+  Cancel leaves the run: what is saved stays with the account, and the splash comes back. While
+  editing from your profile, Cancel returns to the profile without saving.
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
   1. *Essentials, 1 of 7 to 7 of 7*: name, number and code (a focused pill goes white with its label on
      the border), birthday (MM / DD / YYYY with a calendar picker: month and year menus, a 7-wide grid),

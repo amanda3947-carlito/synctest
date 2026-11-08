@@ -454,9 +454,9 @@ img { display: block; }
 
 /* avatar: 130 circle at (136, 129) with a 3px white ring, disc at (230, 220).
    Both are transformed by the scroll handler as the header collapses. */
-.pavatar { position: absolute; left: 136px; top: 129px; width: 130px; height: 130px; border-radius: 999px; box-shadow: 0 0 0 3px #fff; overflow: hidden; background: #ddd; z-index: 6; transform-origin: 0 0; pointer-events: none; will-change: transform; }
+.pavatar { position: absolute; left: calc(50% - 65px); top: 129px; width: 130px; height: 130px; border-radius: 999px; box-shadow: 0 0 0 3px #fff; overflow: hidden; background: #ddd; z-index: 6; transform-origin: 0 0; pointer-events: none; will-change: transform; }
 .pavatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 25%; }
-.pavatar-disc { position: absolute; left: 226px; top: 216px; width: 48px; height: 48px; object-fit: contain; z-index: 7; transform-origin: 0 0; pointer-events: none; will-change: transform; }
+.pavatar-disc { position: absolute; left: calc(50% + 25px); top: 216px; width: 48px; height: 48px; object-fit: contain; z-index: 7; transform-origin: 0 0; pointer-events: none; will-change: transform; }
 
 /* "header scroll" (1021:30973): the collapsed bar, sticky over the sheet.
    Status bar on top, then the 56px row: px 20, py 10, gap 10. */
@@ -1825,3 +1825,18 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .ob__book .ob__slot-x { top: 8px; right: 8px; }
 .ob__shelf > .ob__fine { grid-column: 1 / -1; }
 .ob__hit { gap: 12px; }
+
+
+/* ── inside the iOS shell: the drawn status bar gives way to the real one, the panel tops and the nav
+   follow the safe-area insets, and the device is the whole screen ── */
+:root.is-native { --sb-top: env(safe-area-inset-top, 47px); --sb-bottom: env(safe-area-inset-bottom, 34px); }
+:root.is-native .device { max-width: none; max-height: none; border-radius: 0; }
+:root.is-native .statusbar { height: var(--sb-top); padding: 0; visibility: hidden; }
+:root.is-native .pbar::before, :root.is-native .pbar::after { top: var(--sb-top); }
+:root.is-native .auth { padding-top: calc(var(--sb-top) + 9px); }
+:root.is-native .auth--board, :root.is-native .auth--mine { padding-top: calc(var(--sb-top) + 9px); }
+:root.is-native .auth--mine-view .mine__top { top: calc(var(--sb-top) + 9px); }
+:root.is-native .sky__me { top: calc(var(--sb-top) + 9px); }
+:root.is-native .device__nav { bottom: max(24px, var(--sb-bottom)); }
+:root.is-native .ob__foot { padding-bottom: max(24px, var(--sb-bottom)); }
+:root.is-native .ob__realbar { padding-bottom: max(28px, calc(var(--sb-bottom) + 4px)); }

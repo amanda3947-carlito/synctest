@@ -79,6 +79,40 @@ sync/
   match. The charm beside a name is the taste badge (`assets/badges`, a white disc with the sticker, from
   the "taste badges" frame). A shelf row saved without a cover gets one looked up when it is shown.
 
+## The iOS app (Xcode)
+
+The web app runs as-is inside an iOS shell (Capacitor) that lives in `app/`. The shell has two
+modes, set in `app/capacitor.config.js`:
+
+- **live** (the default while we build): the shell loads the deployed site, so every push to GitHub
+  Pages shows up in the app with no rebuild. Open the app, pull to nothing: it is just the site.
+- **bundled**: `npx cap sync ios` copies `sync/` into the app, for TestFlight, the store and offline.
+  Set `AUX_MODE=bundled` (or flip `MODE` in the config) before syncing.
+
+On a Mac with Xcode and Node installed:
+
+```
+cd app
+npm install
+npx cap sync ios
+npx cap open ios
+```
+
+In Xcode pick the `App` target, set your team under Signing & Capabilities, choose your iPhone and
+press Run. The bundle id is `app.aux.sync`; change it there if you need another. Info.plist already
+carries the camera, photo library, microphone and location usage strings, portrait only, and the
+status bar settings. The icon is the aux mark on the brand gradient (one 1024 image in
+`Assets.xcassets`).
+
+Inside the shell the page runs edge to edge: `native.js` marks the document `is-native`, the drawn
+"9:41" status bar gives way to the real one (the safe-area inset takes its height), the panel tops
+and the nav follow the insets, and the real status bar's text goes dark over the white panels and
+light over the feed. Everything else is the same code as the website.
+
+For TestFlight: Product → Archive in Xcode, then Distribute App → App Store Connect. That needs an
+Apple Developer account ($99/yr) with the app registered in App Store Connect under the same bundle
+id. Switch to bundled mode first so reviewers get a copy that does not depend on GitHub Pages.
+
 ## Starting over
 Open `sync/?reset` to sign out first and land on the first screen. Signed in, `sync/?go=photos` (or
 `prompts`, `basics`, `describes`, `board`, `rotation`, `cover`, `name`) opens that step of the editor straight away. Test numbers 555 000 0010, 0011 and

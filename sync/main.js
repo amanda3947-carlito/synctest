@@ -1341,7 +1341,6 @@
     const openProfile = () => { profile.scrollTop = 0; collapse(); card.classList.add('is-profile-open'); device.classList.add('is-sheet-up'); profile.setAttribute('aria-hidden', 'false'); pause(); afterSlide(() => { if (card.classList.contains('is-profile-open')) { device.classList.add('is-nav-dark'); nav.show(); } }); };
     const closeProfile = (resumeVideo = true) => { if (compose.active) compose.close(); card.classList.remove('is-profile-open'); device.classList.remove('is-sheet-up'); profile.setAttribute('aria-hidden', 'true'); if (active && resumeVideo) play(); afterSlide(() => { if (!card.classList.contains('is-profile-open')) { device.classList.remove('is-nav-dark'); nav.show(); } }); };
     card.querySelector('.profile__back').addEventListener('click', closeProfile);
-    card.querySelector('.name__more').addEventListener('click', (e) => { e.stopPropagation(); openProfile(); });
     profile.querySelector('.pbar__back').addEventListener('click', closeProfile);
 
     // header collapse: over the first 150px of scroll the cover nav fades out, the

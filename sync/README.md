@@ -60,7 +60,7 @@ sync/
   rotation, vibes, watching and reading, spots); a tap opens that piece's editor and comes back. View
   is the profile as people see it. The chevron goes back to the feed; the dots open the section list
   (Sign out lives there). Your number is how you sign in, so it reads but does not edit.
-- **The feed** (":: home feed", 1098:27924): the aux wordmark, the name with its badge and a » into the
+- **The feed** (":: home feed", 1098:27924): the aux wordmark, the name with its badge; a sideways swipe opens the
   profile. A reply or a note from the profile can be typed, a GIF, or a voice note recorded in the
   field ("on select audio": bars and seconds while recording, then play and send); a voice note goes
   into the note's text as `Voice note · 7s [voice:<path>]` until Chats can play it. On your own

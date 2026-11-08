@@ -60,7 +60,9 @@ img { display: block; }
   pointer-events: none;
   transition: opacity 0.25s, filter 0.3s;
 }
-.device.is-sheet-up .device__chrome { opacity: 0; pointer-events: none; }
+/* with a profile or a sheet up the header is gone for taps too: its avatar kept its own pointer-events and was catching the profile's back button */
+.device.is-sheet-up .device__chrome { opacity: 0; pointer-events: none; visibility: hidden; transition: opacity 0.25s, filter 0.3s, visibility 0s 0.25s; }
+.device.is-sheet-up .device__chrome .header__me, .device.is-sheet-up .device__chrome .header__filter { pointer-events: none; }
 /* the cards keep invisible stand-ins so their dots sit exactly where the frame puts them */
 .card__top .statusbar, .card__top .header { visibility: hidden; }
 

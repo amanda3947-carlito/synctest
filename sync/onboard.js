@@ -882,25 +882,27 @@ window.SyncOnboard = (() => {
         const details = Object.keys(me.details || {}).filter((k) => me.details[k]).length;
         const taste = DESCRIBES.find((x) => x[0] === (me.taste || [])[0]);
         const n = (arr) => (arr || []).length;
+        const plural = (k, one, many, verb) => (k ? `${k} ${k === 1 ? one : many} ${verb}` : 'None yet');
+        const coverName = (id) => id.split('-').map((w, i) => (i ? w : w[0].toUpperCase() + w.slice(1))).join(' ');
         const rows = [
-          ['photos', 'Photos', n(person.items) ? `${n(person.items)} on your card` : 'Add a few'],
-          ['cover', 'Cover', coverOf(me.cover).id.replace('-', ' ')],
-          ['describes', 'Your badge', taste ? taste[1] : 'Pick one'],
-          ['basics', 'Details', details ? `${details} of ${BASICS.length} filled in` : 'Occupation, education, height…'],
-          ['prompts', 'Prompts', prompts ? `${prompts} of ${PROMPTS.length} answered` : 'Intro, lyrics to live by…'],
-          ['rotation', 'Rotation', n(person.rotation) ? `${n(person.rotation)} tracks` : 'Pick tracks'],
-          ['board', 'Vibes', n(p.style) ? `${n(p.style)} ${n(p.style) === 1 ? 'vibe' : 'vibes'}` : 'Photos and GIFs, from the board'],
-          ['shelf', 'Watching and Reading', n(p.shelf) ? `${n(p.shelf)} ${n(p.shelf) === 1 ? 'title' : 'titles'}` : 'Movies, shows, books'],
-          ['spot', 'Spots', n(p.spots) ? `${n(p.spots)} ${n(p.spots) === 1 ? 'place' : 'places'}` : 'Where you go'],
+          ['photos', 'Photos', `${n(person.items)} added`],
+          ['cover', 'Cover', me.cover ? coverName(coverOf(me.cover).id) : 'No cover added'],
+          ['describes', 'Your badge', taste ? taste[1] : 'None yet'],
+          ['basics', 'Details', `${details} of ${BASICS.length} completed`],
+          ['prompts', 'Prompts', `${prompts} of ${PROMPTS.length} added`],
+          ['rotation', 'Rotation', plural(n(person.rotation), 'track', 'tracks', 'added')],
+          ['board', 'Vibes', plural(n(p.style), 'element', 'elements', 'added')],
+          ['shelf', 'Watching and Reading', plural(n(p.shelf), 'title', 'titles', 'added')],
+          ['spot', 'Spots', plural(n(p.spots), 'place', 'places', 'listed')],
         ];
         panelEl.innerHTML = top + `
           <div class="mine__hero"><button class="mine__avatar" type="button" data-edit="photos" aria-label="Change your photos"><img src="${esc(p.avatar)}" alt=""></button><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
           <section class="mine__sec">
-            <div class="mine__sechead"><span>The basics</span><button class="mine__pencil" type="button" data-edit="name" aria-label="Edit the basics">${PENCIL}</button></div>
+            <div class="mine__sechead"><span>The basics</span><button class="mine__pencil" type="button" data-focus="mn-name" aria-label="Edit the basics">${PENCIL}</button></div>
             <div class="mine__card">
-              <button class="mine__fld" type="button" data-edit="name"><span class="mine__lbl">Name</span><span class="mine__val">${esc([me.name, me.last_name].filter(Boolean).join(' '))}</span></button>
-              <button class="mine__fld" type="button" data-static="phone"><span class="mine__lbl">Phone number</span><span class="mine__val">${esc(phone || 'Not on file')}</span></button>
-              <button class="mine__fld" type="button" data-edit="birthday"><span class="mine__lbl">Date of Birth</span><span class="mine__val">${esc(fmtDate(me.birthdate) || 'Add it')}</span></button>
+              <label class="mine__fld"><span class="mine__lbl">Name</span><input class="mine__val" id="mn-name" type="text" autocomplete="name" maxlength="100" placeholder="Your name" value="${esc([me.name, me.last_name].filter(Boolean).join(' '))}"></label>
+              <label class="mine__fld is-static" data-static="phone"><span class="mine__lbl">Phone number</span><input class="mine__val" id="mn-phone" type="tel" value="${esc(phone || 'Not on file')}" readonly tabindex="-1"></label>
+              <label class="mine__fld"><span class="mine__lbl">Date of Birth</span><input class="mine__val" id="mn-dob" type="date" value="${esc((me.birthdate || '').slice(0, 10))}" max="${new Date(Date.now() - 18 * 365.25 * 864e5).toISOString().slice(0, 10)}"></label>
             </div>
           </section>
           <section class="mine__sec">
@@ -910,8 +912,27 @@ window.SyncOnboard = (() => {
           <p class="ob__cap mine__cap">Switch to View to see it as people do.</p>`;
       }
       root().hidden = false;
+      // the basics save as you leave the field: the first word is the first name, the rest the last
+      const nameEl = $('#mn-name'), dobEl = $('#mn-dob');
+      if (nameEl) {
+        nameEl.addEventListener('change', async () => {
+          const parts = nameEl.value.trim().split(/\s+/).filter(Boolean);
+          if (!parts.length) { nameEl.value = [me.name, me.last_name].filter(Boolean).join(' '); return; }
+          try { me = await a.updateProfile({ name: parts[0], last_name: parts.slice(1).join(' ') || null }); toast('Name saved'); } catch (ex) { deps.notice(deps.errText(ex)); }
+        });
+        nameEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); } });
+      }
+      if (dobEl) {
+        dobEl.addEventListener('change', async () => {
+          const v = dobEl.value;
+          if (!v) { dobEl.value = (me.birthdate || '').slice(0, 10); return; }
+          if (new Date(v) > new Date(dobEl.max)) { deps.notice('You have to be 18.'); dobEl.value = (me.birthdate || '').slice(0, 10); return; }
+          try { me = await a.updateProfile({ birthdate: v }); toast('Birthday saved'); } catch (ex) { deps.notice(deps.errText(ex)); }
+        });
+      }
       const choice = await new Promise((res) => {
         const h = (e) => {
+          const f = e.target.closest('[data-focus]'); if (f) { const el = document.getElementById(f.dataset.focus); if (el) { el.focus(); el.select && el.select(); } return; }
           const m = e.target.closest('[data-mode]'); if (m) { done('mode:' + m.dataset.mode); return; }
           if (e.target.closest('[data-done]')) { done('done'); return; }
           if (e.target.closest('[data-menu]')) { done('menu'); return; }

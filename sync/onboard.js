@@ -107,15 +107,23 @@ window.SyncOnboard = (() => {
   // each piece: its own size, its own ellipse (radii, tilt, a nudge off centre) and pace, so the paths cross
   // rather than queue; the widest ones carry a piece off the edge of the screen and back in
   const ORBIT_PIECES = [
-    { src: 'assets/splash/photo-1.jpg', cls: 'splash__piece--tall', size: 1.4, rx: 150, ry: 96, tilt: -10, cx: 0, cy: 0, speed: 1 },
-    { src: 'assets/stickers/heart.png', cls: 'splash__piece--sticker', size: 0.8, rx: 250, ry: 70, tilt: 14, cx: 10, cy: -40, speed: 0.8 },
-    { src: 'assets/splash/photo-3.jpg', size: 1.0, rx: 180, ry: 120, tilt: 6, cx: -10, cy: 20, speed: 1.15 },
-    { src: 'assets/stickers/taste-all_around.png', cls: 'splash__piece--sticker', size: 1.5, rx: 140, ry: 140, tilt: -22, cx: 20, cy: -10, speed: 0.7 },
-    { src: 'assets/album-2.png', size: 0.6, rx: 270, ry: 90, tilt: -6, cx: 0, cy: 50, speed: 1.3 },
-    { src: 'assets/stickers/taste-collector.png', cls: 'splash__piece--sticker', size: 1.15, rx: 165, ry: 80, tilt: 18, cx: -20, cy: -30, speed: 0.9 },
-    { src: 'assets/splash/photo-2.jpg', size: 0.62, rx: 230, ry: 150, tilt: 10, cx: 0, cy: -20, speed: 1.05 },
-    { src: 'assets/stickers/taste-nostalgic.png', cls: 'splash__piece--sticker', size: 0.9, rx: 120, ry: 110, tilt: -14, cx: 30, cy: 30, speed: 1.25 },
-    { src: 'assets/album-4.png', size: 1.25, rx: 200, ry: 72, tilt: 4, cx: -30, cy: 10, speed: 0.85 },
+    { src: 'assets/splash/photo-1.jpg', cls: 'splash__piece--tall', size: 1.5, rx: 150, ry: 96, tilt: -10, cx: 0, cy: 0, speed: 1 },
+    { src: 'assets/stickers/heart.png', cls: 'splash__piece--sticker', size: 0.8, rx: 250, ry: 70, tilt: 14, cx: 10, cy: -40, speed: -0.9 },
+    { src: 'assets/splash/photo-3.jpg', size: 1.0, rx: 180, ry: 120, tilt: 6, cx: -10, cy: 20, speed: 1.25 },
+    { src: 'assets/stickers/taste-all_around.png', cls: 'splash__piece--sticker', size: 1.7, rx: 140, ry: 140, tilt: -22, cx: 20, cy: -10, speed: 0.7 },
+    { src: 'assets/album-2.png', size: 0.55, rx: 270, ry: 90, tilt: -6, cx: 0, cy: 50, speed: 1.45 },
+    { src: 'assets/stickers/taste-collector.png', cls: 'splash__piece--sticker', size: 1.2, rx: 165, ry: 80, tilt: 18, cx: -20, cy: -30, speed: 0.95 },
+    { src: 'assets/splash/photo-2.jpg', size: 0.6, rx: 230, ry: 150, tilt: 10, cx: 0, cy: -20, speed: -1.1 },
+    { src: 'assets/stickers/taste-nostalgic.png', cls: 'splash__piece--sticker', size: 0.95, rx: 120, ry: 110, tilt: -14, cx: 30, cy: 30, speed: 1.35 },
+    { src: 'assets/album-4.png', size: 1.3, rx: 200, ry: 72, tilt: 4, cx: -30, cy: 10, speed: 0.85 },
+    { src: 'assets/stickers/sticker-sneakers.png', cls: 'splash__piece--sticker', size: 1.35, rx: 215, ry: 104, tilt: -30, cx: 10, cy: 10, speed: 0.78 },
+    { src: 'assets/damon-2.png', size: 0.85, rx: 260, ry: 60, tilt: 24, cx: -10, cy: -60, speed: 1.15 },
+    { src: 'assets/stickers/sticker-cocktail.png', cls: 'splash__piece--sticker', size: 0.7, rx: 110, ry: 160, tilt: 40, cx: 40, cy: 0, speed: -1.3 },
+    { src: 'assets/imani-3.png', size: 1.1, rx: 190, ry: 130, tilt: -4, cx: 20, cy: 40, speed: 0.9 },
+    { src: 'assets/stickers/sticker-clapper.png', cls: 'splash__piece--sticker', size: 0.9, rx: 240, ry: 110, tilt: -18, cx: -40, cy: -10, speed: 1.05 },
+    { src: 'assets/stickers/sticker-pizza.png', cls: 'splash__piece--sticker', size: 0.65, rx: 285, ry: 80, tilt: 8, cx: 0, cy: 30, speed: 1.55 },
+    { src: 'assets/theo-3.png', size: 0.75, rx: 130, ry: 90, tilt: 30, cx: -30, cy: -20, speed: -0.8 },
+    { src: 'assets/stickers/sticker-coffee.png', cls: 'splash__piece--sticker', size: 0.6, rx: 205, ry: 140, tilt: -36, cx: 30, cy: -40, speed: 1.2 },
   ];
   async function stepSplash() {
     frame({ cls: 'auth--sky auth--splash', title: '', body: `
@@ -137,17 +145,17 @@ window.SyncOnboard = (() => {
     const place = (t) => {
       pieces.forEach((el, i) => {
         const o = ORBIT_PIECES[i];
-        const a = (t / (30000 / o.speed)) * TAU + (i / N) * TAU;
+        const a = (t / (17000 / o.speed)) * TAU + (i / N) * TAU * 1.618;
         const depth = (Math.sin(a) + 1) / 2;                       // 0 at the back, 1 at the front
         const ex = o.rx * Math.cos(a), ey = o.ry * Math.sin(a);
         const tr = (o.tilt * Math.PI) / 180;                        // the ellipse itself is tilted
         const x = CX + o.cx + ex * Math.cos(tr) - ey * Math.sin(tr);
-        const y = CY + o.cy + ex * Math.sin(tr) + ey * Math.cos(tr) + Math.sin(t / 1900 + i) * 5;
-        const sc = o.size * (0.42 + 0.7 * depth);
-        el.style.transform = `translate(${(x - 46).toFixed(1)}px, ${(y - 46).toFixed(1)}px) scale(${sc.toFixed(3)}) rotate(${(Math.sin(t / 2600 + i * 1.3) * 7).toFixed(2)}deg)`;
-        el.style.opacity = (0.4 + 0.6 * depth).toFixed(3);
+        const y = CY + o.cy + ex * Math.sin(tr) + ey * Math.cos(tr) + Math.sin(t / 1700 + i) * 9;
+        const sc = o.size * (0.34 + 0.86 * depth);
+        el.style.transform = `translate(${(x - 46).toFixed(1)}px, ${(y - 46).toFixed(1)}px) scale(${sc.toFixed(3)}) rotate(${(Math.sin(t / 2300 + i * 1.3) * 11).toFixed(2)}deg)`;
+        el.style.opacity = (0.3 + 0.7 * depth).toFixed(3);
         el.style.zIndex = String(Math.round(depth * 10));
-        el.style.filter = depth < 0.3 ? `blur(${((0.3 - depth) * 4).toFixed(2)}px)` : '';
+        el.style.filter = depth < 0.3 ? `blur(${((0.3 - depth) * 5).toFixed(2)}px)` : '';
       });
     };
     const start = performance.now() - 9000;

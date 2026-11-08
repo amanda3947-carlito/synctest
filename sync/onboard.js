@@ -847,44 +847,83 @@ window.SyncOnboard = (() => {
     });
   }
 
-  // ═══════════════ your profile, as people see it, with every piece a tap from its editor ═══════════════
-  // Tapping your avatar opens this instead of a list of sections: the cover, the avatar, your name and
-  // the badge beside it, then each unit, each with a small pencil. What's not on the profile yet is a
-  // row at the end. The dots open the old list (where Sign out lives); the caret goes back to the feed.
-  const PENCIL = '<svg viewBox="0 0 256 256" aria-hidden="true"><path fill="#1e1e1e" d="M227.31 73.37 182.63 28.68a16 16 0 0 0-22.63 0L36.69 152A15.86 15.86 0 0 0 32 163.31V208a16 16 0 0 0 16 16h44.69a15.86 15.86 0 0 0 11.31-4.69L227.31 96a16 16 0 0 0 0-22.63ZM92.69 208H48v-44.69l88-88L180.69 120ZM192 108.68 147.31 64l24-24L216 84.68Z"/></svg>';
-  const UNIT_EDIT = { 'Intro': 'prompts', 'Rotation': 'rotation', 'Details': 'basics', 'Vibes': 'board', 'Lyrics to live by': 'prompts', 'Deal-breakers': 'prompts', 'Current obsession': 'prompts', 'Watching and Reading': 'shelf', 'Spots': 'spot' };
-  const UNIT_ORDER = [['Intro', 'prompts'], ['Rotation', 'rotation'], ['Details', 'basics'], ['Vibes', 'board'], ['Lyrics to live by', 'prompts'], ['Watching and Reading', 'shelf'], ['Spots', 'spot']];
+  // ═══════════════ your profile from the avatar (1110:2745): Edit first, View to see it as people do ═══════════════
+  // A segmented control sits under the status bar. Edit (the default) shows your avatar with its badge,
+  // "The basics" (name, number, birthday) as a card, and under it the pieces of your profile as rows with a
+  // pencil each: a tap opens that piece's editor and comes back here. View is the profile as people see it,
+  // with nothing to tap but the shelf and spots sheets. The chevron goes back to the feed; the dots keep the
+  // section list (Sign out lives there).
+  const PENCIL = '<img src="assets/pencil-simple-line.svg" width="20" height="20" alt="">';
+  const fmtPhone = (p) => { const d = String(p || '').replace(/\D/g, ''); if (!d) return ''; if (d.length === 11 && d[0] === '1') return `+1 ${d.slice(1, 4)} ${d.slice(4, 7)} ${d.slice(7)}`; return '+' + d; };
+  const fmtDate = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[2]}/${m[3]}/${m[1]}` : ''; };
   async function viewMine() {
     const a = api();
+    let mode = 'edit';
     while (true) {
       await loadMe();
       const prof = await a.myProfile();
       const person = await a.hydrate(prof, prof.id);
-      freshPanel('auth--real auth--mine').innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>`;
+      const p = person.profile;
+      const sess = await a.session();
+      const phone = fmtPhone(sess && sess.user && sess.user.phone);
+      const top = `<div class="mine__top">
+          <button class="ob__back" type="button" data-done aria-label="Back to the feed"><img src="assets/chevron-left.svg" width="9" height="17" alt=""></button>
+          <div class="seg" role="tablist"><button class="seg__btn${mode === 'edit' ? ' is-on' : ''}" type="button" role="tab" data-mode="edit">Edit</button><button class="seg__btn${mode === 'view' ? ' is-on' : ''}" type="button" role="tab" data-mode="view">View</button></div>
+          <button class="ob__back" type="button" data-menu aria-label="More"><img src="assets/dots-three-circle-dark.svg" width="24" height="24" alt=""></button>
+        </div>`;
+      const panelEl = freshPanel('auth--mine' + (mode === 'view' ? ' auth--real auth--mine-view' : ' auth--mine-edit'));
+      if (mode === 'view') {
+        panelEl.innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>` + top;
+        const real = panelEl.querySelector('.ob__real');
+        real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is you, as people see you.</p>';
+        real.querySelectorAll('.pnav__btn, .preply__field, [data-action="not-interested"], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
+      } else {
+        const prompts = Object.keys(me.prompts || {}).length;
+        const details = Object.keys(me.details || {}).filter((k) => me.details[k]).length;
+        const taste = DESCRIBES.find((x) => x[0] === (me.taste || [])[0]);
+        const n = (arr) => (arr || []).length;
+        const rows = [
+          ['photos', 'Photos', n(person.items) ? `${n(person.items)} on your card` : 'Add a few'],
+          ['cover', 'Cover', coverOf(me.cover).id.replace('-', ' ')],
+          ['describes', 'Your badge', taste ? taste[1] : 'Pick one'],
+          ['basics', 'Details', details ? `${details} of ${BASICS.length} filled in` : 'Occupation, education, height…'],
+          ['prompts', 'Prompts', prompts ? `${prompts} of ${PROMPTS.length} answered` : 'Intro, lyrics to live by…'],
+          ['rotation', 'Rotation', n(person.rotation) ? `${n(person.rotation)} tracks` : 'Pick tracks'],
+          ['board', 'Vibes', n(p.style) ? `${n(p.style)} ${n(p.style) === 1 ? 'vibe' : 'vibes'}` : 'Photos and GIFs, from the board'],
+          ['shelf', 'Watching and Reading', n(p.shelf) ? `${n(p.shelf)} ${n(p.shelf) === 1 ? 'title' : 'titles'}` : 'Movies, shows, books'],
+          ['spot', 'Spots', n(p.spots) ? `${n(p.spots)} ${n(p.spots) === 1 ? 'place' : 'places'}` : 'Where you go'],
+        ];
+        panelEl.innerHTML = top + `
+          <div class="mine__hero"><button class="mine__avatar" type="button" data-edit="photos" aria-label="Change your photos"><img src="${esc(p.avatar)}" alt=""></button><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
+          <section class="mine__sec">
+            <div class="mine__sechead"><span>The basics</span><button class="mine__pencil" type="button" data-edit="name" aria-label="Edit the basics">${PENCIL}</button></div>
+            <div class="mine__card">
+              <button class="mine__fld" type="button" data-edit="name"><span class="mine__lbl">Name</span><span class="mine__val">${esc([me.name, me.last_name].filter(Boolean).join(' '))}</span></button>
+              <button class="mine__fld" type="button" data-static="phone"><span class="mine__lbl">Phone number</span><span class="mine__val">${esc(phone || 'Not on file')}</span></button>
+              <button class="mine__fld" type="button" data-edit="birthday"><span class="mine__lbl">Date of Birth</span><span class="mine__val">${esc(fmtDate(me.birthdate) || 'Add it')}</span></button>
+            </div>
+          </section>
+          <section class="mine__sec">
+            <div class="mine__sechead"><span>Your profile</span></div>
+            <div class="mine__list">${rows.map(([k, label, sub]) => `<button class="mine__row" type="button" data-edit="${k}"><span class="mine__rowtext"><span class="mine__rowlabel">${esc(label)}</span><span class="mine__rowsub">${esc(sub)}</span></span><span class="mine__pencil">${PENCIL}</span></button>`).join('')}</div>
+          </section>
+          <p class="ob__cap mine__cap">Switch to View to see it as people do.</p>`;
+      }
       root().hidden = false;
-      const real = panel().querySelector('.ob__real');
-      real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is you, as people see you. Tap anything to change it.</p>';
-      real.querySelectorAll('.preply__field, [data-action="not-interested"], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
-      const chip = `<button class="punit__edit" type="button" aria-label="Edit">${PENCIL}</button>`;
-      real.querySelectorAll('.punit').forEach((u) => { const t = u.querySelector('.punit__title'); const key = t && UNIT_EDIT[t.textContent.trim()]; if (!key) return; u.dataset.edit = key; t.insertAdjacentHTML('beforeend', chip); });
-      const tag = (sel, key) => { const el = real.querySelector(sel); if (el) el.dataset.edit = key; };
-      tag('.pcover', 'cover'); tag('.pavatar', 'photos'); tag('.pavatar-disc', 'describes'); tag('.pnav__title', 'name');
-      const have = new Set([...real.querySelectorAll('.punit__title')].map((t) => t.textContent.trim()));
-      const missing = UNIT_ORDER.filter(([n]) => !have.has(n));
-      if (missing.length) real.querySelector('.pcta').insertAdjacentHTML('beforebegin', `<section class="punit"><p class="punit__title">Still to add</p><div class="ob__addlist">${missing.map(([n, k]) => `<button class="ob__addrow" type="button" data-edit="${k}"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="20" height="20" alt=""></span><span class="t-sub">${esc(n)}</span></button>`).join('')}</div></section>`);
       const choice = await new Promise((res) => {
         const h = (e) => {
-          if (e.target.closest('.profile__back')) { done('done'); return; }
-          if (e.target.closest('.pnav__btn')) { done('menu'); return; }
-          const act = e.target.closest('[data-action="shelf"], [data-action="spot"]');
-          if (act) { done(act.dataset.action); return; }
-          const ed = e.target.closest('[data-edit]');
-          if (ed) done(ed.dataset.edit);
+          const m = e.target.closest('[data-mode]'); if (m) { done('mode:' + m.dataset.mode); return; }
+          if (e.target.closest('[data-done]')) { done('done'); return; }
+          if (e.target.closest('[data-menu]')) { done('menu'); return; }
+          if (e.target.closest('[data-static="phone"]')) { deps.notice('Your number is how you sign in. Ask us to change it.'); return; }
+          const act = e.target.closest('[data-action="shelf"], [data-action="spot"]'); if (act) { done(act.dataset.action); return; }
+          const ed = e.target.closest('[data-edit]'); if (ed) done(ed.dataset.edit);
         };
         const done = (v) => { panel().removeEventListener('click', h); res(v); };
         panel().addEventListener('click', h);
       });
       if (choice === 'done') break;
+      if (choice.startsWith('mode:')) { mode = choice.slice(5); continue; }
       if (choice === 'menu') { await edit(); continue; }
       if (choice === 'shelf' || choice === 'spot') { await openAdd(choice, person); continue; }
       const sec = SECTIONS.find(([k]) => k === choice);
@@ -987,7 +1026,7 @@ window.SyncOnboard = (() => {
   }
 
   const SECTIONS = [
-    ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['photos', 'Photos', () => stepPhotos(true)],
+    ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['birthday', 'Birthday', () => stepBirthday(true)], ['photos', 'Photos', () => stepPhotos(true)],
     ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
     ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', () => stepCoverPick(true)],
   ];

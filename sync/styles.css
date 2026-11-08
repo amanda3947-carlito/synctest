@@ -1719,16 +1719,35 @@ button.ob__cal-day:active { background: #e9e7e3; }
 
 /* the real view: your profile, in the profile's own layout, with a way back to the board */
 .auth--real { padding: 0; overflow: hidden; }
-/* your own profile, as people see it: every unit a tap from its editor */
-.auth--mine .ob__real { inset: 0; }
-.auth--mine .punit[data-edit], .auth--mine .pcover[data-edit], .auth--mine .pavatar[data-edit], .auth--mine .pavatar-disc[data-edit], .auth--mine .pnav__title[data-edit] { cursor: pointer; }
-.auth--mine .pavatar-disc[data-edit] { pointer-events: auto; }
-.auth--mine .punit__title { display: flex; align-items: center; gap: 10px; }
-.punit__edit { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(30, 30, 30, 0.12); background: #fff; padding: 0; cursor: pointer; }
-.punit__edit svg { width: 14px; height: 14px; }
-.ob__addlist { display: flex; flex-direction: column; gap: 8px; padding: 0 20px; width: 100%; }
-.ob__addrow { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border: 1px dashed var(--secondary); border-radius: 18px; background: #fdfdfd; font: inherit; color: var(--ink, #1e1e1e); text-align: left; cursor: pointer; }
-.ob__addrow .pplus img { display: block; }
+/* ── your profile from the avatar (1110:2745): Edit | View under the status bar, the avatar, the basics card, the rows ── */
+.auth--mine { padding-top: 62px; }
+.mine__top { flex: 0 0 auto; height: 54px; display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; }
+.auth--mine-view .mine__top { position: absolute; left: 20px; right: 20px; top: 62px; z-index: 12; }
+.auth--mine-view .ob__real { inset: 0; }
+.auth--mine-view .pnav { visibility: hidden; }
+.auth--mine-view .mine__top .ob__back img { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) brightness(10); }
+.seg { justify-self: center; width: 192px; padding: 2px; display: flex; border-radius: 32px; background: #fff; box-shadow: 0 4px 20px 1px rgba(0, 0, 0, 0.08); }
+.seg__btn { flex: 1 1 0; padding: 10px 16px; border-radius: 32px; background: transparent; font-family: var(--font-body); font-size: 14px; line-height: 1.4; font-weight: 400; color: #000; font-variation-settings: "opsz" 14; cursor: pointer; }
+.seg__btn.is-on { background: rgba(32, 32, 32, 0.12); font-weight: 600; }
+.mine__hero { position: relative; width: 130px; height: 137px; margin: 46px auto 20px; }
+.mine__avatar { display: block; width: 130px; height: 130px; border-radius: 50%; border: 3px solid #fff; overflow: hidden; padding: 0; background: var(--surface); box-shadow: 0 1px 4px rgba(12, 12, 13, 0.08); cursor: pointer; }
+.mine__avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.mine__badge { position: absolute; left: 79px; top: 83px; width: 54px; height: 54px; padding: 6px; border-radius: 50%; background: transparent; cursor: pointer; }
+.mine__badge img { width: 42px; height: 42px; display: block; border-radius: 50%; background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
+.mine__sec { margin: 0 -4px 22px; }
+.mine__sechead { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 4px; font-family: var(--font-body); font-size: 13px; font-weight: 600; line-height: 1; color: #817f7c; font-variation-settings: "opsz" 14; }
+.mine__pencil { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border-radius: 14px; background: transparent; cursor: pointer; }
+.mine__pencil img { display: block; }
+.mine__card { background: var(--surface); border-radius: 32px; padding: 8px 20px 25px; display: flex; flex-direction: column; gap: 8px; }
+.mine__fld { display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 0; background: transparent; text-align: left; cursor: pointer; }
+.mine__lbl { padding: 0 19px; font-family: var(--font-body); font-size: 13px; line-height: 1.4; color: #5a5a5a; font-variation-settings: "opsz" 14; }
+.mine__val { height: 48px; display: flex; align-items: center; padding: 0 16px; border-radius: 24px; background: #fff; border: 1px solid #f3f3f3; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); font-family: var(--font-body); font-size: 16px; line-height: 1.2; letter-spacing: -0.32px; color: #1e1e1e; font-variation-settings: "opsz" 14; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mine__list { display: flex; flex-direction: column; gap: 8px; }
+.mine__row { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 10px 12px 10px 20px; border-radius: 24px; background: #fff; border: 1px solid #f3f3f3; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); text-align: left; cursor: pointer; }
+.mine__rowtext { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mine__rowlabel { font-family: var(--font-body); font-size: 16px; line-height: 1.2; letter-spacing: -0.32px; color: #1e1e1e; font-variation-settings: "opsz" 14; }
+.mine__rowsub { font-family: var(--font-body); font-size: 13px; line-height: 1.3; color: #757575; font-variation-settings: "opsz" 14; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mine__cap { text-align: center; padding: 0 0 28px; }
 .ob__real { position: absolute; inset: 0 0 90px; transform: none; visibility: visible; box-shadow: none; overflow-y: auto; }
 .ob__realbar { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 28px; display: flex; gap: 10px; background: linear-gradient(to top, #fff 70%, rgba(255, 255, 255, 0)); }
 .ob__realbar .ob__cta { flex: 1 1 0; }

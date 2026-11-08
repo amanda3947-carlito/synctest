@@ -99,43 +99,67 @@ window.SyncOnboard = (() => {
   const liveReady = (check) => { const on = () => setReady(check()); panel().addEventListener('input', on); on(); };
 
   // ═══════════════ the splash: the sky and the wordmark, a moment, then act one ═══════════════
-  // ═══════════════ the splash: "animation frames" (1107:14029), left to right ═══════════════
-  // The chrome letters hang in the sky, then shrink into a point. As they go a soft glow gathers
-  // behind them (the look of a slow, blurred gradient), tightens into a small glass bubble with the
-  // letters inside, swells, and bursts to fill the screen. On the lightened sky the pieces of a
-  // profile drift in, with "Pass the aux" and a button that starts the build. A tap skips ahead.
+  // ═══════════════ the splash: the "animation frames" storyboard (1107:14029) read as one motion ═══════════════
+  // The chrome letters come forward, then fall back into a pop of colour that swells behind them until it
+  // owns the screen, and fades off fast onto the title screen: "Pass the aux", a button that starts the
+  // build, and behind them an orbit of pieces (photos, covers, stickers) that keeps turning, the way the
+  // board's ring does, to hint at what this is. A tap skips ahead.
+  const ORBIT_PIECES = [
+    { src: 'assets/splash/photo-1.jpg', cls: 'splash__piece--tall' }, { src: 'assets/stickers/heart.png', cls: 'splash__piece--sticker' },
+    { src: 'assets/splash/photo-3.jpg' }, { src: 'assets/stickers/taste-all_around.png', cls: 'splash__piece--sticker' },
+    { src: 'assets/album-2.png' }, { src: 'assets/stickers/taste-collector.png', cls: 'splash__piece--sticker' },
+    { src: 'assets/splash/photo-2.jpg' }, { src: 'assets/stickers/taste-nostalgic.png', cls: 'splash__piece--sticker' },
+    { src: 'assets/album-4.png' },
+  ];
   async function stepSplash() {
     frame({ cls: 'auth--sky auth--splash', title: '', body: `
       <div class="sky" aria-hidden="true">
         <span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span>
       </div>
       <div class="splash" id="splash">
-        <div class="splash__bubble" aria-hidden="true"></div>
-        <div class="splash__glow" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="splash__orbit" aria-hidden="true">${ORBIT_PIECES.map((p) => `<img class="splash__piece ${p.cls || ''}" src="${p.src}" alt="" draggable="false">`).join('')}</div>
+        <div class="splash__glow" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
         <img class="splash__mark" src="assets/aux-splash.png" alt="aux" draggable="false">
-        <div class="splash__final">
-          <img class="splash__piece splash__photo splash__photo--1" src="assets/splash/photo-1.jpg" alt="" draggable="false">
-          <img class="splash__piece splash__photo splash__photo--3" src="assets/splash/photo-3.jpg" alt="" draggable="false">
-          <img class="splash__piece splash__photo splash__photo--2" src="assets/splash/photo-2.jpg" alt="" draggable="false">
-          <img class="splash__piece splash__sticker splash__sticker--heart" src="assets/stickers/heart.png" alt="" draggable="false">
-          <img class="splash__piece splash__sticker splash__sticker--note" src="assets/stickers/taste-all_around.png" alt="" draggable="false">
-          <p class="splash__piece splash__tag">Pass the <b>aux</b></p>
-          <button class="splash__piece splash__go" type="button" data-go>Let’s build</button>
-        </div>
+        <div class="splash__words"><p class="splash__tag">Pass the <b>aux</b></p><button class="splash__go" type="button" data-go>Let’s build</button></div>
       </div>` });
     const splash = $('#splash');
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    let timer = 0;
-    const toFinal = () => { clearTimeout(timer); splash.classList.add('is-final'); };
-    if (reduce) toFinal();
-    else { requestAnimationFrame(() => splash.classList.add('is-playing')); timer = setTimeout(toFinal, 4400); }
+    // the orbit: an ellipse seen from a little above, centred on the stage, one turn in about 34s
+    const pieces = [...splash.querySelectorAll('.splash__piece')];
+    const CX = 200, CY = 290, RX = 158, RY = 96, N = pieces.length;
+    let raf = 0;
+    const place = (t) => {
+      const base = (t / 27000) * Math.PI * 2;
+      pieces.forEach((el, i) => {
+        const a = base + (i / N) * Math.PI * 2;
+        const depth = (Math.sin(a) + 1) / 2;                       // 0 at the back, 1 at the front
+        const x = CX + RX * Math.cos(a), y = CY + RY * Math.sin(a) + Math.sin(t / 1900 + i) * 5;
+        const sc = 0.42 + 0.58 * depth;
+        el.style.transform = `translate(${x - 46}px, ${y - 46}px) scale(${sc}) rotate(${Math.sin(t / 2600 + i * 1.3) * 5}deg)`;
+        el.style.opacity = (0.35 + 0.65 * depth).toFixed(3);
+        el.style.zIndex = String(Math.round(depth * 10));
+        el.style.filter = depth < 0.35 ? `blur(${((0.35 - depth) * 4).toFixed(2)}px)` : '';
+      });
+    };
+    const start = performance.now() - 9000;
+    const loop = () => { place(performance.now() - start); raf = requestAnimationFrame(loop); };
+    place(0);
+    if (reduce) { splash.classList.add('is-orbit', 'is-title'); }
+    else {
+      requestAnimationFrame(() => splash.classList.add('is-playing'));
+      loop();
+      setTimeout(() => splash.classList.add('is-orbit'), 2500);   // the orbit is turning under the colour before it fades
+      setTimeout(() => splash.classList.add('is-title'), 3050);
+    }
+    const skip = () => { splash.classList.remove('is-playing'); splash.querySelector('.splash__mark').style.opacity = '0'; splash.querySelector('.splash__glow').style.opacity = '0'; splash.classList.add('is-orbit', 'is-title'); if (!raf && !reduce) loop(); };
     await new Promise((res) => {
       const h = (e) => {
         if (e.target.closest('[data-go]')) { panel().removeEventListener('click', h); res(); return; }
-        if (!splash.classList.contains('is-final')) toFinal();
+        if (!splash.classList.contains('is-title')) skip();
       };
       panel().addEventListener('click', h);
     });
+    cancelAnimationFrame(raf);
   }
 
   // ═══════════════ act one: essentials ═══════════════

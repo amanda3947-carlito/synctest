@@ -17,11 +17,11 @@ sync/
 
 ## What's live
 
-- **The splash** ("animation frames", 1107:14029): the chrome letters hang in the sky and shrink
-  to a point while a soft gradient glow gathers behind them; the glow tightens into a glass bubble
-  with the letters inside, swells, and bursts across the screen. On the lightened sky the pieces of a
-  profile drift in with "Pass the aux" and a "Let's build" button that starts act one. A tap skips to
-  the end; reduced motion goes straight there.
+- **The splash** (the "animation frames" storyboard, 1107:14029, read as one motion): the chrome
+  letters come forward, then fall back into a pop of colour that swells behind them until it owns the
+  screen and fades off fast onto the title screen: "Pass the aux", a "Let's build" button that starts
+  act one, and behind them an orbit of pieces (photos, covers, stickers) that keeps turning the way the
+  board's ring does. A tap skips to the title; reduced motion goes straight there.
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
   1. *Essentials, 1 of 7 to 7 of 7*: name, number and code (a focused pill goes white with its label on
      the border), birthday (MM / DD / YYYY with a calendar picker: month and year menus, a 7-wide grid),

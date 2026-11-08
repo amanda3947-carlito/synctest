@@ -1518,6 +1518,12 @@ button.ob__cal-day:active { background: #e9e7e3; }
 @media (prefers-reduced-motion: reduce) { .sky__sticker, .sky__cloud { animation: none; } }
 /* the splash (1098:28252): the wordmark on the sky, 345 wide, a touch above centre */
 .auth--splash .ob__foot { display: none; }
+.auth--splash.auth--sky { background: #dbeffe; }
+.auth--splash .sky__cloud { opacity: 0.95; filter: blur(20px); }
+.auth--splash .sky__cloud--a { width: 340px; height: 140px; left: 40px; top: 60px; }
+.auth--splash .sky__cloud--b { width: 360px; height: 150px; left: 170px; top: 400px; }
+.auth--splash .sky__cloud--c { width: 300px; height: 130px; left: -60px; top: 600px; }
+.auth--splash .sky__cloud--d { width: 190px; height: 76px; left: 210px; top: 250px; opacity: 0.75; }
 /* ── the splash (after the "animation frames" storyboard, 1107:14029, read as one motion, not steps):
    the letters come forward, then fall back into a pop of colour that swells to take the screen and
    fades fast onto the title screen, where an orbit of pieces keeps turning behind the call to action.

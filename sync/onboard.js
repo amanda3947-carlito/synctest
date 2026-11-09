@@ -898,7 +898,7 @@ window.SyncOnboard = (() => {
         panelEl.innerHTML = top + `
           <div class="mine__hero"><button class="mine__avatar" type="button" data-edit="photos" aria-label="Change your photos"><img src="${esc(p.avatar)}" alt=""></button><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
           <section class="mine__sec">
-            <div class="mine__sechead"><span>The basics</span><button class="mine__pencil" type="button" data-focus="mn-name" aria-label="Edit the basics">${PENCIL}</button></div>
+            <div class="mine__sechead"><span>The basics</span></div>
             <div class="mine__card">
               <label class="mine__fld"><span class="mine__lbl">Name</span><input class="mine__val" id="mn-name" type="text" autocomplete="name" maxlength="100" placeholder="Your name" value="${esc([me.name, me.last_name].filter(Boolean).join(' '))}"></label>
               <label class="mine__fld is-static" data-static="phone"><span class="mine__lbl">Phone number</span><input class="mine__val" id="mn-phone" type="tel" value="${esc(phone || 'Not on file')}" readonly tabindex="-1"></label>

@@ -167,8 +167,8 @@ window.SyncOnboard = (() => {
     else {
       requestAnimationFrame(() => splash.classList.add('is-playing'));
       loop();
-      setTimeout(() => splash.classList.add('is-orbit'), 3350);   // the colour owns the screen first; the orbit slides up as it lifts
-      setTimeout(() => splash.classList.add('is-title'), 3650);
+      setTimeout(() => splash.classList.add('is-orbit'), 2750);   // as the letters go, the orbit is already on its way up through the colour
+      setTimeout(() => splash.classList.add('is-title'), 3050);
     }
     const skip = () => { splash.classList.remove('is-playing'); splash.querySelector('.splash__mark').style.opacity = '0'; splash.querySelector('.splash__glow').style.opacity = '0'; splash.classList.add('is-orbit', 'is-title'); if (!raf && !reduce) loop(); };
     await new Promise((res) => {

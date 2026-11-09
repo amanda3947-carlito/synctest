@@ -1713,18 +1713,21 @@ button.ob__cal-day:active { background: #e9e7e3; }
 /* the real view: your profile, in the profile's own layout, with a way back to the board */
 .auth--real { padding: 0; overflow: hidden; }
 /* ── your profile from the avatar (1110:2745): Edit | View under the status bar, the avatar, the basics card, the rows ── */
-.auth--mine { padding-top: 62px; }
-.mine__top { flex: 0 0 auto; height: 54px; display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; }
-.auth--mine-view .mine__top { position: absolute; left: 20px; right: 20px; top: 62px; z-index: 12; }
+.auth--mine { padding: 0; overflow: hidden; position: relative; }
+/* the control floats over whatever scrolls beneath it, in both modes */
+.mine__top { position: absolute; left: 20px; right: 20px; top: 62px; height: 54px; z-index: 12; display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; }
+.mine__scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding: 116px 20px 0; }
+.mine__scroll::-webkit-scrollbar { display: none; }
 .auth--mine-view .ob__real { inset: 0; }
 .auth--mine-view .pnav { visibility: hidden; }
-.auth--mine-view .mine__top .ob__back img { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) brightness(10); }
+.auth--mine-view:not(.is-light) .mine__top .ob__back img { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) brightness(10); }
+.mine__top .ob__back img { transition: filter 0.25s; }
 /* the control is liquid glass, the nav's recipe: tint, rim, frost and the deep shadow. Over the cover (View) it is the
    nav's light glass with white ink; on the white page (Edit) it takes the nav's dark variant, ink on a brighter tint */
 .seg { justify-self: center; width: 192px; padding: 4px; display: flex; border-radius: 32px; background: var(--glass-bg); box-shadow: var(--glass-shadow); -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
 .seg__btn { flex: 1 1 0; height: 36px; padding: 0 16px; display: flex; align-items: center; justify-content: center; text-align: center; border-radius: 32px; background: transparent; font-family: var(--font-body); font-size: 14px; line-height: 1.4; font-weight: 400; color: var(--nav-ink); font-variation-settings: "opsz" 14; cursor: pointer; transition: background 0.25s; }
 .seg__btn.is-on { background: var(--nav-selected); font-weight: 600; }
-.auth--mine-edit {
+.auth--mine-edit, .auth--mine-view.is-light {
   --nav-ink: #1e1e1e;
   --nav-selected: rgba(32, 32, 32, 0.1);
   --glass-bg: linear-gradient(109.18deg, rgba(255, 255, 255, 0.55) 7.51%, rgba(255, 255, 255, 0.4) 91.27%);
@@ -1849,8 +1852,9 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 :root.is-native .statusbar { height: var(--sb-top); padding: 0; visibility: hidden; }
 :root.is-native .pbar::before, :root.is-native .pbar::after { top: var(--sb-top); }
 :root.is-native .auth { padding-top: calc(var(--sb-top) + 9px); }
-:root.is-native .auth--board, :root.is-native .auth--mine { padding-top: calc(var(--sb-top) + 9px); }
-:root.is-native .auth--mine-view .mine__top { top: calc(var(--sb-top) + 9px); }
+:root.is-native .auth--board { padding-top: calc(var(--sb-top) + 9px); }
+:root.is-native .mine__top { top: calc(var(--sb-top) + 9px); }
+:root.is-native .mine__scroll { padding-top: calc(var(--sb-top) + 63px); }
 :root.is-native .sky__me { top: calc(var(--sb-top) + 9px); }
 :root.is-native .device__nav { bottom: max(24px, var(--sb-bottom)); }
 :root.is-native .ob__foot { padding-bottom: max(24px, var(--sb-bottom)); }

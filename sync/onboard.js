@@ -895,7 +895,7 @@ window.SyncOnboard = (() => {
           ['shelf', 'Watching and Reading', plural(n(p.shelf), 'title', 'titles', 'added')],
           ['spot', 'Spots', plural(n(p.spots), 'place', 'places', 'listed')],
         ];
-        panelEl.innerHTML = top + `
+        panelEl.innerHTML = top + `<div class="mine__scroll">
           <div class="mine__hero"><button class="mine__avatar" type="button" data-edit="photos" aria-label="Change your photos"><img src="${esc(p.avatar)}" alt=""></button><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
           <section class="mine__sec">
             <div class="mine__sechead"><span>The basics</span></div>
@@ -909,8 +909,12 @@ window.SyncOnboard = (() => {
             <div class="mine__sechead"><span>Your profile</span></div>
             <div class="mine__list">${rows.map(([k, label, sub]) => `<button class="mine__row" type="button" data-edit="${k}"><span class="mine__rowtext"><span class="mine__rowlabel">${esc(label)}</span><span class="mine__rowsub">${esc(sub)}</span></span><span class="mine__pencil">${PENCIL}</span></button>`).join('')}</div>
           </section>
-          <p class="ob__cap mine__cap">Switch to View to see it as people do.</p>`;
+          <p class="ob__cap mine__cap">Switch to View to see it as people do.</p></div>`;
       }
+      // the control is background-aware: over the cover it is the light glass with white ink; once the cover has
+      // scrolled away (View) or always on the white page (Edit) it is the bright glass with ink
+      const scroller = panelEl.querySelector(mode === 'view' ? '.ob__real' : '.mine__scroll');
+      if (mode === 'view' && scroller) { const onLight = () => panelEl.classList.toggle('is-light', scroller.scrollTop > 110); scroller.addEventListener('scroll', onLight, { passive: true }); onLight(); }
       root().hidden = false;
       // the basics save as you leave the field: the first word is the first name, the rest the last
       const nameEl = $('#mn-name'), dobEl = $('#mn-dob');

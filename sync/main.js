@@ -1745,8 +1745,24 @@
     });
     let people;
     try { people = await api.peopleForFeed(); } catch (e) { notice(errText(e)); people = []; }
-    // the sky has been the loading state since the first paint; it lifts only now, with the feed built underneath
-    const reveal = () => { authRoot.hidden = true; device.classList.remove('is-booting'); };
+    // the sky has been the loading state since the first paint. It lifts only when the first card's picture is
+    // actually on screen (or after 3s, so a slow image cannot hold the app), never sooner than 600ms after boot
+    // began so it never flashes, and it crossfades out while the feed, its header and the nav fade in together.
+    const bootAt = performance.now();
+    const firstPicture = () => { const c = feed.querySelector('.card'); return c ? c.querySelector('img.media-item, video.media-item') : null; };
+    const pictureReady = (el) => new Promise((res) => {
+      if (!el) return res();
+      if (el.tagName === 'IMG') { if (el.complete) return res(); el.addEventListener('load', res, { once: true }); el.addEventListener('error', res, { once: true }); return; }
+      if (el.readyState >= 2) return res(); el.addEventListener('loadeddata', res, { once: true }); el.addEventListener('error', res, { once: true });
+    });
+    const reveal = async () => {
+      await Promise.race([pictureReady(firstPicture()), wait(3000)]);
+      await wait(Math.max(0, 600 - (performance.now() - bootAt)));
+      authRoot.classList.add('is-leaving');
+      device.classList.remove('is-booting');
+      await wait(420);
+      authRoot.hidden = true; authRoot.classList.remove('is-leaving');
+    };
     if (!people.length) {
       feed.innerHTML = '<div class="feed__empty"><p>Nobody new right now.</p><p class="t-body-sm">You\'ve seen everyone in your orbit. Check back soon.</p></div>';
       reveal();

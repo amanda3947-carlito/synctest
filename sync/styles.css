@@ -1131,7 +1131,7 @@ img { display: block; }
   left: 17px;
   bottom: 24px;
   z-index: 3;
-  transition: transform 0.75s cubic-bezier(0.32, 0.72, 0, 1);   /* a touch slower than the page move so it eases in behind it; no opacity fade, which would drop the frost */
+  transition: transform 0.75s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease;   /* a touch slower than the page move so it eases in behind it; opacity only for the boot's fade-in */
 }
 /* one glass recipe for the nav and the like: tint, rim, frost and Drop Shadow/400 */
 .device {
@@ -1348,7 +1348,9 @@ img { display: block; }
 .device__auth { position: absolute; inset: 0; z-index: 8; background: var(--white); color: #1e1e1e; font-family: var(--font-body); display: flex; flex-direction: column; overflow: hidden; }
 .device__auth[hidden] { display: none; }
 /* booting: the sky is the loading state; nothing of the feed (its chrome, its glass nav, its cards) shows until main.js lifts it */
-.device.is-booting .device__chrome, .device.is-booting .device__nav, .device.is-booting .feed { visibility: hidden; }
+.device.is-booting .device__chrome, .device.is-booting .device__nav, .device.is-booting .feed { opacity: 0; pointer-events: none; }
+.device__nav, .feed { transition: opacity 0.4s ease; }
+.device__auth.is-leaving { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 .auth { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 62px 20px 0; overflow-y: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .auth::-webkit-scrollbar { display: none; }
 .ob__head { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 16px; padding: 10px 0 0; min-height: 40px; }

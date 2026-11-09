@@ -856,9 +856,27 @@ window.SyncOnboard = (() => {
   const PENCIL = '<img src="assets/pencil-simple-line.svg" width="20" height="20" alt="">';
   const fmtPhone = (p) => { const d = String(p || '').replace(/\D/g, ''); if (!d) return ''; if (d.length === 11 && d[0] === '1') return `+1 ${d.slice(1, 4)} ${d.slice(4, 7)} ${d.slice(7)}`; return '+' + d; };
   const fmtDate = (iso) => { const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || ''); return m ? `${m[2]}/${m[3]}/${m[1]}` : ''; };
+  // the cover: your profile slides in from the left edge, moving right, on a plane above the feed, and slides
+  // back the same way. The feed stays mounted underneath and dims while it is covered.
+  const coverIn = async () => {
+    const r = root(); const dev = deps.device;
+    r.classList.add('is-cover', 'is-offstage'); r.hidden = false;
+    // the offstage position has to be painted once before the move, or there is nothing to transition from
+    await new Promise((res) => requestAnimationFrame(() => requestAnimationFrame(res)));
+    dev.classList.add('is-covered');
+    r.classList.remove('is-offstage');
+    await wait(460);
+  };
+  const coverOut = async () => {
+    const r = root(); const dev = deps.device;
+    r.classList.add('is-offstage'); dev.classList.remove('is-covered');
+    await wait(460);
+    r.hidden = true; r.classList.remove('is-cover', 'is-offstage');
+  };
   async function viewMine() {
     const a = api();
     let mode = 'edit';
+    let first = true;
     while (true) {
       await loadMe();
       const prof = await a.myProfile();
@@ -915,7 +933,7 @@ window.SyncOnboard = (() => {
       // scrolled away (View) or always on the white page (Edit) it is the bright glass with ink
       const scroller = panelEl.querySelector(mode === 'view' ? '.ob__real' : '.mine__scroll');
       if (mode === 'view' && scroller) { const onLight = () => panelEl.classList.toggle('is-light', scroller.scrollTop > 110); scroller.addEventListener('scroll', onLight, { passive: true }); onLight(); }
-      root().hidden = false;
+      if (first && root().hidden) { await coverIn(); first = false; } else { root().hidden = false; first = false; }
       // the basics save as you leave the field: the first word is the first name, the rest the last
       const nameEl = $('#mn-name'), dobEl = $('#mn-dob');
       if (nameEl) {
@@ -947,7 +965,7 @@ window.SyncOnboard = (() => {
         const done = (v) => { panel().removeEventListener('click', h); res(v); };
         panel().addEventListener('click', h);
       });
-      if (choice === 'done') break;
+      if (choice === 'done') { await coverOut(); return me; }
       if (choice.startsWith('mode:')) { mode = choice.slice(5); continue; }
       if (choice === 'menu') { await edit(); continue; }
       if (choice === 'shelf' || choice === 'spot') { await openAdd(choice, person); continue; }

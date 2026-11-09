@@ -1351,6 +1351,11 @@ img { display: block; }
 .device.is-booting .device__chrome, .device.is-booting .device__nav, .device.is-booting .feed { opacity: 0; pointer-events: none; }
 .device__nav, .feed { transition: opacity 0.4s ease; }
 .device__auth.is-leaving { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+/* the cover (your profile): a plane above the feed that slides in from the left edge and back out the same way */
+.device__auth.is-cover { transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; box-shadow: 16px 0 48px rgba(12, 12, 13, 0.22); }
+.device__auth.is-cover.is-offstage { transform: translateX(-100%); box-shadow: none; }
+.device .feed, .device .device__chrome { transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), filter 0.45s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.4s ease; }
+.device.is-covered .feed, .device.is-covered .device__chrome { transform: scale(0.96); filter: brightness(0.86); }
 .auth { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 62px 20px 0; overflow-y: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .auth::-webkit-scrollbar { display: none; }
 .ob__head { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 16px; padding: 10px 0 0; min-height: 40px; }

@@ -1731,16 +1731,18 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .mine__sechead { height: 34px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 4px; font-family: var(--font-body); font-size: 13px; font-weight: 600; line-height: 1; color: #817f7c; font-variation-settings: "opsz" 14; }
 .mine__pencil { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border-radius: 14px; background: transparent; cursor: pointer; }
 .mine__pencil img { display: block; }
-.mine__card { background: #fff; border: 1px solid #f3f3f3; border-radius: 32px; padding: 8px 20px 25px; display: flex; flex-direction: column; gap: 8px; }
+.mine__card { background: var(--surface); border-radius: 32px; padding: 8px 20px 25px; display: flex; flex-direction: column; gap: 8px; }
 .mine__fld { display: flex; flex-direction: column; align-items: stretch; gap: 3px; padding: 0; background: transparent; text-align: left; }
 .mine__fld.is-static .mine__val { color: #757575; }
 input.mine__val { width: 100%; -webkit-appearance: none; appearance: none; outline: none; }
 input.mine__val:focus { border-color: #1e1e1e; }
+.mine__fld.is-static .mine__val { background: rgba(255, 255, 255, 0.6); }
 input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .mine__lbl { padding: 0 19px; font-family: var(--font-body); font-size: 13px; line-height: 1.4; color: #5a5a5a; font-variation-settings: "opsz" 14; }
-.mine__val { height: 48px; display: flex; align-items: center; padding: 0 16px; border-radius: 24px; background: #fff; border: 1px solid #ebebeb; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.06); font-family: var(--font-body); font-size: 16px; line-height: 1.2; letter-spacing: -0.32px; color: #1e1e1e; font-variation-settings: "opsz" 14; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.mine__list { display: flex; flex-direction: column; gap: 8px; }
-.mine__row { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 10px 12px 10px 20px; border-radius: 24px; background: #fff; border: 1px solid #f3f3f3; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); text-align: left; cursor: pointer; }
+.mine__val { height: 48px; display: flex; align-items: center; padding: 0 16px; border-radius: 24px; background: #fff; border: 1px solid transparent; box-shadow: none; font-family: var(--font-body); font-size: 16px; line-height: 1.2; letter-spacing: -0.32px; color: #1e1e1e; font-variation-settings: "opsz" 14; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mine__list { display: flex; flex-direction: column; gap: 10px; }
+.mine__row { display: flex; align-items: center; gap: 12px; min-height: 70px; padding: 12px 14px 12px 20px; border-radius: 24px; background: var(--surface); border: 0; box-shadow: none; text-align: left; cursor: pointer; }
+.mine__row .mine__pencil { width: 40px; height: 40px; border-radius: 20px; background: #fff; }
 .mine__rowtext { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .mine__rowlabel { font-family: var(--font-body); font-size: 16px; line-height: 1.2; letter-spacing: -0.32px; color: #1e1e1e; font-variation-settings: "opsz" 14; }
 .mine__rowsub { font-family: var(--font-body); font-size: 13px; line-height: 1.3; color: #757575; font-variation-settings: "opsz" 14; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

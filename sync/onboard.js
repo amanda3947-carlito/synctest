@@ -1042,7 +1042,7 @@ window.SyncOnboard = (() => {
       break;
     }
     try { me = await a.updateProfile({ onboarded: true }); } catch (e) { /* fine */ }
-    frame({ cls: 'auth--sky auth--splash', title: '', body: '<div class="sky" aria-hidden="true"><span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span></div>' });   // the sky again while the feed loads
+    frame({ cls: 'auth--sky auth--splash', title: '', body: '<div class="sky" aria-hidden="true"><span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span></div><div class="splash splash--loading" aria-hidden="true"><img class="splash__mark" src="assets/aux-splash.png" alt="" draggable="false"></div>' });   // the sky again, with the mark, while the feed loads
     return me;
   }
 

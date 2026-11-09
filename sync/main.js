@@ -1745,13 +1745,17 @@
     });
     let people;
     try { people = await api.peopleForFeed(); } catch (e) { notice(errText(e)); people = []; }
+    // the sky has been the loading state since the first paint; it lifts only now, with the feed built underneath
+    const reveal = () => { authRoot.hidden = true; device.classList.remove('is-booting'); };
     if (!people.length) {
       feed.innerHTML = '<div class="feed__empty"><p>Nobody new right now.</p><p class="t-body-sm">You\'ve seen everyone in your orbit. Check back soon.</p></div>';
+      reveal();
       return;
     }
     cards = people.map((p) => controller(buildCard(p)));
     cards.forEach((c) => feed.appendChild(c.card));
     cards.forEach((c) => io.observe(c.card));
+    reveal();
     // builds moving: your turn lights the Builds dot and the person's tile; a match plays the toast
     api.watchBuilds(async (b) => {
       if (!b || !(b.starter_id === ME || b.owner_id === ME)) return;

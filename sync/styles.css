@@ -1347,6 +1347,8 @@ img { display: block; }
 /* ── first run and the profile editor (onboard.js), after ":: essentials setup" ───────── */
 .device__auth { position: absolute; inset: 0; z-index: 8; background: var(--white); color: #1e1e1e; font-family: var(--font-body); display: flex; flex-direction: column; overflow: hidden; }
 .device__auth[hidden] { display: none; }
+/* booting: the sky is the loading state; nothing of the feed (its chrome, its glass nav, its cards) shows until main.js lifts it */
+.device.is-booting .device__chrome, .device.is-booting .device__nav, .device.is-booting .feed { visibility: hidden; }
 .auth { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding: 62px 20px 0; overflow-y: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .auth::-webkit-scrollbar { display: none; }
 .ob__head { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 16px; padding: 10px 0 0; min-height: 40px; }

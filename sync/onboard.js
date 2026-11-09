@@ -1009,7 +1009,7 @@ window.SyncOnboard = (() => {
     // ?go=<step> opens that step of the editor first, finished or not; an unfinished run then carries on where it was
     const go = new URLSearchParams(location.search).get('go');
     if (go && me) { history.replaceState(null, '', location.pathname); await edit(go); }
-    if (me && me.onboarded) { root().hidden = true; return me; }
+    if (me && me.onboarded) return me;   // the sky stays up until the feed is built (main.js lifts it)
     // the essentials, in order; the run starts at the first one not done and the chevron walks back through them
     const state = me ? await a.myState() : { photos: false };
     const chain = [
@@ -1042,7 +1042,7 @@ window.SyncOnboard = (() => {
       break;
     }
     try { me = await a.updateProfile({ onboarded: true }); } catch (e) { /* fine */ }
-    root().hidden = true;
+    frame({ cls: 'auth--sky auth--splash', title: '', body: '<div class="sky" aria-hidden="true"><span class="sky__cloud sky__cloud--a"></span><span class="sky__cloud sky__cloud--b"></span><span class="sky__cloud sky__cloud--c"></span><span class="sky__cloud sky__cloud--d"></span></div>' });   // the sky again while the feed loads
     return me;
   }
 

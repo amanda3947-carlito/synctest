@@ -1050,6 +1050,8 @@ window.SyncOnboard = (() => {
     return me;
   }
 
+  // the build number, read off this script's ?v=, shown at the foot of the section list so a phone can say which build it runs
+  const BUILD = (() => { const el = document.querySelector('script[src*="onboard.js"]'); const m = el && /[?&]v=(\d+)/.exec(el.getAttribute('src') || ''); return m ? m[1] : '?'; })();
   const SECTIONS = [
     ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['birthday', 'Birthday', () => stepBirthday(true)], ['photos', 'Photos', () => stepPhotos(true)],
     ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
@@ -1063,7 +1065,7 @@ window.SyncOnboard = (() => {
     if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } return viewMine(); }
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true, cancel: false,
-        body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button></div>` });
+        body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button></div><p class="ob__cap ob__build">Build ${BUILD}</p>` });
       const choice = await new Promise((res) => {
         const h = (e) => { const s = e.target.closest('[data-section]'); if (s) { panel().removeEventListener('click', h); res(s.dataset.section); return; } if (e.target.closest('[data-signout]')) { panel().removeEventListener('click', h); res('signout'); return; } if (e.target.closest('[data-next]')) { panel().removeEventListener('click', h); res('done'); } };
         panel().addEventListener('click', h);

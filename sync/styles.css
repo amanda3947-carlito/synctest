@@ -1859,3 +1859,5 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 :root.is-native .device__nav { bottom: max(24px, var(--sb-bottom)); }
 :root.is-native .ob__foot { padding-bottom: max(24px, var(--sb-bottom)); }
 :root.is-native .ob__realbar { padding-bottom: max(28px, calc(var(--sb-bottom) + 4px)); }
+
+.ob__build { text-align: center; padding: 18px 0 8px; color: #b3b3b3; }

@@ -1015,6 +1015,8 @@ window.SyncOnboard = (() => {
     if (new URLSearchParams(location.search).has('reset')) { try { await a.signOut(); } catch (e) { /* fine */ } history.replaceState(null, '', location.pathname); }
     // Cancel on any step leaves the run: whatever is saved stays with the account, the splash comes back
     const leave = async () => { try { await a.signOut(); } catch (e) { /* fine */ } location.reload(); return new Promise(() => {}); };
+    // a session whose account is gone (a reset on the server) is signed out here, so the splash comes back clean
+    if (await a.session()) { const { error } = await a.sb.auth.getUser(); if (error) { try { await a.signOut(); } catch (e) { /* fine */ } location.reload(); return new Promise(() => {}); } }
     if (!(await a.session())) {
       await stepSplash();
       while (true) {

@@ -1421,12 +1421,7 @@
         stopPaging(); feed.scrollTop = pageTop(cards.indexOf(keep)); feed.classList.remove('is-paging');
       }, target >= 0 ? PAGE_MS + 80 : 0);
     };
-    // the database's one-in-flight rule, with the name of who it means
-    const buildError = async (e) => {
-      const text = errText(e);
-      if (/in flight/i.test(text)) { const who = await window.SyncAPI.inFlightWith().catch(() => null); notice(who ? `You have a build going with ${who}. Finish that one first.` : 'Finish the build you have going first.'); return; }
-      notice(text);
-    };
+    const buildError = async (e) => notice(errText(e));
     // the tile and the profile row read the state of the build between you
     const mixTile = card.querySelector('.tile--mixtape');
     const mixRow = profile.querySelector('[data-action="mixtape"] .t-sub');

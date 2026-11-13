@@ -42,7 +42,8 @@ select id as build_id, status, round, turn_id = :'olivia' as olivias_turn from s
   {"key":"swift-patient-zero","artist":"Taylor Swift","title":"Patient Zero"},
   {"key":"sza-sos","artist":"SZA","title":"SOS"},
   {"key":"lacy-nothing","artist":"Steve Lacy","title":"nothing"}]') \gset
-select pg_temp.expect_error($$select start_build('00000000-0000-4000-8000-00000000d301', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"},{"key":"d","title":"D"}]')$$, 'in flight');
+-- a second build with someone else is allowed while this one is in flight: the only complaint left is the change count
+select pg_temp.expect_error($$select start_build('00000000-0000-4000-8000-00000000d301', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"},{"key":"d","title":"D"}]')$$, 'at most 2 changes');
 select pg_temp.expect_error(format($$select send_turn(%L, '[]')$$, :'build_id'), 'not your turn');
 select count(*) as olivia_notices from notifications where profile_id = :'olivia';   -- Damon cannot see these: 0
 select pg_temp.as_user(:'olivia');

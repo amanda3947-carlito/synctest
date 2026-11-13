@@ -401,14 +401,6 @@ window.SyncAPI = (() => {
   async function peopleForFeed(limit = 20) {
     return feed(limit);
   }
-  // who you have a build going with, by name, for the one-in-flight rule's message
-  async function inFlightWith() {
-    const active = await myBuilds();
-    const ids = Object.keys(active);
-    if (!ids.length) return null;
-    const { data } = await sb.from('profiles').select('id,name').in('id', ids);
-    return (data || []).map((p) => p.name).join(', ') || null;
-  }
 
   // ── builds I'm part of, keyed by the other person
   async function myBuilds() {
@@ -442,7 +434,7 @@ window.SyncAPI = (() => {
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
-           searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, inFlightWith, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
+           searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

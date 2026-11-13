@@ -40,7 +40,7 @@ Nothing a client sends is trusted.
 | Function | Who | What it enforces |
 |---|---|---|
 | `feed(limit)` | viewer | profiles up (≥1 build, ≥1 approved photo), not passed, not blocked, no build between you |
-| `start_build(profile_build, items)` | viewer | 1 to `per_turn` changes vs the owner's build, one build in flight per person, one live build per pair |
+| `start_build(profile_build, items)` | viewer | 1 to `per_turn` changes vs the owner's build, one live build per pair (you can have builds going with several people) |
 | `love_as_is(profile_build, note)` | viewer | note ≥ 3 chars; creates an `as_is` build waiting on the owner |
 | `send_turn(build, items)` | whoever's turn | status open, your turn, 1 to `per_turn` changes; stamps `by` on new items; resets agreement |
 | `agree_build(build)` | whoever's turn | build complete (`min_items`, `min_each` per side, or all slots filled); second agree creates the match |

@@ -27,8 +27,10 @@ sync/
   Cancel leaves the run: what is saved stays with the account, and the splash comes back. While
   editing from your profile, Cancel returns to the profile without saving.
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
-  1. *Essentials, 1 of 7 to 7 of 7*: name, number and code (a focused pill goes white with its label on
+  1. *Essentials, 1 of 8 to 8 of 8*: name, number and code (a focused pill goes white with its label on
      the border), birthday (MM / DD / YYYY with a calendar picker: month and year menus, a 7-wide grid),
+     what you are looking for on aux (one pick of five, each with its charm: cool new friends, a new crush, fun casual
+     dates, something serious, long term relationship; saved as `profiles.seeking`),
      photos (2 × 2, drag to reorder, first is the card, × top right), the basics (an accordion, in order: hometown, location, gender, occupation,
      education, height, activity, kids, drinking, smoking; hometown, location, occupation and height are typed; education,
      activity, drinking and smoking are one pick; kids takes several; gender is Man / Woman / Non-binary / Something else, and
@@ -117,7 +119,7 @@ id. Switch to bundled mode first so reviewers get a copy that does not depend on
 
 ## Starting over
 Open `sync/?reset` to sign out first and land on the first screen. Signed in, `sync/?go=photos` (or
-`prompts`, `basics`, `describes`, `board`, `rotation`, `cover`, `name`) opens that step of the editor straight away. Test numbers 555 000 0010, 0011 and
+`prompts`, `basics`, `describes`, `board`, `rotation`, `cover`, `name`, `seeking`) opens that step of the editor straight away. Test numbers 555 000 0010, 0011 and
 0012 take the code 123456 (more can be added under Authentication → Phone → Test phone numbers in
 Supabase); a number that has finished onboarding goes straight to the feed, so pick an unused one for
 a full run (0010 and 0011 are used).

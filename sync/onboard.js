@@ -193,7 +193,7 @@ window.SyncOnboard = (() => {
   const draft = { name: '', last: '' };
 
   async function stepName(editing) {
-    frame({ step: editing ? 0 : 1, total: 7, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: true, focus: !!editing,
+    frame({ step: editing ? 0 : 1, total: 8, title: 'What’s your name?', cta: editing ? 'Save' : 'Next', back: true, focus: !!editing,
       body: `<label class="ob__fld"><input class="ob__input" id="ob-name" type="text" placeholder="First name" autocomplete="given-name" maxlength="40" value="${esc(me ? me.name : draft.name)}"><span class="ob__fld-label">First name</span></label>
              <div><label class="ob__fld"><input class="ob__input" id="ob-last" type="text" placeholder="Last name" autocomplete="family-name" maxlength="60" value="${esc(me ? me.last_name || '' : draft.last)}"><span class="ob__fld-label">Last name</span></label><p class="ob__cap">We’ll never use your last name on your profile</p></div>` });
     liveReady(() => $('#ob-name').value.trim().length > 0);
@@ -211,7 +211,7 @@ window.SyncOnboard = (() => {
   async function stepPhone() {
     let phone = '';
     while (true) {
-      frame({ step: 2, total: 7, title: 'What’s your phone number?', cta: 'Next', back: true,
+      frame({ step: 2, total: 8, title: 'What’s your phone number?', cta: 'Next', back: true,
         body: `<div><label class="ob__fld"><input class="ob__input" id="ob-phone" type="tel" inputmode="tel" placeholder="+1" autocomplete="tel" value="${esc(phone || '+1 ')}"><span class="ob__fld-label">Phone number</span></label><p class="ob__cap">Your phone number will never be shared</p></div>` });
       liveReady(() => $('#ob-phone').value.replace(/\D/g, '').length >= 10);
       const r = await step(async () => {
@@ -224,7 +224,7 @@ window.SyncOnboard = (() => {
       });
       if (r === 'back') return 'back';
       const digits = e164(phone);
-      frame({ step: 2, total: 7, title: 'The code we texted', sub: `Sent to +${esc(digits)}`, cta: 'Next', back: true,
+      frame({ step: 2, total: 8, title: 'The code we texted', sub: `Sent to +${esc(digits)}`, cta: 'Next', back: true,
         body: `<input class="ob__input ob__input--code" id="ob-code" type="text" inputmode="numeric" placeholder="123456" autocomplete="one-time-code" maxlength="6">` });
       liveReady(() => $('#ob-code').value.trim().length === 6);
       const v = await step(async () => {
@@ -242,7 +242,7 @@ window.SyncOnboard = (() => {
     const fmt = (iso) => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${m} / ${d} / ${y}`; };
     const thisYear = new Date().getFullYear();
     let view = value ? { y: +value.slice(0, 4), m: +value.slice(5, 7) - 1 } : { y: thisYear - 25, m: new Date().getMonth() };
-    frame({ step: editing ? 0 : 3, total: 7, title: 'When’s your birthday?', cta: editing ? 'Save' : 'Next', back: true,
+    frame({ step: editing ? 0 : 3, total: 8, title: 'When’s your birthday?', cta: editing ? 'Save' : 'Next', back: true,
       body: `<div class="ob__datewrap">
                <button class="ob__input ob__dateb${value ? ' has-value' : ''}" type="button" id="ob-bday-btn" aria-haspopup="dialog" aria-expanded="false"><span id="ob-bday-text">${value ? fmt(value) : 'MM / DD / YYYY'}</span><svg class="ob__date-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/></svg></button>
                <p class="ob__cap">This information is used only for helping you find the right people</p>
@@ -283,6 +283,28 @@ window.SyncOnboard = (() => {
   }
 
   // photos: four slots, 2 × 2; the first is the profile photo; the fourth asks for a video
+  // "What are you looking for on aux" (4 of 8): one pick, with its charm
+  const SEEKING = [
+    ['friends', 'Cool new friends'], ['crush', 'A new crush'], ['casual', 'Fun, casual dates'], ['serious', 'Something serious'], ['longterm', 'Long term relationship'],
+  ];
+  const seekingLabel = (k) => { const x = SEEKING.find((o) => o[0] === k); return x ? x[1] : ''; };
+  async function stepSeeking(editing) {
+    let pick = (me && me.seeking) || '';
+    frame({ step: editing ? 0 : 4, total: 8, title: 'What are you looking for on aux', cta: editing ? 'Save' : 'Next', back: true, ready: !!pick,
+      body: `<div class="ob__opts ob__opts--seek" role="radiogroup">${SEEKING.map(([k, label]) => `<button class="ob__opt ob__opt--seek${pick === k ? ' is-on' : ''}" type="button" role="radio" aria-checked="${pick === k}" data-seek="${k}"><img class="ob__seek-ic" src="assets/seeking/${k}.png" alt=""><span>${esc(label)}</span><span class="ob__opt-mark"></span></button>`).join('')}</div>` });
+    panel().addEventListener('click', (e) => {
+      const o = e.target.closest('[data-seek]'); if (!o) return;
+      pick = o.dataset.seek;
+      $$('[data-seek]').forEach((x) => { x.classList.toggle('is-on', x === o); x.setAttribute('aria-checked', x === o); });
+      setReady(true);
+    });
+    return step(async () => {
+      if (!pick) { err('Pick one to go on.'); return false; }
+      me = await api().updateProfile({ seeking: pick });
+      return true;
+    });
+  }
+
   async function stepPhotos(editing) {
     const existing = await api().myMedia();
     const slots = existing.slice(0, 4).map((m) => ({ saved: m }));
@@ -297,7 +319,7 @@ window.SyncOnboard = (() => {
       }).join('');
       setReady(slots.length > 0);
     };
-    frame({ step: editing ? 0 : 4, total: 7, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next', back: true,
+    frame({ step: editing ? 0 : 5, total: 8, title: 'Let’s add some photos', cta: editing ? 'Save' : 'Next', back: true,
       body: `<p class="ob__cap ob__cap--lead">Drag to reorder. The first photo will be your profile photo</p>
              <div class="ob__grid" id="ob-grid"></div>
              <p class="ob__cap">Add up to 4 videos and photos. At least 1 of these has to be a video. This helps us with verification.</p>
@@ -376,7 +398,7 @@ window.SyncOnboard = (() => {
           <div class="ob__acc-body" hidden>${body}</div>
         </div>`;
     };
-    frame({ step: editing ? 0 : 5, total: 7, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: true,
+    frame({ step: editing ? 0 : 6, total: 8, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: true,
       body: `<div class="ob__acc">${BASICS.map(rowHTML).join('')}</div>` });
     setReady(true);
     const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = $(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); };
@@ -467,7 +489,7 @@ window.SyncOnboard = (() => {
       return `<button class="ob__ptile" type="button" data-prompt="${pr.key}"><span class="ob__ptile-label">${pr.label}</span></button>`;
     };
     const capHTML = () => { const left = Math.max(0, PROMPT_MIN - done()); return left ? `Add ${left} or more, and remember you can also include voice` : 'Tap a prompt to change it, and remember you can also include voice'; };
-    frame({ step: editing ? 0 : 6, total: 7, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', back: true, ready: done() >= PROMPT_MIN,
+    frame({ step: editing ? 0 : 7, total: 8, title: 'Let’s learn more about you', cta: editing ? 'Save' : 'Next', back: true, ready: done() >= PROMPT_MIN,
       body: `<p class="ob__cap ob__cap--lead ob__cap--prompts">Select from the prompts below to add a response</p>
              <div class="ob__ptiles" id="ob-ptiles">${PROMPTS.map(tileHTML).join('')}</div>
              <p class="ob__cap ob__cap--prompts" id="ob-pcap">${capHTML()}</p>
@@ -543,7 +565,7 @@ window.SyncOnboard = (() => {
 
   async function stepDescribes(editing) {
     let pick = (me && me.taste && me.taste[0]) || null;
-    frame({ step: editing ? 0 : 7, total: 7, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', back: true, ready: !!pick,
+    frame({ step: editing ? 0 : 8, total: 8, title: 'What best describes you?', cta: editing ? 'Save' : 'Next', back: true, ready: !!pick,
       body: `<div class="ob__describe">${DESCRIBES.map(([k, label, src]) => `<button class="ob__dtile${k === pick ? ' is-on' : ''}" type="button" data-pick="${k}"><img src="${src}" alt="" draggable="false"><span>${esc(label)}</span></button>`).join('')}</div>
              <p class="ob__cap">This appears along with your profile avatar</p>` });
     panel().addEventListener('click', (e) => { const b = e.target.closest('[data-pick]'); if (!b) return; pick = b.dataset.pick; $$('[data-pick]').forEach((x) => x.classList.toggle('is-on', x === b)); setReady(true); });
@@ -951,6 +973,7 @@ window.SyncOnboard = (() => {
           ['photos', 'Photos', `${n(person.items)} added`],
           ['cover', 'Cover', me.cover ? coverName(coverOf(me.cover).id) : 'No cover added'],
           ['describes', 'Your badge', taste ? taste[1] : 'None yet'],
+          ['seeking', 'Looking for', me.seeking ? seekingLabel(me.seeking) : 'Not picked yet'],
           ['basics', 'Details', `${details} of ${BASICS.length} completed`],
           ['prompts', 'Prompts', `${prompts} of ${PROMPTS.length} added`],
           ['rotation', 'Rotation', plural(n(person.rotation), 'track', 'tracks', 'added')],
@@ -1083,6 +1106,7 @@ window.SyncOnboard = (() => {
     const state = me ? await a.myState() : { photos: false };
     const chain = [
       ['birthday', () => stepBirthday(false), () => !me],
+      ['seeking', () => stepSeeking(false), () => !me.seeking],
       ['photos', () => stepPhotos(false), () => !state.photos],
       ['basics', () => stepBasics(false), () => !me.details || !Object.keys(me.details).length],
       ['prompts', () => stepPrompts(false), () => !me.prompts || Object.keys(me.prompts).length < PROMPT_MIN],
@@ -1118,7 +1142,7 @@ window.SyncOnboard = (() => {
   // the build number, read off this script's ?v=, shown at the foot of the section list so a phone can say which build it runs
   const BUILD = (() => { const el = document.querySelector('script[src*="onboard.js"]'); const m = el && /[?&]v=(\d+)/.exec(el.getAttribute('src') || ''); return m ? m[1] : '?'; })();
   const SECTIONS = [
-    ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['birthday', 'Birthday', () => stepBirthday(true)], ['photos', 'Photos', () => stepPhotos(true)],
+    ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['birthday', 'Birthday', () => stepBirthday(true)], ['seeking', 'Looking for', () => stepSeeking(true)], ['photos', 'Photos', () => stepPhotos(true)],
     ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
     ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', () => stepCoverPick(true)],
   ];

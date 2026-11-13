@@ -1465,6 +1465,11 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .ob__opts { display: flex; flex-direction: column; gap: 8px; padding-left: 36px; }
 .ob__opt { height: 36px; padding: 0 12px 0 16px; border-radius: 9999px; background: var(--surface); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 14px; color: #1e1e1e; text-align: left; font-variation-settings: "opsz" 14; transition: background 0.15s; }
 .ob__opt:active { background: #f0eeea; }
+/* "What are you looking for": taller pills, each with its charm at the left */
+.ob__opts--seek { padding-left: 4px; padding-right: 4px; gap: 6px; }
+.ob__opt--seek { height: 59px; padding: 0 12px; justify-content: flex-start; gap: 8px; border: 1px solid #f3f3f3; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); letter-spacing: -0.28px; }
+.ob__opt--seek > span:first-of-type { flex: 1 1 auto; padding: 4px; }
+.ob__seek-ic { flex: 0 0 28px; width: 28px; height: 28px; object-fit: contain; }
 .ob__opt-mark { flex: 0 0 16px; width: 16px; height: 16px; border-radius: 50%; border: 1.25px solid #1e1e1e; position: relative; }
 .ob__opt-mark--box { border-radius: 4px; }
 .ob__opt.is-on .ob__opt-mark::after { content: ""; position: absolute; inset: 3px; border-radius: inherit; background: #1e1e1e; }

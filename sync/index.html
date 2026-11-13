@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=69">
+  <link rel="stylesheet" href="styles.css?v=70">
 </head>
 <body>
   <!-- ":: home 1" — 402 × 874 device frame. On a phone it fills the viewport; on a
@@ -80,6 +80,23 @@
         <div class="compose__grid"></div>
       </div>
     </div>
+    <!-- ":: builds" (1100:36558 / 36445): the tab's own white plane; Highlights is one big card, the rest a grid -->
+    <section class="device__builds" hidden aria-label="Builds">
+      <div class="builds__head">
+        <button class="builds__me" type="button" aria-label="Your profile"><img class="builds__me-img" src="assets/avatar-me.png" alt="" draggable="false"><img class="builds__me-disc" src="assets/badges/all_around.png" alt="" draggable="false"></button>
+        <h1 class="builds__title">Builds</h1>
+        <button class="builds__filter" type="button" aria-label="Filter"><img src="assets/icon-faders.svg" width="20" height="20" alt="" draggable="false"></button>
+      </div>
+      <div class="builds__chips" role="tablist">
+        <button class="builds__chip is-on" type="button" role="tab" data-chips="highlights">Highlights</button>
+        <button class="builds__chip" type="button" role="tab" data-chips="new">New</button>
+        <button class="builds__chip" type="button" role="tab" data-chips="recent">Recently active</button>
+        <button class="builds__chip" type="button" role="tab" data-chips="sent">Sent</button>
+      </div>
+      <div class="builds__body"></div>
+    </section>
+    <!-- a build opened from the tab: that person's card pushed in from the right, on top -->
+    <div class="device__push" hidden></div>
     <nav class="device__nav" aria-label="Primary">
       <div class="gnav">
         <span class="gnav__bubble" aria-hidden="true"></span>
@@ -216,10 +233,10 @@
   </template>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-  <script src="config.js?v=69"></script>
-  <script src="api.js?v=69"></script>
-  <script src="onboard.js?v=69"></script>
-  <script src="native.js?v=69"></script>
-  <script src="main.js?v=69"></script>
+  <script src="config.js?v=70"></script>
+  <script src="api.js?v=70"></script>
+  <script src="onboard.js?v=70"></script>
+  <script src="native.js?v=70"></script>
+  <script src="main.js?v=70"></script>
 </body>
 </html>

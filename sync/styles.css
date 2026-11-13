@@ -260,6 +260,56 @@ img { display: block; }
 .playpause { pointer-events: none; }
 .card.is-controls-hidden .playpause { opacity: 0; transition-duration: 0.5s; }
 
+/* ── the Builds tab (1100:36558 / 36445): a white plane over the feed, under the nav. The feed's chrome goes with it ── */
+.device__builds { position: absolute; inset: 0; z-index: 2; background: var(--white); color: #1e1e1e; font-family: var(--font-body); display: flex; flex-direction: column; overflow: hidden; }
+.device__builds[hidden] { display: none; }
+.device.is-tab-builds .device__chrome, .device.is-tab-builds .feed { visibility: hidden; }
+.device.is-tab-builds { --nav-ink: #303030; --nav-tint-a: rgba(255, 255, 255, 0.55); --nav-tint-b: rgba(255, 255, 255, 0.4); --nav-rim: rgba(255, 255, 255, 0.8); --nav-selected: rgba(255, 255, 255, 0.7); }
+.device.is-tab-builds .gnav { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 var(--nav-rim), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
+.builds__head { flex: 0 0 auto; height: 45px; margin: 72px 20px 0; display: flex; align-items: center; justify-content: space-between; }
+:root.is-native .builds__head { margin-top: calc(var(--sb-top) + 10px); }
+.builds__me { position: relative; width: 50px; height: 45px; padding: 0; background: none; }
+.builds__me-img { position: absolute; left: 0; top: 0; width: 42px; height: 42px; border-radius: 50%; object-fit: cover; object-position: 50% 25%; }
+.builds__me-disc { position: absolute; left: 28px; top: 24px; width: 22px; height: 22px; object-fit: contain; }
+.builds__title { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1.2; letter-spacing: -0.48px; }
+.builds__filter { width: 36px; height: 36px; padding: 0; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; }
+.builds__chips { flex: 0 0 auto; display: flex; gap: 10px; padding: 19px 20px 0; overflow-x: auto; scrollbar-width: none; }
+.builds__chips::-webkit-scrollbar { display: none; }
+.builds__chip { flex: 0 0 auto; height: 38px; padding: 0 16px; border-radius: 24px; background: var(--surface); border: 1px solid #f3f3f3; box-shadow: 0 4px 4px -1px rgba(12, 12, 13, 0.1), 0 4px 4px -1px rgba(12, 12, 13, 0.05); font-size: 14px; font-weight: 600; line-height: 1.2; color: #1e1e1e; white-space: nowrap; font-variation-settings: "opsz" 14; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+.builds__chip.is-on { background: #434343; border-color: #5a5a5a; color: #f3f3f3; }
+.builds__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 26px 20px 124px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.builds__body::-webkit-scrollbar { display: none; }
+.builds__empty { padding: 72px 20px; text-align: center; color: #757575; font-size: 14px; line-height: 1.4; }
+.builds__empty p { margin: 0 0 6px; }
+/* Highlights: the one build that most wants you, as a 357 × 460 card */
+.bcard { position: relative; display: block; width: 100%; aspect-ratio: 357 / 460; margin: 0 0 16px; padding: 0; border-radius: 32px; overflow: hidden; background: var(--surface); text-align: left; isolation: isolate; }
+.bcard:active { transform: scale(0.99); }
+.bcard__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+.bcard__top { position: absolute; left: 0; right: 0; top: 0; height: 90px; padding-top: 20px; display: flex; justify-content: center; align-items: flex-start; background: linear-gradient(180.7deg, rgba(0, 0, 0, 0.4) 9%, rgba(0, 0, 0, 0) 97.5%); }
+.bcard__seek { display: inline-flex; align-items: center; gap: 2px; height: 32px; padding: 0 10px 0 8px; border-radius: 9999px; background: rgba(245, 245, 245, 0.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35); font-size: 12px; line-height: 1.2; color: #303030; white-space: nowrap; }
+.bcard__seek img { width: 22px; height: 22px; object-fit: contain; }
+.bcard__bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 89px; padding: 16px; display: flex; align-items: center; gap: 4px; background: linear-gradient(178.3deg, rgba(0, 0, 0, 0) 5.6%, rgba(0, 0, 0, 0.4) 102.8%); }
+.bcard__name { font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1; letter-spacing: 0.4px; color: #f3f3f3; white-space: nowrap; }
+.bcard__disc { width: 25px; height: 25px; object-fit: contain; flex: 0 0 25px; }
+.bcard__line { margin-left: auto; font-size: 12px; line-height: 1.2; color: #f3f3f3; opacity: 0.85; white-space: nowrap; }
+/* the grid: 2 across, 12 apart; the photo 157 tall on a surface card, name and what moved under it */
+.bgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bgrid__card { display: block; padding: 0; border-radius: 32px; background: var(--surface); overflow: hidden; text-align: center; }
+.bgrid__card:active { transform: scale(0.98); }
+.bgrid__img { display: block; width: 100%; height: 157px; object-fit: cover; object-position: 50% 20%; border-radius: 32px; background: #e9e7e2; }
+.bgrid__text { padding: 10px 16px 12px; }
+.bgrid__name { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.2; color: #1e1e1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variation-settings: "opsz" 14; }
+.bgrid__line { margin: 2px 0 0; font-size: 12px; line-height: 1.1; letter-spacing: 0.06px; color: #757575; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bgrid__card.is-mine .bgrid__line { color: #1e1e1e; }
+.bgrid__card.is-mine .bgrid__line::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 5px 1px 0; border-radius: 50%; background: var(--mint, #a8face); }
+/* the push: a build's card slides in from the right edge on top of the tab, under the nav, and back out the same way */
+.device__push { position: absolute; inset: 0; z-index: 2; background: var(--white); transform: translateX(100%); transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); box-shadow: -16px 0 48px rgba(12, 12, 13, 0.22); will-change: transform; }
+.device__push[hidden] { display: none; }
+.device__push.is-in { transform: none; }
+.device__push .card { height: 100%; }
+/* the global like belongs to a person's card: off while the tab shows its list, back when a build is pushed */
+.device.is-tab-builds:not(.is-push-in) .device__like { opacity: 0; pointer-events: none; }
+
 /* ── bottom (1021:30804): h 220, pl 10, py 10, gradient. While the nav is showing
    the block grows by --nav-lift so the name and rotation sit above it ──── */
 .card__bottom {
@@ -317,7 +367,7 @@ img { display: block; }
 }
 .name__disc { width: 30px; height: 30px; object-fit: contain; }
 /* the taste badge: the sticker on a glass disc, white at 20% over a blur of what's behind, two soft shadows under it */
-.name__disc, .pavatar-disc, .pbar__disc, .sky__me-disc, .board__me-disc { border-radius: 50%; background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
+.name__disc, .pavatar-disc, .pbar__disc, .sky__me-disc, .board__me-disc, .builds__me-disc, .bcard__disc { border-radius: 50%; background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
 /* "CaretDoubleRight" (1098:27961): the way into the profile, at the row's right */
 
 /* "bottom content": gap 8 */

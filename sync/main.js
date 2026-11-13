@@ -791,6 +791,8 @@
   gnavItems.forEach((btn, idx) => {
     btn.addEventListener('click', () => {
       gnavItems.forEach((b) => { b.classList.toggle('is-selected', b === btn); b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      if (btn.dataset.tab === 'builds') { if (!buildsTab.isOpen) { if (focused) focused.deactivate(); buildsTab.open(device.querySelector('.header__me img').src, meDisc); } }
+      else if (buildsTab.isOpen) { buildsTab.close(); if (focused) focused.activate(); }
       if (idx === bubbleIndex) return;
       const from = bubbleIndex * 72, to = idx * 72;
       bubbleIndex = idx;
@@ -1640,11 +1642,91 @@
       refresh,
       activate() { active = true; card.focus({ preventScroll: true }); if (!card.classList.contains('is-profile-open')) play(); },
       deactivate() { active = false; pause(); card.classList.remove('is-paused'); hideControl(); },
+      openProfile, closeProfile,
     };
   }
 
   let cards = [];
   let ME = null;
+  let meDisc = null;
+  const discForMe = (p) => `assets/badges/${((p && p.taste) || [])[0] || 'all_around'}.png`;
+
+  // ── the Builds tab (1100:36558 / 36445): everything in flight, who it's with and what moved last.
+  // Highlights is the one build that most wants you, big; New is what waits on you; Recently active
+  // is everything by last movement; Sent is what you started and they still hold.
+  const buildsTab = (() => {
+    const root = device.querySelector('.device__builds');
+    const body = root.querySelector('.builds__body');
+    const chips = [...root.querySelectorAll('.builds__chip')];
+    const push = device.querySelector('.device__push');
+    let list = [], view = 'highlights', isOpen = false, pushed = null, pushSettled = false;
+    const TYPE = { mixtape: ['mixtape', 'Made it a mixtape', 'track', 'tracks'], plan: ['plan', 'Made a plan', 'change', 'changes'], dinner: ['dinner', 'Cooked something up', 'change', 'changes'], watchlist: ['watchlist', 'Curated a watchlist', 'title', 'titles'] };
+    const line = (x) => {
+      const t = TYPE[x.build.type_key] || TYPE.mixtape; const b = x.build, l = x.last; const you = l && l.actor_id === ME;
+      if (b.status === 'agreed') return `It’s a ${t[0]}`;
+      if (b.status === 'as_is') return x.iStarted ? 'You loved it as is' : 'Loved it as is';
+      if (!l) return x.mine ? 'Your move' : 'Their move';
+      if (l.action === 'start') return you ? `You ${t[1][0].toLowerCase()}${t[1].slice(1)}` : t[1];
+      if (l.action === 'turn') { const n = l.changes || 1; const w = `${n} ${n === 1 ? t[2] : t[3]}`; return you ? `You added ${w}` : `Added ${w}`; }
+      if (l.action === 'agree') return you ? 'You agreed' : 'Agreed, your call';
+      if (l.action === 'counter') return you ? 'You countered' : 'Countered';
+      if (l.action === 'match_back') return 'Matched back';
+      return x.mine ? 'Your move' : 'Their move';
+    };
+    const img = (x) => esc(x.person.photo || x.person.avatar || 'assets/avatar-damon.png');
+    const cardHTML = (x) => `<button class="bgrid__card${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}"><img class="bgrid__img" src="${img(x)}" alt="" draggable="false"><div class="bgrid__text"><p class="bgrid__name">${esc(x.person.name)}</p><p class="bgrid__line">${esc(line(x))}</p></div></button>`;
+    const bigHTML = (x) => `<button class="bcard" type="button" data-build="${x.build.id}"><img class="bcard__img" src="${img(x)}" alt="" draggable="false"><div class="bcard__top">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="bcard__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"><span>${esc(SEEKING[x.person.seeking])}</span></span>` : ''}</div><div class="bcard__bottom"><span class="bcard__name">${esc(x.person.name)}</span><img class="bcard__disc" src="${esc(x.person.disc)}" alt="" draggable="false"><span class="bcard__line">${esc(line(x))}</span></div></button>`;
+    const render = () => {
+      chips.forEach((c) => c.classList.toggle('is-on', c.dataset.chips === view));
+      if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
+      if (view === 'highlights') {
+        const top = list.find((x) => x.mine && x.build.status !== 'agreed') || list[0];
+        const rest = list.filter((x) => x !== top);
+        body.innerHTML = bigHTML(top) + (rest.length ? `<div class="bgrid">${rest.map(cardHTML).join('')}</div>` : '');
+        return;
+      }
+      let rows = list;
+      if (view === 'new') rows = list.filter((x) => x.mine && x.build.status !== 'agreed');
+      if (view === 'sent') rows = list.filter((x) => x.iStarted && !x.mine && x.build.status !== 'agreed');
+      body.innerHTML = rows.length ? `<div class="bgrid">${rows.map(cardHTML).join('')}</div>`
+        : `<div class="builds__empty"><p>${view === 'new' ? 'Nothing waiting on you.' : view === 'sent' ? 'Nothing out with them right now.' : 'Nothing here yet.'}</p></div>`;
+    };
+    const load = async () => { try { list = await window.SyncAPI.buildsList(); } catch (e) { console.error(e); list = []; } render(); };
+    chips.forEach((c) => c.addEventListener('click', () => { view = c.dataset.chips; render(); body.scrollTop = 0; }));
+    // a tap pushes that person's card in from the right with their profile open on the build; closing the profile slides it back out
+    const closePush = (instant) => {
+      if (!pushed) return;
+      const c = pushed; pushed = null; pushSettled = false;
+      c.deactivate();
+      device.classList.remove('is-sheet-up', 'is-push-in');
+      if (instant) { push.classList.remove('is-in'); push.hidden = true; push.innerHTML = ''; return; }
+      push.classList.remove('is-in');
+      setTimeout(() => { if (!pushed) { push.hidden = true; push.innerHTML = ''; } load(); }, 480);
+    };
+    const openBuild = async (x) => {
+      if (pushed) return;
+      const prof = await window.SyncAPI.profileById(x.person.id); if (!prof) return;
+      const person = await window.SyncAPI.hydrate(prof, ME); person.activeBuild = x.build;
+      const c = controller(buildCard(person));
+      push.innerHTML = ''; push.appendChild(c.card); push.hidden = false; pushed = c; device.classList.add('is-push-in');
+      c.openProfile();
+      requestAnimationFrame(() => requestAnimationFrame(() => { push.classList.add('is-in'); setTimeout(() => { pushSettled = true; }, 500); }));
+      new MutationObserver(() => { if (pushSettled && pushed === c && !c.card.classList.contains('is-profile-open')) closePush(false); }).observe(c.card, { attributes: true, attributeFilter: ['class'] });
+    };
+    body.addEventListener('click', (e) => { const b = e.target.closest('[data-build]'); if (!b) return; const x = list.find((y) => y.build.id === b.dataset.build); if (x) openBuild(x).catch((err) => notice(errText(err))); });
+    return {
+      get isOpen() { return isOpen; },
+      get pushed() { return pushed; },
+      open(meAvatar, meDisc) {
+        isOpen = true; root.hidden = false; device.classList.add('is-tab-builds');
+        if (meAvatar) root.querySelector('.builds__me-img').src = meAvatar;
+        if (meDisc) root.querySelector('.builds__me-disc').src = meDisc;
+        body.scrollTop = 0; load();
+      },
+      close() { if (!isOpen) return; isOpen = false; closePush(true); root.hidden = true; device.classList.remove('is-tab-builds'); },
+      refresh: load,
+    };
+  })();
 
   // ── paging: one person per gesture, moved by hand on the nav's curve (0.32, 0.72, 0, 1)
   // so the page and the nav's show/hide travel together, quicker than the browser's own snap
@@ -1736,6 +1818,7 @@
     const api = window.SyncAPI;
     const me = await ensureSignedIn();
     ME = me.id;
+    meDisc = discForMe(me);
     const header = device.querySelector('.header__me img');
     if (me.avatar_path) { const u = await api.mediaUrls([me.avatar_path]); if (u[me.avatar_path]) header.src = u[me.avatar_path]; }
     device.querySelector('.header__me').addEventListener('click', async () => {
@@ -1778,6 +1861,8 @@
       const c = cards.find((x) => x.person.id === other);
       const before = c && c.person.activeBuild;
       if (c) { c.person.activeBuild = b; c.refresh(); }
+      const pc = buildsTab.pushed; if (pc && pc.person.id === other) { pc.person.activeBuild = b; pc.refresh(); }
+      if (buildsTab.isOpen && !pc) buildsTab.refresh();
       if (b.status === 'agreed' && (!before || before.status !== 'agreed')) { badgeBuilds(); if (c) celebrate(c.card, 'msg', 'It\'s a mixtape'); }
       else if (b.turn_id === ME && (!before || before.turn_id !== ME)) badgeBuilds();
     });

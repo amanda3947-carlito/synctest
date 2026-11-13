@@ -342,6 +342,35 @@ window.SyncAPI = (() => {
   const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
 
   // one person, with everything the card and the profile sheet draw
+  const STICKER = { collector: 'assets/badges/collector.png', nostalgic: 'assets/badges/nostalgic.png', audiophile: 'assets/badges/audiophile.png', classics: 'assets/badges/classics.png', live_shows: 'assets/badges/live_shows.png', all_around: 'assets/badges/all_around.png' };
+  const discFor = (p) => STICKER[(p.taste || [])[0]] || 'assets/badges/all_around.png';
+  async function profileById(id) {
+    const { data } = await sb.from('profiles').select('*').eq('id', id).maybeSingle();
+    return data || null;
+  }
+  // the Builds tab: every build I'm in (newest movement first), with the other person and what moved last
+  async function buildsList() {
+    const me = await userId();
+    const { data: builds } = await sb.from('builds').select('*').in('status', ['open', 'as_is', 'agreed']).order('updated_at', { ascending: false });
+    const list = builds || [];
+    if (!list.length) return [];
+    const others = [...new Set(list.map((b) => (b.starter_id === me ? b.owner_id : b.starter_id)))];
+    const [{ data: profiles }, { data: media }, { data: turns }] = await Promise.all([
+      sb.from('profiles').select('id,name,avatar_path,seeking,taste').in('id', others),
+      sb.from('profile_media').select('profile_id,kind,path,poster_path,position').in('profile_id', others).eq('approved', true).order('position'),
+      sb.from('build_turns').select('build_id,actor_id,action,changes,created_at').in('build_id', list.map((b) => b.id)).order('created_at', { ascending: false }),
+    ]);
+    const prof = Object.fromEntries((profiles || []).map((p) => [p.id, p]));
+    const photo = {}; for (const m of media || []) if (!photo[m.profile_id]) photo[m.profile_id] = m.kind === 'video' ? m.poster_path : m.path;
+    const last = {}; for (const t of turns || []) if (!last[t.build_id]) last[t.build_id] = t;
+    const url = await mediaUrls([...Object.values(photo), ...Object.values(prof).map((p) => p.avatar_path)].filter(Boolean));
+    return list.map((b) => {
+      const oid = b.starter_id === me ? b.owner_id : b.starter_id;
+      const p = prof[oid] || { id: oid, name: 'Someone' };
+      return { build: b, last: last[b.id] || null, mine: b.turn_id === me, iStarted: b.starter_id === me,
+        person: { id: oid, name: p.name, seeking: p.seeking || null, disc: discFor(p), photo: url[photo[oid]] || url[p.avatar_path] || null, avatar: url[p.avatar_path] || null } };
+    });
+  }
   async function hydrate(p, me) {
     const [media, builds, places, events, mutuals, shared, shelf, sharedShelf] = await Promise.all([
       sb.from('profile_media').select('kind,path,poster_path,position').eq('profile_id', p.id).order('position'),
@@ -364,11 +393,10 @@ window.SyncAPI = (() => {
     ].filter(Boolean);
     const url = await mediaUrls(paths);
     const u = (x) => (x ? url[x] || x : null);
-    const STICKER = { collector: 'assets/badges/collector.png', nostalgic: 'assets/badges/nostalgic.png', audiophile: 'assets/badges/audiophile.png', classics: 'assets/badges/classics.png', live_shows: 'assets/badges/live_shows.png', all_around: 'assets/badges/all_around.png' };
     return {
       id: p.id,
       name: p.name,
-      disc: STICKER[(p.taste || [])[0]] || 'assets/badges/all_around.png',
+      disc: discFor(p),
       seeking: p.seeking || null,
       details: p.details || {},
       items: (media.data || []).map((m) => (m.kind === 'video'
@@ -436,6 +464,6 @@ window.SyncAPI = (() => {
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
-           feed, peopleForFeed, hydrate, myBuilds, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
+           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
            watchBuilds, mediaUrls, trackItem };
 })();

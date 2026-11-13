@@ -137,6 +137,7 @@
     all_around: { label: 'All Around', art: `<img class="ptile__art" src="assets/stickers/note.png" width="51" height="51" alt="" style="left:7.5px;top:4px">` },
   };
   // "the basics" chips on the profile ("Details", 1087:10751)
+  const SEEKING = { friends: 'Cool new friends', crush: 'A new crush', casual: 'Fun, casual dates', serious: 'Something serious', longterm: 'Long term relationship' };
   const DETAIL_ICONS = { hometown: 'house-line', location: 'map-pin-line', gender: 'intersect-three', occupation: 'briefcase', education: 'graduation-cap', height: 'ruler', activity: 'barbell', kids: 'baby', drinking: 'wine', smoking: 'cigarette' };
   const DETAIL_ORDER = ['hometown', 'location', 'gender', 'occupation', 'education', 'height', 'activity', 'kids', 'drinking', 'smoking'];
 
@@ -1150,6 +1151,9 @@
     if (person.placeholder) card.classList.add('card--placeholder');
     card.querySelector('.name__word').textContent = person.name;
     card.querySelector('.name__disc').src = person.disc;
+    // what they are looking for, as a glass pill over the name (the "home feed" frame), with the onboarding charm
+    const seek = card.querySelector('.name__seek');
+    if (person.seeking && SEEKING[person.seeking]) { seek.hidden = false; card.classList.add('has-seek'); seek.querySelector('.name__seek-ic').src = `assets/seeking/${person.seeking}.png`; seek.querySelector('.name__seek-label').textContent = SEEKING[person.seeking]; }
     card.querySelector('.profile').innerHTML = profileHTML(person);
 
     // media stack

@@ -1,5 +1,5 @@
--- Sync seed: the four build types, Brooklyn places and events, and three demo profiles
--- (the people from the designed prototype) with fully filled builds.
+-- Sync seed: the four build types, Brooklyn places and events, and six demo profiles
+-- (the people from the designed prototype and the home feed frame) with fully filled builds.
 -- Safe to re-run: everything upserts on fixed ids.
 
 insert into public.build_types (key, name, verb, kind, unit, capacity, min_items, min_each, per_turn, slots, position) values
@@ -135,3 +135,126 @@ insert into public.profile_shelf (profile_id, kind, key, title, meta, position) 
   ('00000000-0000-4000-8000-000000000003', 'show', 'seed:severance',   'Severance',    'Apple TV+', 1),
   ('00000000-0000-4000-8000-000000000003', 'book', 'seed:trust',       'Trust',        'Hernan Diaz', 2)
 on conflict (profile_id, key) do nothing;
+
+-- ───────────── three more people, from the ":: home feed" frame (Mohammad, Oliver, Veronica), filled in full ─────────────
+insert into auth.users (id, instance_id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)
+values
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '+15550000004', now(), '{"provider":"phone","providers":["phone"]}', '{}', now(), now()),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '+15550000005', now(), '{"provider":"phone","providers":["phone"]}', '{}', now(), now()),
+  ('00000000-0000-4000-8000-000000000006', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', '+15550000006', now(), '{"provider":"phone","providers":["phone"]}', '{}', now(), now())
+on conflict (id) do nothing;
+
+insert into public.profiles (id, phone_hash, name, birthdate, neighborhood, cover, avatar_path, intro_quote, lyric_quote, taste, style_paths, seeking, details, prompts) values
+  ('00000000-0000-4000-8000-000000000004', encode(sha256('+15550000004'::bytea), 'hex'), 'Mohammad', '1997-06-18', 'Clinton Hill', 'discs', 'demo/avatar-mohammad.jpg',
+     'Rooftop sunsets and a speaker that’s too loud.', 'Started from the bottom, now we’re here.', '{collector,live_shows}',
+     '{demo/gifs/dj-caveman.gif,demo/stickers/sticker-sneakers.png,demo/album-3.png,demo/stickers/sticker-coffee.png}', 'friends',
+     '{"hometown":"Casablanca","location":"Clinton Hill","gender":"Man","occupation":"Architect at SHoP","education":"Graduate","height":"6′0","activity":"Active","kids":"No kids","drinking":"Socially","smoking":"Doesn’t smoke"}',
+     '{"intro":{"text":"Rooftop sunsets and a speaker that’s too loud."},"lyrics":{"text":"Started from the bottom, now we’re here."},"dealbreakers":{"text":"Skipping the opener."},"obsession":{"text":"Grilled halloumi, every day this week."}}'),
+  ('00000000-0000-4000-8000-000000000005', encode(sha256('+15550000005'::bytea), 'hex'), 'Oliver', '1999-02-09', 'Williamsburg', 'stripes', 'demo/avatar-oliver.jpg',
+     'Fitted cap, no plan, good playlist.', 'If you don’t know, now you know.', '{collector,nostalgic}',
+     '{demo/gifs/disco.gif,demo/stickers/sticker-cocktail.png,demo/album-5.png,demo/stickers/sticker-clapper.png}', 'casual',
+     '{"hometown":"Atlanta","location":"Williamsburg","gender":"Man","occupation":"Sneaker designer","education":"Undergrad","height":"5′11","activity":"Moderately active","kids":"Not sure yet","drinking":"Drinks","smoking":"Socially"}',
+     '{"intro":{"text":"Fitted cap, no plan, good playlist."},"lyrics":{"text":"If you don’t know, now you know."},"dealbreakers":{"text":"Ketchup on a hot dog."},"obsession":{"text":"Court-side clips at 2am."}}'),
+  ('00000000-0000-4000-8000-000000000006', encode(sha256('+15550000006'::bytea), 'hex'), 'Veronica', '1996-11-30', 'Greenpoint', 'rain', 'demo/avatar-veronica.jpg',
+     'Late sets, early coffee.', 'I’m only happy when it rains.', '{audiophile,classics}',
+     '{demo/gifs/black-cat.gif,demo/stickers/headphones.png,demo/album-1.png,demo/gifs/spinning-dancer.gif}', 'longterm',
+     '{"hometown":"Kraków","location":"Greenpoint","gender":"Woman","occupation":"Sound engineer","education":"Graduate","height":"5′7","activity":"Sometimes active","kids":"Wants kids","drinking":"Socially","smoking":"Smokes"}',
+     '{"intro":{"text":"Late sets, early coffee."},"lyrics":{"text":"I’m only happy when it rains."},"dealbreakers":{"text":"Talking through the quiet part."},"obsession":{"text":"Field recordings of the G train."}}')
+on conflict (id) do update set name = excluded.name, neighborhood = excluded.neighborhood, cover = excluded.cover, avatar_path = excluded.avatar_path,
+  intro_quote = excluded.intro_quote, lyric_quote = excluded.lyric_quote, taste = excluded.taste, style_paths = excluded.style_paths,
+  seeking = excluded.seeking, details = excluded.details, prompts = excluded.prompts;
+
+-- the first three get the new fields too, so everyone on the feed is complete
+update public.profiles set seeking = 'serious',
+  details = '{"hometown":"Baltimore","location":"Gowanus","gender":"Man","occupation":"Designer at RG/A","education":"Undergrad","height":"5′10","activity":"Active","kids":"No kids","drinking":"Socially","smoking":"Doesn’t smoke"}',
+  prompts = '{"intro":{"text":"Jazz on vinyl. Rap in the kitchen."},"lyrics":{"text":"This may be the night that my dreams might let me know / All the stars are closer."},"dealbreakers":{"text":"Phone on the table, face up."},"obsession":{"text":"A good tomato sandwich."}}'
+  where id = '00000000-0000-4000-8000-000000000001';
+update public.profiles set seeking = 'crush',
+  details = '{"hometown":"London","location":"Fort Greene","gender":"Woman","occupation":"Pastry chef","education":"Higher education","height":"5′5","activity":"Moderately active","kids":"Not sure yet","drinking":"Drinks","smoking":"Doesn’t smoke"}',
+  prompts = '{"intro":{"text":"Sunday records, Tuesday karaoke."},"lyrics":{"text":"I was enchanted to meet you."},"dealbreakers":{"text":"Not singing in the car."},"obsession":{"text":"Cardamom buns from the place on Dekalb."}}'
+  where id = '00000000-0000-4000-8000-000000000002';
+update public.profiles set seeking = 'casual',
+  details = '{"hometown":"Austin","location":"Bushwick","gender":"Man","occupation":"Line cook","education":"High school","height":"6′1","activity":"Sometimes active","kids":"Wants kids","drinking":"Drinks","smoking":"Socially"}',
+  prompts = '{"intro":{"text":"Will trade tacos for a good opener."},"lyrics":{"text":"Northern attitude, I was raised on little light."},"dealbreakers":{"text":"Leaving before the encore."},"obsession":{"text":"Birria, the long way."}}'
+  where id = '00000000-0000-4000-8000-000000000003';
+
+insert into public.profile_media (id, profile_id, kind, path, poster_path, position, approved) values
+  ('00000000-0000-4000-8000-00000000a401', '00000000-0000-4000-8000-000000000004', 'photo', 'demo/bg-mohammad.jpg', null, 0, true),
+  ('00000000-0000-4000-8000-00000000a501', '00000000-0000-4000-8000-000000000005', 'photo', 'demo/bg-oliver.jpg', null, 0, true),
+  ('00000000-0000-4000-8000-00000000a502', '00000000-0000-4000-8000-000000000005', 'photo', 'demo/oliver-2.jpg', null, 1, true),
+  ('00000000-0000-4000-8000-00000000a601', '00000000-0000-4000-8000-000000000006', 'photo', 'demo/bg-veronica.jpg', null, 0, true),
+  ('00000000-0000-4000-8000-00000000a602', '00000000-0000-4000-8000-000000000006', 'photo', 'demo/veronica-2.jpg', null, 1, true)
+on conflict (id) do nothing;
+
+insert into public.profile_places (profile_id, place_id, position) values
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-00000000b005', 0),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-00000000b001', 1),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-00000000b008', 2),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-00000000b007', 0),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-00000000b010', 1),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-00000000b002', 2),
+  ('00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-00000000b009', 0),
+  ('00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-00000000b004', 1),
+  ('00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-00000000b006', 2)
+on conflict do nothing;
+
+insert into public.profile_events (profile_id, event_id) values
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-00000000c001'),
+  ('00000000-0000-4000-8000-000000000004', '00000000-0000-4000-8000-00000000c002'),
+  ('00000000-0000-4000-8000-000000000005', '00000000-0000-4000-8000-00000000c002'),
+  ('00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-00000000c001'),
+  ('00000000-0000-4000-8000-000000000006', '00000000-0000-4000-8000-00000000c003')
+on conflict do nothing;
+
+insert into public.profile_builds (id, profile_id, type_key, items, position) values
+  ('00000000-0000-4000-8000-00000000d401', '00000000-0000-4000-8000-000000000004', 'mixtape', '[
+     {"key":"levant-deira","artist":"Saint Levant","title":"Deira","art":"demo/rot-new-1.jpg"},
+     {"key":"nas-ny-state","artist":"Nas","title":"N.Y. State of Mind","art":"demo/rot-new-2.jpg"},
+     {"key":"toto-mghayer","artist":"ElGrandeToto","title":"Mghayer","art":"demo/rot-new-3.jpg"},
+     {"key":"khruangbin-time","artist":"Khruangbin","title":"Time (You and I)","art":"demo/rot-new-4.jpg"},
+     {"key":"ocean-nights","artist":"Frank Ocean","title":"Nights","art":"demo/rot-new-5.jpg"}]', 0),
+  ('00000000-0000-4000-8000-00000000d402', '00000000-0000-4000-8000-000000000004', 'plan', '{
+     "when":{"value":"Saturday, late afternoon"}, "vibe":{"value":"Walk and talk"},
+     "place":{"value":"Fort Greene Park","place_id":"00000000-0000-4000-8000-00000000b005"},
+     "do":{"value":"Loop the park, then oysters at the market"}}', 1),
+  ('00000000-0000-4000-8000-00000000d501', '00000000-0000-4000-8000-000000000005', 'mixtape', '[
+     {"key":"outkast-atliens","artist":"Outkast","title":"ATLiens","art":"demo/rot-new-2.jpg"},
+     {"key":"future-march-madness","artist":"Future","title":"March Madness","art":"demo/rot-new-4.jpg"},
+     {"key":"tyler-new-magic-wand","artist":"Tyler, The Creator","title":"NEW MAGIC WAND","art":"demo/rot-new-1.jpg"},
+     {"key":"gambino-redbone","artist":"Childish Gambino","title":"Redbone","art":"demo/rot-new-5.jpg"},
+     {"key":"metro-creepin","artist":"Metro Boomin","title":"Creepin’","art":"demo/rot-new-3.jpg"}]', 0),
+  ('00000000-0000-4000-8000-00000000d502', '00000000-0000-4000-8000-000000000005', 'watchlist', '[
+     {"key":"atlanta","title":"Atlanta","meta":"TV · FX"},
+     {"key":"challengers","title":"Challengers","meta":"Film · 2024"},
+     {"key":"the-last-dance","title":"The Last Dance","meta":"TV · ESPN"},
+     {"key":"uncut-gems","title":"Uncut Gems","meta":"Film · 2019"}]', 1),
+  ('00000000-0000-4000-8000-00000000d601', '00000000-0000-4000-8000-000000000006', 'mixtape', '[
+     {"key":"garbage-only-happy","artist":"Garbage","title":"Only Happy When It Rains","art":"demo/rot-new-3.jpg"},
+     {"key":"portishead-glory-box","artist":"Portishead","title":"Glory Box","art":"demo/rot-new-5.jpg"},
+     {"key":"four-tet-baby","artist":"Four Tet","title":"Baby","art":"demo/rot-new-2.jpg"},
+     {"key":"jamie-xx-loud-places","artist":"Jamie xx","title":"Loud Places","art":"demo/rot-new-1.jpg"},
+     {"key":"bjork-hyperballad","artist":"Björk","title":"Hyperballad","art":"demo/rot-new-4.jpg"}]', 0),
+  ('00000000-0000-4000-8000-00000000d602', '00000000-0000-4000-8000-000000000006', 'dinner', '{
+     "beverage":{"value":"Żubrówka with apple juice"}, "appetizer":{"value":"Pierogi, pan-fried"},
+     "main":{"value":"Mushroom bigos"}, "sides":{"value":"Dill cucumbers"},
+     "dessert":{"value":"Sernik from the bakery on Manhattan Ave"}}', 1)
+on conflict (id) do update set items = excluded.items, position = excluded.position;
+
+insert into public.profile_shelf (profile_id, kind, key, title, meta, position) values
+  ('00000000-0000-4000-8000-000000000004', 'film', 'seed:dune-part-two', 'Dune: Part Two', '2024 · Denis Villeneuve', 0),
+  ('00000000-0000-4000-8000-000000000004', 'show', 'seed:slow-horses',   'Slow Horses',    'Apple TV+', 1),
+  ('00000000-0000-4000-8000-000000000004', 'book', 'seed:the-sympathizer', 'The Sympathizer', 'Viet Thanh Nguyen', 2),
+  ('00000000-0000-4000-8000-000000000005', 'show', 'seed:atlanta',       'Atlanta',        'FX', 0),
+  ('00000000-0000-4000-8000-000000000005', 'film', 'seed:challengers',   'Challengers',    '2024 · Luca Guadagnino', 1),
+  ('00000000-0000-4000-8000-000000000005', 'book', 'seed:sneaker-wars',  'Sneaker Wars',   'Barbara Smit', 2),
+  ('00000000-0000-4000-8000-000000000006', 'film', 'seed:aftersun',      'Aftersun',       '2022 · Charlotte Wells', 0),
+  ('00000000-0000-4000-8000-000000000006', 'book', 'seed:a-little-life', 'A Little Life',  'Hanya Yanagihara', 1),
+  ('00000000-0000-4000-8000-000000000006', 'show', 'seed:severance',     'Severance',      'Apple TV+', 2)
+on conflict (profile_id, key) do nothing;
+
+-- Mohammad and Oliver know each other; Veronica has Theo in her phone
+insert into public.contact_hashes (profile_id, phone_hash) values
+  ('00000000-0000-4000-8000-000000000004', encode(sha256('+15550000005'::bytea), 'hex')),
+  ('00000000-0000-4000-8000-000000000005', encode(sha256('+15550000004'::bytea), 'hex')),
+  ('00000000-0000-4000-8000-000000000006', encode(sha256('+15550000003'::bytea), 'hex'))
+on conflict do nothing;

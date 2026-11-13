@@ -19,7 +19,7 @@ begin;
 \echo '--- feed: Damon sees Olivia and Theo, not himself'
 select pg_temp.as_user(:'damon');
 select name from public.feed() order by name;
-select count(*) = 2 as feed_ok from public.feed();
+select count(*) = 5 as feed_ok from public.feed();
 
 \echo '--- about facets'
 select mutual_count(:'olivia') as shared_contacts;                     -- 2

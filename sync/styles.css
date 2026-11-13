@@ -283,6 +283,15 @@ img { display: block; }
   justify-content: center;
   overflow: hidden;
 }
+/* "what they're looking for": a glass pill above the name, charm then label (the home feed frame) */
+.name__seek { display: inline-flex; align-items: center; gap: 2px; height: 32px; padding: 0 10px; border-radius: 9999px; background: rgba(245, 245, 245, 0.2); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.28), 0 4px 4px -2px rgba(12, 12, 13, 0.1); color: #f3f3f3; font-size: 12px; font-weight: 500; letter-spacing: -0.24px; line-height: 1.2; white-space: nowrap; font-variation-settings: "opsz" 14; }
+.name__seek[hidden] { display: none; }
+/* with a pill the bottom block grows by its 32px and the gap, so the name and rotation keep their place */
+.card.has-seek .card__bottom { height: calc(262px + var(--nav-lift, 0px)); }
+.card.has-seek .card__bottom-inner { height: 248px; }
+.name__seek { flex: 0 0 auto; }
+.name__seek-ic { width: 15px; height: 15px; object-fit: contain; }
+.name__seek-label { padding: 4px; }
 /* "name": h 42, pr 16, py 4, space-between */
 .name {
   width: 100%;

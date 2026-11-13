@@ -79,6 +79,9 @@ sync/
   names keep Damon's frame content. The sticker you picked sits beside your avatar and name; it is
   not a section. Going to, Mutuals and Taste are off the profile for now (their tables and API stay). "You too" on shared spots
   and titles.
+- **What they're looking for** sits over the name on the feed card as a glass pill with the onboarding charm
+  (the ":: home feed" frame, 1103:4663). The seed has six people: Damon, Olivia, Theo, Mohammad, Oliver and
+  Veronica, each with photos, details, prompts, a rotation, a second build, a shelf and spots.
 - **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. A send or a
   note takes the person off the feed (a build in flight lives on the Builds tab, coming). You can have builds
   going with several people at once; only one live build per pair. Realtime on `builds` lights the Builds dot and plays the toast on a

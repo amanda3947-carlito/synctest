@@ -369,6 +369,7 @@ window.SyncAPI = (() => {
       id: p.id,
       name: p.name,
       disc: STICKER[(p.taste || [])[0]] || 'assets/badges/all_around.png',
+      seeking: p.seeking || null,
       details: p.details || {},
       items: (media.data || []).map((m) => (m.kind === 'video'
         ? { type: 'video', src: u(m.path), poster: u(m.poster_path) }

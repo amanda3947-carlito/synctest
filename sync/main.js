@@ -1673,7 +1673,7 @@
       if (l.action === 'match_back') return 'Matched back';
       return x.mine ? 'Your move' : 'Their move';
     };
-    const img = (x) => esc(x.person.photo || x.person.avatar || 'assets/avatar-damon.png');
+    const img = (x) => esc(x.person.photo || x.person.avatar || 'assets/avatar-blank.svg');
     const cardHTML = (x) => `<button class="bgrid__card${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}"><img class="bgrid__img" src="${img(x)}" alt="" draggable="false"><div class="bgrid__text"><p class="bgrid__name">${esc(x.person.name)}</p><p class="bgrid__line">${esc(line(x))}</p></div></button>`;
     const bigHTML = (x) => `<button class="bcard" type="button" data-build="${x.build.id}"><img class="bcard__img" src="${img(x)}" alt="" draggable="false"><div class="bcard__top">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="bcard__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"><span>${esc(SEEKING[x.person.seeking])}</span></span>` : ''}</div><div class="bcard__bottom"><span class="bcard__name">${esc(x.person.name)}</span><img class="bcard__disc" src="${esc(x.person.disc)}" alt="" draggable="false"><span class="bcard__line">${esc(line(x))}</span></div></button>`;
     const render = () => {

@@ -210,6 +210,23 @@ window.SyncAPI = (() => {
     return mine.concat(found.filter((x) => { const k = x.name.toLowerCase() + '|' + (x.neighborhood || '').toLowerCase(); if (seen.has(k)) return false; seen.add(k); return true; })).slice(0, 8);
   }
   const placeHit = (x) => ({ kind: 'place', key: 'place:' + (x.id || x.osm), id: x.id, place: x, title: x.name, meta: [x.kind, x.neighborhood].filter(Boolean).join(' \u2022 '), art: null });
+  // a picture for a spot: the nearest photo on Wikimedia Commons within 120 m of the pin (no key; parks,
+  // venues and landmarks mostly have one, a quiet bar often does not). Maps, logos and drawings are skipped.
+  const photoCache = new Map();
+  async function placePhoto(place) {
+    const key = `${place.lat},${place.lng}`;
+    if (photoCache.has(key)) return photoCache.get(key);
+    const q = new URLSearchParams({ action: 'query', format: 'json', origin: '*', generator: 'geosearch', ggscoord: `${place.lat}|${place.lng}`, ggsradius: '120', ggsnamespace: '6', ggslimit: '10', prop: 'imageinfo', iiprop: 'url|mime', iiurlwidth: '720' });
+    const res = await fetch(`https://commons.wikimedia.org/w/api.php?${q}`);
+    if (!res.ok) throw new Error('commons ' + res.status);
+    const data = await res.json();
+    const pages = Object.values((data.query && data.query.pages) || {});
+    const bad = /map|logo|plan|diagram|sign|icon|flag|seal/i;
+    const hit = pages.find((pg) => { const ii = pg.imageinfo && pg.imageinfo[0]; return ii && /^image\/(jpeg|png|webp)$/.test(ii.mime) && !bad.test(pg.title || '') && ii.thumburl; });
+    const out = hit ? hit.imageinfo[0].thumburl : null;
+    photoCache.set(key, out);
+    return out;
+  }
   async function addPlace({ name, kind, neighborhood, lat, lng }) {
     const id = await userId();
     const row = { name, kind: kind || null, neighborhood: neighborhood || null, created_by: id };
@@ -375,7 +392,7 @@ window.SyncAPI = (() => {
     const [media, builds, places, events, mutuals, shared, shelf, sharedShelf] = await Promise.all([
       sb.from('profile_media').select('kind,path,poster_path,position').eq('profile_id', p.id).order('position'),
       sb.from('profile_builds').select('id,type_key,items,position').eq('profile_id', p.id).order('position'),
-      sb.from('profile_places').select('position,places(id,name,kind,neighborhood,image_path)').eq('profile_id', p.id).order('position'),
+      sb.from('profile_places').select('position,places(id,name,kind,neighborhood,image_path,lat,lng)').eq('profile_id', p.id).order('position'),
       sb.from('profile_events').select('events(id,title,venue,starts_at)').eq('profile_id', p.id),
       rpc('mutuals', { p_profile: p.id }),
       rpc('shared_places', { p_profile: p.id }),
@@ -391,7 +408,13 @@ window.SyncAPI = (() => {
       ...(places.data || []).map((r) => r.places && r.places.image_path),
       ...(mutuals || []).map((m) => m.avatar_path),
     ].filter(Boolean);
-    const url = await mediaUrls(paths);
+    // a spot without a picture gets one from near its pin (kept on the place, so this runs once per spot)
+    await Promise.all((places.data || []).filter((r) => r.places && !r.places.image_path && r.places.lat != null).map(async (r) => {
+      const pic = await placePhoto(r.places).catch(() => null);
+      if (pic) { r.places.image_path = pic; rpc('set_place_image', { p_place: r.places.id, p_url: pic }).catch(() => {}); }
+    }));
+    paths.push(...(places.data || []).map((r) => r.places && r.places.image_path));
+    const url = await mediaUrls(paths.filter(Boolean));
     const u = (x) => (x ? url[x] || x : null);
     return {
       id: p.id,
@@ -406,7 +429,7 @@ window.SyncAPI = (() => {
       builds: (builds.data || []),
       mixtapeBuildId: mixtape ? mixtape.id : null,
       profile: {
-        cover: p.cover, avatar: u(p.avatar_path) || 'assets/avatar-damon.png',
+        cover: p.cover, avatar: u(p.avatar_path) || 'assets/avatar-blank.svg',
         intro: { quote: (p.prompts && p.prompts.intro && p.prompts.intro.text) || p.intro_quote, prompt: p.intro_prompt || 'Say something witty back', voice: u(p.prompts && p.prompts.intro && p.prompts.intro.voice), seconds: p.prompts && p.prompts.intro && p.prompts.intro.seconds },
         lyric: { quote: (p.prompts && p.prompts.lyrics && p.prompts.lyrics.text) || p.lyric_quote, prompt: p.lyric_prompt || 'Name the artist', voice: u(p.prompts && p.prompts.lyrics && p.prompts.lyrics.voice), seconds: p.prompts && p.prompts.lyrics && p.prompts.lyrics.seconds },
         dealbreakers: p.prompts && p.prompts.dealbreakers ? { quote: p.prompts.dealbreakers.text, prompt: 'Fair or not?', voice: u(p.prompts.dealbreakers.voice), seconds: p.prompts.dealbreakers.seconds } : null,

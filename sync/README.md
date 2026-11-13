@@ -79,6 +79,10 @@ sync/
   names keep Damon's frame content. The sticker you picked sits beside your avatar and name; it is
   not a section. Going to, Mutuals and Taste are off the profile for now (their tables and API stay). "You too" on shared spots
   and titles.
+- **A spot's picture** is looked up the first time a spot without one is shown: the nearest photo on
+  Wikimedia Commons within 120 m of its pin (no key), skipping maps, logos and drawings, then kept on the
+  place through `set_place_image` so it is fetched once. Parks, venues and landmarks mostly have one; a
+  quiet bar often does not and keeps the pin. Spots picked from the map carry their pin; the seed spots have theirs.
 - **What they're looking for** sits over the name on the feed card as a glass pill with the onboarding charm
   (the ":: home feed" frame, 1103:4663). The seed has six people: Damon, Olivia, Theo, Mohammad, Oliver and
   Veronica, each with photos, details, prompts, a rotation, a second build, a shelf and spots.

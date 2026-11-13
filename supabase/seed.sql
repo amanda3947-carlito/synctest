@@ -64,6 +64,18 @@ insert into public.profile_places (profile_id, place_id, position) values
   ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-00000000b009', 2)
 on conflict do nothing;
 
+-- the seed places' pins (so a picture can be found near each)
+update public.places set lat = 40.6823, lng = -73.9869 where id = '00000000-0000-4000-8000-00000000b001' and lat is null;
+update public.places set lat = 40.6762, lng = -73.989 where id = '00000000-0000-4000-8000-00000000b002' and lat is null;
+update public.places set lat = 40.6866, lng = -73.9924 where id = '00000000-0000-4000-8000-00000000b003' and lat is null;
+update public.places set lat = 40.6619, lng = -73.9796 where id = '00000000-0000-4000-8000-00000000b004' and lat is null;
+update public.places set lat = 40.6915, lng = -73.9744 where id = '00000000-0000-4000-8000-00000000b005' and lat is null;
+update public.places set lat = 40.705, lng = -73.9336 where id = '00000000-0000-4000-8000-00000000b006' and lat is null;
+update public.places set lat = 40.7097, lng = -73.9238 where id = '00000000-0000-4000-8000-00000000b007' and lat is null;
+update public.places set lat = 40.7017, lng = -73.9961 where id = '00000000-0000-4000-8000-00000000b008' and lat is null;
+update public.places set lat = 40.7066, lng = -73.9339 where id = '00000000-0000-4000-8000-00000000b009' and lat is null;
+update public.places set lat = 40.6719, lng = -73.9573 where id = '00000000-0000-4000-8000-00000000b010' and lat is null;
+
 -- events ("going to")
 insert into public.events (id, title, venue, starts_at) values
   ('00000000-0000-4000-8000-00000000c001', 'Khruangbin', 'Brooklyn Paramount', now() + interval '12 days'),

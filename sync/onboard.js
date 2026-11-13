@@ -383,7 +383,8 @@ window.SyncOnboard = (() => {
         else if (s.saved.position !== i) await api().setMediaPosition(s.saved.id, i);
       }
       const first = slots[0].saved;
-      if (first.kind === 'photo') me = await api().updateProfile({ avatar_path: first.path });
+      if (first.kind === 'photo') { me = await api().updateProfile({ avatar_path: first.path }); const u = await api().mediaUrls([first.path]); me.avatarUrl = u[first.path]; }
+      else if (me && me.avatar_path) { const u = await api().mediaUrls([me.avatar_path]); me.avatarUrl = u[me.avatar_path]; }
       return true;
     });
   }
@@ -590,7 +591,7 @@ window.SyncOnboard = (() => {
         <img class="sky__sticker sky__sticker--phones" src="assets/stickers/headphones.png" alt="">
         <img class="sky__sticker sky__sticker--ticket" src="assets/stickers/ticket.png" alt="">
       </div>
-      <div class="sky__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="sky__me-disc" src="${esc(stickerFor(me))}" alt=""></div>
+      <div class="sky__me"><img src="${esc(me.avatarUrl || 'assets/avatar-blank.svg')}" alt=""><img class="sky__me-disc" src="${esc(stickerFor(me))}" alt=""></div>
       <div class="sky__copy"><h2 class="sky__h">Your core profile is complete!</h2><p class="sky__p">Now it’s time to layer on the fun stuff</p></div>` });
     setReady(true);
     await step(async () => true);
@@ -641,7 +642,7 @@ window.SyncOnboard = (() => {
         <div class="board__cats" id="bd-cats">${CATS.map(([k, label]) => `<button class="board__cat board__cat--${k}" type="button" data-cat="${k}">${label}</button>`).join('')}</div>
         <div class="board__results" id="bd-results" hidden></div>
       </div>` });
-    panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
+    panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-blank.svg')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
     panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="board__me board__me--ghost" aria-hidden="true"></span>');
 
     const stage = $('#bd-stage');
@@ -1069,7 +1070,7 @@ window.SyncOnboard = (() => {
     frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', back: true, ready: true,
       body: `<p class="punit__title ob__covers-cap">Choose a cover image</p>
              <div class="ob__covergrid">${COVERS.map((c) => `<button class="ob__coverpick${c.id === pick ? ' is-on' : ''}" type="button" data-cover="${c.id}" aria-label="${c.id}" aria-pressed="${c.id === pick}"><img src="${c.src}" alt="" draggable="false"><span class="ob__coverpick-grad"></span></button>`).join('')}</div>` });
-    panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-damon.png')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
+    panel().querySelector('.ob__head').insertAdjacentHTML('afterbegin', `<span class="board__me"><img src="${esc(me.avatarUrl || 'assets/avatar-blank.svg')}" alt=""><img class="board__me-disc" src="${esc(stickerFor(me))}" alt=""></span>`);
     panel().querySelector('.ob__head').insertAdjacentHTML('beforeend', '<span class="board__me board__me--ghost" aria-hidden="true"></span>');
     panel().addEventListener('click', (e) => { const b = e.target.closest('[data-cover]'); if (!b) return; pick = b.dataset.cover; $$('[data-cover]').forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-pressed', x === b); }); });
     return step(async () => { me = await api().updateProfile({ cover: pick }); return true; });

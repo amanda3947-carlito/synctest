@@ -32,16 +32,24 @@ window.SyncOnboard = (() => {
   // "Now for the basics"
   // "Now for the basics" (5 of 7): typed, or picked from a short list; Kids takes more than one
   const BASICS = [
-    { key: 'occupation', label: 'Occupation', icon: 'briefcase', ph: 'Ex: Designer at RG/A' },
-    { key: 'education', label: 'Education', icon: 'graduation-cap', options: ['High school', 'Undergrad', 'Graduate', 'PhD', 'Higher education'] },
     { key: 'hometown', label: 'Hometown', icon: 'house-line', ph: 'Ex: London' },
     { key: 'location', label: 'Current Location', icon: 'map-pin-line', ph: 'Ex: Brooklyn' },
+    { key: 'gender', label: 'Gender', icon: 'intersect-three', options: ['Man', 'Woman', 'Non-binary', 'Something else'], more: 'Something else' },
+    { key: 'occupation', label: 'Occupation', icon: 'briefcase', ph: 'Ex: Designer at RG/A' },
+    { key: 'education', label: 'Education', icon: 'graduation-cap', options: ['High school', 'Undergrad', 'Graduate', 'PhD', 'Higher education'] },
     { key: 'height', label: 'Height', icon: 'ruler', ph: 'Ex: 5′10' },
     { key: 'activity', label: 'Activity', icon: 'barbell', options: ['Active', 'Moderately active', 'Sometimes active', 'Not active'] },
     { key: 'kids', label: 'Kids', icon: 'baby', options: ['Has kids', 'No kids', 'Wants kids', 'Not sure yet'], multi: true },
-    { key: 'smoking', label: 'Smoking', icon: 'cigarette', options: ['Smokes', 'Doesn’t smoke', 'Socially'] },
     { key: 'drinking', label: 'Drinking', icon: 'wine', options: ['Drinks', 'Doesn’t drink', 'Socially'] },
+    { key: 'smoking', label: 'Smoking', icon: 'cigarette', options: ['Smokes', 'Doesn’t smoke', 'Socially'] },
   ];
+  // "Something else" under Gender opens an iOS-style menu with the finer answers, in groups
+  const GENDER_MORE = [
+    ['Transgender', ['Transmasculine', 'Transfeminine', 'Transman', 'Transwoman']],
+    ['Nonbinary & Fluid', ['Genderqueer', 'Genderfluid', 'Gender Non-conforming', 'Agender']],
+    ['Cultural & Biological', ['Two-spirit', 'Intersex']],
+  ];
+  const GENDER_FINE = GENDER_MORE.flatMap(([, xs]) => xs);
   const icon = (k) => `<img class="ob__ic" src="assets/details/${k}.svg" width="24" height="24" alt="">`;
   const KINDS = ['Bar', 'Restaurant', 'Café', 'Venue', 'Store', 'Park', 'Cinema', 'Gallery'];
   const HOODS = ['Bed-Stuy', 'Bushwick', 'Carroll Gardens', 'Clinton Hill', 'Cobble Hill', 'Crown Heights', 'DUMBO', 'Fort Greene', 'Gowanus', 'Greenpoint', 'Park Slope', 'Prospect Heights', 'Red Hook', 'Williamsburg', 'Elsewhere'];
@@ -359,8 +367,9 @@ window.SyncOnboard = (() => {
     const d = { ...((me && me.details) || {}) };
     const rowHTML = (f) => {
       const v = d[f.key] || '';
+      const popHTML = f.more ? `<div class="ob__pop" hidden role="menu">${GENDER_MORE.map(([g, xs], i) => `${i ? '<div class="ob__pop-sep"></div>' : ''}<p class="ob__pop-title">${esc(g)}</p>${xs.map((x) => `<button class="ob__pop-item${v === x ? ' is-on' : ''}" type="button" role="menuitemradio" aria-checked="${v === x}" data-pick="${esc(x)}" data-for="${f.key}"><span>${esc(x)}</span><img class="ob__pop-check" src="assets/check-dark.svg" width="20" height="20" alt=""></button>`).join('')}`).join('')}</div>` : '';
       const body = f.options
-        ? `<div class="ob__opts" role="${f.multi ? 'group' : 'radiogroup'}">${f.options.map((o) => { const on = f.multi ? v.split(', ').includes(o) : v === o; return `<button class="ob__opt${on ? ' is-on' : ''}" type="button" role="${f.multi ? 'checkbox' : 'radio'}" aria-checked="${on}" data-opt="${esc(o)}" data-for="${f.key}"><span>${esc(o)}</span><span class="ob__opt-mark${f.multi ? ' ob__opt-mark--box' : ''}"></span></button>`; }).join('')}</div>`
+        ? `<div class="ob__opts" role="${f.multi ? 'group' : 'radiogroup'}">${f.options.map((o) => { const on = f.multi ? v.split(', ').includes(o) : (v === o || (o === f.more && GENDER_FINE.includes(v))); return `<button class="ob__opt${on ? ' is-on' : ''}" type="button" role="${f.multi ? 'checkbox' : 'radio'}" aria-checked="${on}" data-opt="${esc(o)}" data-for="${f.key}"${o === f.more ? ' data-more' : ''}><span>${esc(o)}</span><span class="ob__opt-mark${f.multi ? ' ob__opt-mark--box' : ''}"></span></button>`; }).join('')}</div>${popHTML}`
         : `<input class="ob__input ob__input--basic" type="text" data-field="${f.key}" placeholder="${esc(f.ph)}" maxlength="60" value="${esc(v)}" autocomplete="off">`;
       return `<div class="ob__acc-item${v ? ' has-value' : ''}" data-key="${f.key}">
           <button class="ob__acc-row" type="button" data-toggle="${f.key}" aria-expanded="false">${icon(f.icon)}<span class="ob__acc-text"><span class="ob__acc-label">${esc(f.label)}</span><span class="ob__acc-val">${esc(v)}</span></span><img class="ob__acc-chev" src="assets/caret-left-dark.svg" width="20" height="20" alt=""></button>
@@ -371,7 +380,24 @@ window.SyncOnboard = (() => {
       body: `<div class="ob__acc">${BASICS.map(rowHTML).join('')}</div>` });
     setReady(true);
     const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = $(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); };
+    // the menu under "Something else": opens beside the options, closes on a pick or a tap anywhere else
+    let popOpen = null;
+    const closePop = () => { if (!popOpen) return; const p = popOpen; popOpen = null; p.classList.remove('is-in'); setTimeout(() => { p.hidden = true; }, 180); document.removeEventListener('pointerdown', onOutside, true); };
+    const onOutside = (e) => { if (popOpen && !popOpen.contains(e.target)) closePop(); };
+    const openPop = (item) => {
+      const p = item.querySelector('.ob__pop'); if (!p || popOpen === p) return;
+      // the row goes to the top of the page and the menu takes what is left above the buttons, scrolling inside if it must
+      const sc = p.closest('.auth'); const foot = sc.querySelector('.ob__foot');
+      item.style.scrollMarginTop = '70px'; item.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      p.hidden = false;   // shown before it is measured
+      const avail = sc.clientHeight - 70 - p.offsetTop - (foot ? foot.offsetHeight : 0) - 8;
+      p.style.maxHeight = `${Math.max(240, Math.min(600, avail))}px`;
+      requestAnimationFrame(() => p.classList.add('is-in'));
+      popOpen = p;
+      setTimeout(() => document.addEventListener('pointerdown', onOutside, true), 0);
+    };
     const openItem = (item) => {
+      closePop();
       $$('.ob__acc-item').forEach((x) => { x.classList.remove('is-open'); x.querySelector('.ob__acc-body').hidden = true; x.querySelector('[data-toggle]').setAttribute('aria-expanded', 'false'); });
       if (!item) return;
       item.classList.add('is-open'); item.querySelector('.ob__acc-body').hidden = false; item.querySelector('[data-toggle]').setAttribute('aria-expanded', 'true');
@@ -381,9 +407,28 @@ window.SyncOnboard = (() => {
     panel().addEventListener('click', (e) => {
       const t = e.target.closest('[data-toggle]');
       if (t) { const item = t.closest('.ob__acc-item'); openItem(item.classList.contains('is-open') ? null : item); return; }
+      const pick = e.target.closest('[data-pick]');
+      if (pick) {
+        const f = BASICS.find((x) => x.key === pick.dataset.for);
+        pick.parentNode.querySelectorAll('.ob__pop-item').forEach((x) => { x.classList.toggle('is-on', x === pick); x.setAttribute('aria-checked', x === pick); });
+        const item = pick.closest('.ob__acc-item');
+        item.querySelectorAll('.ob__opt').forEach((x) => { const on = x.hasAttribute('data-more'); x.classList.toggle('is-on', on); x.setAttribute('aria-checked', on); });
+        setVal(f.key, pick.dataset.pick);
+        closePop();
+        setTimeout(() => { const next = $$('.ob__acc-item').find((x) => !x.classList.contains('has-value')); openItem(next || null); }, 260);
+        return;
+      }
       const o = e.target.closest('[data-opt]');
       if (!o) return;
       const f = BASICS.find((x) => x.key === o.dataset.for);
+      if (o.hasAttribute('data-more')) {
+        // the first pick only marks the row; the menu gives the answer
+        o.parentNode.querySelectorAll('.ob__opt').forEach((x) => { x.classList.toggle('is-on', x === o); x.setAttribute('aria-checked', x === o); });
+        if (!GENDER_FINE.includes(d[f.key])) setVal(f.key, '');
+        openPop(o.closest('.ob__acc-item'));
+        return;
+      }
+      closePop();
       if (f.multi) {
         const on = !o.classList.contains('is-on'); o.classList.toggle('is-on', on); o.setAttribute('aria-checked', on);
         setVal(f.key, [...o.parentNode.querySelectorAll('.ob__opt.is-on')].map((x) => x.dataset.opt).join(', '));

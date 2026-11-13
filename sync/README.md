@@ -29,8 +29,10 @@ sync/
 - **First run, in three acts** (`onboard.js`, after the ":: essentials setup" frames):
   1. *Essentials, 1 of 7 to 7 of 7*: name, number and code (a focused pill goes white with its label on
      the border), birthday (MM / DD / YYYY with a calendar picker: month and year menus, a 7-wide grid),
-     photos (2 × 2, drag to reorder, first is the card, × top right), the basics (an accordion: occupation, hometown, location and height are typed;
-     education, activity, smoking and drinking are one pick; kids takes several), the prompts ("Let's learn more
+     photos (2 × 2, drag to reorder, first is the card, × top right), the basics (an accordion, in order: hometown, location, gender, occupation,
+     education, height, activity, kids, drinking, smoking; hometown, location, occupation and height are typed; education,
+     activity, drinking and smoking are one pick; kids takes several; gender is Man / Woman / Non-binary / Something else, and
+     "Something else" opens an iOS-style glass menu with the finer answers in groups, whose pick fills the row like any other), the prompts ("Let's learn more
      about you": Intro, Lyrics to Live By, Deal-breakers, Current Obsession as four tiles; tapping one
      opens a card over the keyboard with the emoji row and a field; the waveform records a voice note
      instead; two or more to go on; migration 0006 adds `profiles.prompts`), and what best describes you

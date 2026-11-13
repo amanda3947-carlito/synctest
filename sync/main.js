@@ -137,8 +137,8 @@
     all_around: { label: 'All Around', art: `<img class="ptile__art" src="assets/stickers/note.png" width="51" height="51" alt="" style="left:7.5px;top:4px">` },
   };
   // "the basics" chips on the profile ("Details", 1087:10751)
-  const DETAIL_ICONS = { occupation: 'briefcase', education: 'graduation-cap', height: 'ruler', activity: 'barbell', hometown: 'house-line', location: 'map-pin-line', kids: 'baby', smoking: 'cigarette', drinking: 'wine' };
-  const DETAIL_ORDER = ['occupation', 'education', 'height', 'activity', 'hometown', 'location', 'kids', 'smoking', 'drinking'];
+  const DETAIL_ICONS = { hometown: 'house-line', location: 'map-pin-line', gender: 'intersect-three', occupation: 'briefcase', education: 'graduation-cap', height: 'ruler', activity: 'barbell', kids: 'baby', drinking: 'wine', smoking: 'cigarette' };
+  const DETAIL_ORDER = ['hometown', 'location', 'gender', 'occupation', 'education', 'height', 'activity', 'kids', 'drinking', 'smoking'];
 
   const PLAY_BTN = (label) => `<button class="pplay" type="button" aria-label="Play ${label}" aria-pressed="false"><img class="ico-play" src="assets/play-16.svg" width="16" height="16" alt=""><svg class="ico-pause" viewBox="0 0 256 256" aria-hidden="true"><path fill="#000" d="M216 48v160a16 16 0 0 1-16 16h-40a16 16 0 0 1-16-16V48a16 16 0 0 1 16-16h40a16 16 0 0 1 16 16ZM96 32H56a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h40a16 16 0 0 0 16-16V48a16 16 0 0 0-16-16Z"/></svg></button>`;
 

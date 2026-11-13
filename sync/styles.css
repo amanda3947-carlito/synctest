@@ -1443,7 +1443,22 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .ob__acc-item.has-value:not(.is-open) .ob__acc-val { display: block; }
 .ob__acc-chev { flex: 0 0 20px; margin-right: 2px; transform: rotate(-90deg); transition: transform 0.25s; opacity: 0.9; }
 .ob__acc-item.is-open .ob__acc-chev { transform: rotate(90deg); }
+.ob__acc-item { position: relative; }
 .ob__acc-body { padding: 10px 8px 14px; }
+/* the iOS-style menu under "Something else": liquid glass on the page, sections, a check on the pick */
+.ob__pop { position: absolute; right: 8px; top: 146px; z-index: 5; width: max-content; min-width: 238px; max-width: calc(100% - 16px); padding: 10px 16px; border-radius: 32px; display: flex; flex-direction: column; overflow-y: auto; scrollbar-width: none; white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, 'DM Sans', sans-serif; letter-spacing: -0.43px; color: #1a1a1a;
+  background: rgba(255, 255, 255, 0.78); -webkit-backdrop-filter: blur(40px) saturate(1.6); backdrop-filter: blur(40px) saturate(1.6);
+  box-shadow: 0 0 0 0.5px #dbdbdb, inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 8px 48px rgba(0, 0, 0, 0.25);
+  transform-origin: 100% 0; transform: scale(0.6) translateY(-8px); opacity: 0; transition: transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2), opacity 0.16s; }
+.ob__pop.is-in { transform: none; opacity: 1; }
+.ob__pop[hidden] { display: none; }
+.ob__pop-title { flex: 0 0 auto; height: 29px; padding: 4px 8px 10px; font-size: 13px; line-height: 15px; font-weight: 510; color: #bfbfbf; letter-spacing: -0.08px; }
+.ob__pop-item { flex: 0 0 auto; width: 100%; height: 40px; padding: 0 8px 0 6px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 17px; line-height: 20px; text-align: left; color: inherit; }
+.ob__pop-item:active { background: rgba(0, 0, 0, 0.06); }
+.ob__pop-check { flex: 0 0 20px; visibility: hidden; }
+.ob__pop-item.is-on .ob__pop-check { visibility: visible; }
+.ob__pop-sep { flex: 0 0 auto; height: 1px; margin: 10px 8px; background: #e6e6e6; }
 .ob__input--basic { height: 60px; border-radius: 24px; border: 1px solid #f3f3f3; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05); font-size: 16px; letter-spacing: -0.32px; }
 .ob__input--basic::placeholder { color: #b3b3b3; }
 /* the options: 36px pills under the label, a radio (or a box for Kids) at the right */

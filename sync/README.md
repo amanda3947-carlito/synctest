@@ -21,7 +21,9 @@ sync/
   letters come forward, then fall back into a pop of colour that swells behind them until it owns the
   screen and fades off fast onto the title screen: "Pass the aux", a "Let's build" button that starts
   act one, and behind them an orbit of pieces (photos, covers, stickers) that keeps turning the way the
-  board's ring does. A tap skips to the title; reduced motion goes straight there.
+  board's ring does: seventeen pieces on their own tilted ellipses, a turn in about 30 s, with depth driving
+  size (a front piece is about five times its back self), opacity, softness and stacking together, all
+  continuous. A tap skips to the title; reduced motion goes straight there.
 - **Every step's chrome** (1105:5031): a thin chevron before the title walks back a step (from the
   first step, back to the splash), the step pill sits right, and under the mint Next an outlined
   Cancel leaves the run: what is saved stays with the account, and the splash comes back. While

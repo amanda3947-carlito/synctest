@@ -1597,9 +1597,9 @@ button.ob__cal-day:active { background: #e9e7e3; }
    a little above, the front ones large and bright, the back ones small and soft, like the board's ring */
 .splash__orbit { inset: 0; z-index: 1; pointer-events: none; opacity: 0; transform: translateY(56px) scale(0.96); transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.9s cubic-bezier(0.2, 0.8, 0.2, 1); }
 .splash.is-orbit .splash__orbit { opacity: 1; transform: none; }
-.splash__piece { position: absolute; left: 0; top: 0; width: 92px; height: 92px; object-fit: cover; border-radius: 18px; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.1), 0 10px 24px rgba(12, 12, 13, 0.08); will-change: transform, opacity; }
+.splash__piece { position: absolute; left: 0; top: 0; width: 92px; height: 92px; object-fit: cover; border-radius: 18px; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.1), 0 10px 24px rgba(12, 12, 13, 0.08); will-change: transform, opacity, filter; backface-visibility: hidden; }
 .splash__piece--tall { height: 128px; border-radius: 26px; }
-.splash__piece--sticker { object-fit: contain; border-radius: 0; box-shadow: none; filter: drop-shadow(0 10px 18px rgba(12, 12, 13, 0.14)); width: 112px; height: 112px; }
+.splash__piece--sticker { object-fit: contain; border-radius: 0; box-shadow: none; width: 112px; height: 112px; }   /* its shadow rides in the inline filter with the depth blur */
 .splash__words { left: 0; right: 0; top: 560px; z-index: 4; text-align: center; opacity: 0; transform: translateY(44px); transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.75s cubic-bezier(0.2, 0.8, 0.2, 1); pointer-events: none; }
 .splash.is-title .splash__words { opacity: 1; transform: none; pointer-events: auto; }
 .splash__tag { margin: 0 0 22px; font-family: var(--font-body); font-size: 24px; line-height: 1.2; color: #000; }

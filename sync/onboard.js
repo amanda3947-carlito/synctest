@@ -389,9 +389,12 @@ window.SyncOnboard = (() => {
     });
   }
 
-  // the basics: an accordion; each row opens a field
-  async function stepBasics(editing) {
-    const d = { ...((me && me.details) || {}) };
+  // the basics: an accordion; each row opens a field. Mounted into `root` (an .ob__acc) with the answers `d`;
+  // every change calls onChange. The first run and the editor both use it.
+  function mountBasics(root, d, onChange, opts = {}) {
+    const topInset = opts.topInset || 70;
+    const q = (sel) => root.querySelector(sel);
+    const qa = (sel) => [...root.querySelectorAll(sel)];
     const rowHTML = (f) => {
       const v = d[f.key] || '';
       const popHTML = f.more ? `<div class="ob__pop" hidden role="menu">${GENDER_MORE.map(([g, xs], i) => `${i ? '<div class="ob__pop-sep"></div>' : ''}<p class="ob__pop-title">${esc(g)}</p>${xs.map((x) => `<button class="ob__pop-item${v === x ? ' is-on' : ''}" type="button" role="menuitemradio" aria-checked="${v === x}" data-pick="${esc(x)}" data-for="${f.key}"><span>${esc(x)}</span><img class="ob__pop-check" src="assets/check-dark.svg" width="20" height="20" alt=""></button>`).join('')}`).join('')}</div>` : '';
@@ -403,10 +406,8 @@ window.SyncOnboard = (() => {
           <div class="ob__acc-body" hidden>${body}</div>
         </div>`;
     };
-    frame({ step: editing ? 0 : 6, total: 8, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: true,
-      body: `<div class="ob__acc">${BASICS.map(rowHTML).join('')}</div>` });
-    setReady(true);
-    const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = $(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); };
+    root.innerHTML = BASICS.map(rowHTML).join('');
+    const setVal = (key, v) => { if (v) d[key] = v; else delete d[key]; const item = q(`.ob__acc-item[data-key="${key}"]`); item.querySelector('.ob__acc-val').textContent = v; item.classList.toggle('has-value', !!v); onChange(key, v); };
     // the menu under "Something else": opens beside the options, closes on a pick or a tap anywhere else
     let popOpen = null;
     const closePop = () => { if (!popOpen) return; const p = popOpen; popOpen = null; p.classList.remove('is-in'); setTimeout(() => { p.hidden = true; }, 180); document.removeEventListener('pointerdown', onOutside, true); };
@@ -414,10 +415,10 @@ window.SyncOnboard = (() => {
     const openPop = (item) => {
       const p = item.querySelector('.ob__pop'); if (!p || popOpen === p) return;
       // the row goes to the top of the page and the menu takes what is left above the buttons, scrolling inside if it must
-      const sc = p.closest('.auth'); const foot = sc.querySelector('.ob__foot');
-      item.style.scrollMarginTop = '70px'; item.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      const sc = root.closest('.mine__scroll, .auth'); const foot = sc.querySelector('.ob__foot');
+      item.style.scrollMarginTop = `${topInset}px`; item.scrollIntoView({ block: 'start', behavior: 'smooth' });
       p.hidden = false;   // shown before it is measured
-      const avail = sc.clientHeight - 70 - p.offsetTop - (foot ? foot.offsetHeight : 0) - 8;
+      const avail = sc.clientHeight - topInset - p.offsetTop - (foot ? foot.offsetHeight : 0) - 8;
       p.style.maxHeight = `${Math.max(240, Math.min(600, avail))}px`;
       requestAnimationFrame(() => p.classList.add('is-in'));
       popOpen = p;
@@ -425,13 +426,14 @@ window.SyncOnboard = (() => {
     };
     const openItem = (item) => {
       closePop();
-      $$('.ob__acc-item').forEach((x) => { x.classList.remove('is-open'); x.querySelector('.ob__acc-body').hidden = true; x.querySelector('[data-toggle]').setAttribute('aria-expanded', 'false'); });
+      qa('.ob__acc-item').forEach((x) => { x.classList.remove('is-open'); x.querySelector('.ob__acc-body').hidden = true; x.querySelector('[data-toggle]').setAttribute('aria-expanded', 'false'); });
       if (!item) return;
       item.classList.add('is-open'); item.querySelector('.ob__acc-body').hidden = false; item.querySelector('[data-toggle]').setAttribute('aria-expanded', 'true');
       const inp = item.querySelector('input'); if (inp) setTimeout(() => inp.focus({ preventScroll: true }), 40); else if (document.activeElement && document.activeElement.blur) document.activeElement.blur();   // a pick row needs no keyboard
       setTimeout(() => item.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60);
     };
-    panel().addEventListener('click', (e) => {
+    const nextEmpty = () => qa('.ob__acc-item').find((x) => !x.classList.contains('has-value'));
+    root.addEventListener('click', (e) => {
       const t = e.target.closest('[data-toggle]');
       if (t) { const item = t.closest('.ob__acc-item'); openItem(item.classList.contains('is-open') ? null : item); return; }
       const pick = e.target.closest('[data-pick]');
@@ -442,7 +444,7 @@ window.SyncOnboard = (() => {
         item.querySelectorAll('.ob__opt').forEach((x) => { const on = x.hasAttribute('data-more'); x.classList.toggle('is-on', on); x.setAttribute('aria-checked', on); });
         setVal(f.key, pick.dataset.pick);
         closePop();
-        setTimeout(() => { const next = $$('.ob__acc-item').find((x) => !x.classList.contains('has-value')); openItem(next || null); }, 260);
+        setTimeout(() => openItem(nextEmpty() || null), 260);
         return;
       }
       const o = e.target.closest('[data-opt]');
@@ -463,11 +465,18 @@ window.SyncOnboard = (() => {
         o.parentNode.querySelectorAll('.ob__opt').forEach((x) => { x.classList.toggle('is-on', x === o); x.setAttribute('aria-checked', x === o); });
         setVal(f.key, o.dataset.opt);
         // one answer closes the row and opens the next unanswered one
-        setTimeout(() => { const next = $$('.ob__acc-item').find((x) => !x.classList.contains('has-value')); openItem(next || null); }, 220);
+        setTimeout(() => openItem(nextEmpty() || null), 220);
       }
     });
-    panel().addEventListener('input', (e) => { const f = e.target.closest('[data-field]'); if (!f) return; setVal(f.dataset.field, f.value.trim()); });
-    panel().addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('[data-field]')) { e.preventDefault(); e.stopImmediatePropagation(); const next = $$('.ob__acc-item').find((x) => !x.classList.contains('has-value')); openItem(next || null); } });
+    root.addEventListener('input', (e) => { const f = e.target.closest('[data-field]'); if (!f) return; setVal(f.dataset.field, f.value.trim()); });
+    root.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target.closest('[data-field]')) { e.preventDefault(); e.stopImmediatePropagation(); openItem(nextEmpty() || null); } });
+  }
+  async function stepBasics(editing) {
+    const d = { ...((me && me.details) || {}) };
+    frame({ step: editing ? 0 : 6, total: 8, title: 'Now for the basics', cta: editing ? 'Save' : 'Next', back: true,
+      body: `<div class="ob__acc" id="ob-acc"></div>` });
+    mountBasics($('#ob-acc'), d, () => {});
+    setReady(true);
     return step(async () => {
       me = await api().updateProfile({ details: d });
       return true;
@@ -941,7 +950,7 @@ window.SyncOnboard = (() => {
   };
   const coverOut = async () => {
     const r = root(); const dev = deps.device;
-    r.classList.add('is-offstage'); dev.classList.remove('is-covered');
+    r.classList.add('is-offstage'); dev.classList.remove('is-covered', 'is-nav-dark');
     await wait(460);
     r.hidden = true; r.classList.remove('is-cover', 'is-offstage');
   };
@@ -975,11 +984,9 @@ window.SyncOnboard = (() => {
         const plural = (k, one, many, verb) => (k ? `${k} ${k === 1 ? one : many} ${verb}` : 'None yet');
         const coverName = (id) => id.split('-').map((w, i) => (i ? w : w[0].toUpperCase() + w.slice(1))).join(' ');
         const rows = [
-          ['photos', 'Photos', `${n(person.items)} added`],
           ['cover', 'Cover', me.cover ? coverName(coverOf(me.cover).id) : 'No cover added'],
           ['describes', 'Your badge', taste ? taste[1] : 'None yet'],
           ['seeking', 'Looking for', me.seeking ? seekingLabel(me.seeking) : 'Not picked yet'],
-          ['basics', 'Details', `${details} of ${BASICS.length} completed`],
           ['prompts', 'Prompts', `${prompts} of ${PROMPTS.length} added`],
           ['rotation', 'Rotation', plural(n(person.rotation), 'track', 'tracks', 'added')],
           ['board', 'Vibes', plural(n(p.style), 'element', 'elements', 'added')],
@@ -987,25 +994,38 @@ window.SyncOnboard = (() => {
           ['spot', 'Spots', plural(n(p.spots), 'place', 'places', 'listed')],
         ];
         panelEl.innerHTML = top + `<div class="mine__scroll">
-          <div class="mine__hero"><button class="mine__avatar" type="button" data-edit="photos" aria-label="Change your photos"><img src="${esc(p.avatar)}" alt=""></button><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
+          <div class="mine__hero"><span class="mine__avatar"><img src="${esc(p.avatar)}" alt=""></span><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
           <section class="mine__sec">
-            <div class="mine__sechead"><span>The basics</span></div>
-            <div class="mine__card">
-              <label class="mine__fld"><span class="mine__lbl">Name</span><input class="mine__val" id="mn-name" type="text" autocomplete="name" maxlength="100" placeholder="Your name" value="${esc([me.name, me.last_name].filter(Boolean).join(' '))}"></label>
-              <label class="mine__fld is-static" data-static="phone"><span class="mine__lbl">Phone number</span><input class="mine__val" id="mn-phone" type="tel" value="${esc(phone || 'Not on file')}" readonly tabindex="-1"></label>
-              <label class="mine__fld"><span class="mine__lbl">Date of Birth</span><input class="mine__val" id="mn-dob" type="date" value="${esc((me.birthdate || '').slice(0, 10))}" max="${new Date(Date.now() - 18 * 365.25 * 864e5).toISOString().slice(0, 10)}"></label>
-            </div>
+            <div class="mine__sechead"><span>Photos</span></div>
+            <div class="mine__card mine__card--photos"><div class="ob__grid mine__photos" id="mn-photos"></div><p class="mine__hint">Drag to reorder or tap x to remove</p></div>
+          </section>
+          <section class="mine__sec">
+            <div class="mine__sechead"><span>Essentials</span><button class="mine__pencil" type="button" data-edit="basics" aria-label="Edit the essentials">${PENCIL}</button></div>
+            <div class="mine__card mine__card--ess"><div class="ob__acc" id="mn-acc"></div></div>
           </section>
           <section class="mine__sec">
             <div class="mine__sechead"><span>Your profile</span></div>
             <div class="mine__list">${rows.map(([k, label, sub]) => `<button class="mine__row" type="button" data-edit="${k}"><span class="mine__rowtext"><span class="mine__rowlabel">${esc(label)}</span><span class="mine__rowsub">${esc(sub)}</span></span><span class="mine__pencil">${PENCIL}</span></button>`).join('')}</div>
           </section>
+          <section class="mine__sec mine__basics">
+            <div class="mine__sechead"><span>The basics</span><button class="mine__pencil" type="button" data-basics-toggle aria-label="Edit the basics">${PENCIL}</button></div>
+            <div class="mine__card mine__card--basics">
+              <p class="mine__hint mine__basics-hint">Tap edit to change your Name, Age, and Phone number</p>
+              <div class="mine__basics-fields">
+                <label class="mine__fld"><span class="mine__lbl">Name</span><input class="mine__val" id="mn-name" type="text" autocomplete="name" maxlength="100" placeholder="Your name" value="${esc([me.name, me.last_name].filter(Boolean).join(' '))}"></label>
+                <label class="mine__fld is-static" data-static="phone"><span class="mine__lbl">Phone number</span><input class="mine__val" id="mn-phone" type="tel" value="${esc(phone || 'Not on file')}" readonly tabindex="-1"></label>
+                <label class="mine__fld"><span class="mine__lbl">Date of Birth</span><input class="mine__val" id="mn-dob" type="date" value="${esc((me.birthdate || '').slice(0, 10))}" max="${new Date(Date.now() - 18 * 365.25 * 864e5).toISOString().slice(0, 10)}"></label>
+              </div>
+            </div>
+          </section>
           <p class="ob__cap mine__cap">Switch to View to see it as people do.</p></div>`;
+        mountEditor(panelEl, person);
       }
       // the control is background-aware: over the cover it is the light glass with white ink; once the cover has
       // scrolled away (View) or always on the white page (Edit) it is the bright glass with ink
       const scroller = panelEl.querySelector(mode === 'view' ? '.ob__real' : '.mine__scroll');
-      if (mode === 'view' && scroller) { const onLight = () => panelEl.classList.toggle('is-light', scroller.scrollTop > 110); scroller.addEventListener('scroll', onLight, { passive: true }); onLight(); }
+      deps.device.classList.toggle('is-nav-dark', mode === 'edit');
+      if (mode === 'view' && scroller) { const onLight = () => { const light = scroller.scrollTop > 110; panelEl.classList.toggle('is-light', light); deps.device.classList.toggle('is-nav-dark', light); }; scroller.addEventListener('scroll', onLight, { passive: true }); onLight(); }
       if (first && root().hidden) { await coverIn(); first = false; } else { root().hidden = false; first = false; }
       // the basics save as you leave the field: the first word is the first name, the rest the last
       const nameEl = $('#mn-name'), dobEl = $('#mn-dob');
@@ -1047,6 +1067,80 @@ window.SyncOnboard = (() => {
     }
     root().hidden = true;
     return me;
+  }
+
+  // the editor's live pieces: the photo grid (add, remove and drag save straight away; the first photo is the
+  // avatar), the essentials accordion (each change saves 600ms after the last) and the basics card's fold
+  function mountEditor(panelEl, person) {
+    const a = api();
+    const d = { ...((me && me.details) || {}) };
+    let t = 0;
+    mountBasics(panelEl.querySelector('#mn-acc'), d, () => { clearTimeout(t); t = setTimeout(async () => { try { me = await a.updateProfile({ details: { ...d } }); } catch (ex) { deps.notice(deps.errText(ex)); } }, 600); }, { topInset: 124 });
+    panelEl.querySelector('[data-basics-toggle]').addEventListener('click', () => { const c = panelEl.querySelector('.mine__basics'); c.classList.toggle('is-open'); if (c.classList.contains('is-open')) setTimeout(() => c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60); });
+    mountPhotos(panelEl.querySelector('#mn-photos'), panelEl).catch((ex) => deps.notice(deps.errText(ex)));
+  }
+  async function mountPhotos(root, panelEl) {
+    const a = api();
+    let items = (await a.myMedia()).slice(0, 4);
+    const LABELS = ['Photo 1', 'Photo 2', 'Photo 3', 'Video'];
+    const file = document.createElement('input'); file.type = 'file'; file.accept = 'image/*,video/*'; file.multiple = true; file.hidden = true; root.after(file);
+    const draw = () => {
+      root.innerHTML = [0, 1, 2, 3].map((i) => {
+        const m = items[i];
+        if (!m) return `<button class="ob__slot ob__slot--empty mine__slot" type="button" data-slot="${i}"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""><span>${LABELS[i]}</span></button>`;
+        const src = m.kind === 'video' ? (m.posterUrl || m.url) : m.url;
+        return `<div class="ob__slot mine__slot" data-slot="${i}" draggable="false"><img src="${esc(src || '')}" alt="" draggable="false"><button class="ob__slot-x" type="button" data-remove="${i}" aria-label="Remove"><img src="assets/x-16.svg" width="14" height="14" alt=""></button></div>`;
+      }).join('');
+    };
+    draw();
+    const hydrateRow = async (row) => { const u = await a.mediaUrls([row.path, row.poster_path].filter(Boolean)); return { ...row, url: u[row.path], posterUrl: row.poster_path ? u[row.poster_path] : null }; };
+    const settle = async () => {
+      for (let i = 0; i < items.length; i++) if (items[i].position !== i) { await a.setMediaPosition(items[i].id, i); items[i].position = i; }
+      const first = items[0];
+      if (first && first.kind === 'photo' && first.path !== me.avatar_path) { me = await a.updateProfile({ avatar_path: first.path }); me.avatarUrl = first.url; }
+      const img = panelEl.querySelector('.mine__avatar img'); if (img && me.avatarUrl) img.src = me.avatarUrl;
+    };
+    root.addEventListener('click', async (e) => {
+      const rm = e.target.closest('[data-remove]');
+      if (rm) { const m = items[Number(rm.dataset.remove)]; if (!m) return; try { await a.removeMedia(m.id); items = items.filter((x) => x !== m); draw(); await settle(); } catch (ex) { deps.notice(deps.errText(ex)); } return; }
+      if (e.target.closest('.ob__slot--empty')) file.click();
+    });
+    file.addEventListener('change', async () => {
+      const files = [...file.files].slice(0, Math.max(0, 4 - items.length)); file.value = '';
+      for (const f of files) { try { items.push(await hydrateRow(await a.uploadMedia(f, items.length))); draw(); } catch (ex) { deps.notice(deps.errText(ex)); } }
+      if (files.length) { toast(files.length === 1 ? (files[0].type.startsWith('video') ? 'Video added' : 'Photo added') : `${files.length} added`); await settle().catch((ex) => deps.notice(deps.errText(ex))); }
+    });
+    // reorder: press and drag a filled slot over another
+    let drag = null;
+    root.addEventListener('pointerdown', (e) => {
+      const el = e.target.closest('.ob__slot:not(.ob__slot--empty)');
+      if (!el || e.target.closest('[data-remove]')) return;
+      drag = { from: Number(el.dataset.slot), el, moved: false, x: e.clientX, y: e.clientY };
+      el.setPointerCapture(e.pointerId);
+    });
+    root.addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.moved && Math.hypot(dx, dy) < 6) return;
+      drag.moved = true;
+      drag.el.classList.add('is-lifted');
+      drag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.04)`;
+      root.querySelectorAll('.ob__slot').forEach((sl) => { const r = sl.getBoundingClientRect(); sl.classList.toggle('is-over', sl !== drag.el && e.clientX > r.left && e.clientX < r.right && e.clientY > r.top && e.clientY < r.bottom); });
+    });
+    const endDrag = async () => {
+      if (!drag) return;
+      const over = root.querySelector('.ob__slot.is-over');
+      const dr = drag; drag = null;
+      dr.el.classList.remove('is-lifted'); dr.el.style.transform = '';
+      root.querySelectorAll('.ob__slot').forEach((sl) => sl.classList.remove('is-over'));
+      if (!dr.moved || !over) return;
+      const to = Number(over.dataset.slot);
+      if (to >= items.length) items.push(items.splice(dr.from, 1)[0]); else { const [m] = items.splice(dr.from, 1); items.splice(to, 0, m); }
+      draw();
+      try { await settle(); } catch (ex) { deps.notice(deps.errText(ex)); }
+    };
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
   }
 
   // ═══════════════ the rest of the editor's pieces (kept from the first pass) ═══════════════

@@ -791,6 +791,7 @@
   gnavItems.forEach((btn, idx) => {
     btn.addEventListener('click', () => {
       gnavItems.forEach((b) => { b.classList.toggle('is-selected', b === btn); b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+      if (device.classList.contains('is-covered')) { const back = device.querySelector('.device__auth [data-done]'); if (back) back.click(); }
       if (btn.dataset.tab === 'builds') { if (!buildsTab.isOpen) { if (focused) focused.deactivate(); buildsTab.open(device.querySelector('.header__me img').src, meDisc); } }
       else if (buildsTab.isOpen) { buildsTab.close(); if (focused) focused.activate(); }
       if (idx === bubbleIndex) return;

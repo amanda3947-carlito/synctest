@@ -61,11 +61,12 @@ sync/
      always for spots, an "Add a movie / show / book / spot" row adds it by name; it draws as a
      typographic card in its category colour.
 - **Your profile** from your avatar (1110:2745): an Edit | View control under the status bar, Edit
-  first. Edit shows your avatar with its badge, "The basics" (name, number, birthday) as a card, and
-  the pieces of your profile as rows with a pencil each (photos, cover, badge, details, prompts,
-  rotation, vibes, watching and reading, spots); a tap opens that piece's editor and comes back. View
-  is the profile as people see it. The chevron goes back to the feed; the dots open the section list
-  (Sign out lives there). Your number is how you sign in, so it reads but does not edit.
+  first. Edit is the page as the frame stands now: your avatar with its badge, Photos as the first run's grid
+  live on the page (add, drag to reorder and × save straight away; the first photo is your avatar), Essentials
+  as the details accordion inline (each change saves on its own; the pencil opens the full step), the rows that
+  still open a step (cover, badge, looking for, prompts, rotation, vibes, shelf, spots), and The basics folded
+  to one line until its pencil opens name, number and birthday. The nav stays on over the page; a tab tap
+  closes it.
 - **The feed** (":: home feed", 1098:27924): the aux wordmark, the name with its badge; a sideways swipe opens the
   profile. A reply or a note from the profile can be typed, a GIF, or a voice note recorded in the
   field ("on select audio": bars and seconds while recording, then play and send); a voice note goes

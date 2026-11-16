@@ -87,6 +87,10 @@ sync/
 - **What they're looking for** sits over the name on the feed card as a glass pill with the onboarding charm
   (the ":: home feed" frame, 1103:4663). The seed has six people: Damon, Olivia, Theo, Mohammad, Oliver and
   Veronica, each with photos, details, prompts, a rotation, a second build, a shelf and spots.
+- **The demo account**: +1 555 000 0010 signs in as Amanda, already onboarded, with five builds in flight
+  (see `supabase/README.md`, "The demo"). The people on the other end are stand-ins that take their turn
+  on their own a minute or two after you take yours, so builds move, land as matches and light the Builds
+  dot while you watch.
 - **The Builds tab** (":: builds" 1100:36445, "feed for all other tabs" 1103:4420) is a white plane over the feed
   with its own header (your avatar with its badge, Builds, faders) and four chips. Highlights is a carousel of up
   to five 333-wide cards, snapping one at a time: the one in view stands at full size, the next peeks in a touch

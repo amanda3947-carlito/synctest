@@ -78,3 +78,19 @@ violation along the way is asserted to raise.
   `ROTATIONS`, `PROFILES`) with `feed()` plus the profile tables, and the simulated other side with
   `start_build` / `send_turn` / `agree_build` and a realtime subscription on `builds`.
 - **SwiftUI:** `supabase-swift`, same calls.
+
+## The demo: you as an established user, and stand-ins
+
+`demo.sql` (after `seed.sql` and migration 0011) signs you in as someone who has been on aux a while:
++1 555 000 0010 is Amanda, onboarded, with a rotation, details and prompts, and five builds with five more
+people from the ":: builds" frames (Felix and Justin remixed your mixtape and are waiting on you, Mariah loved
+it as is, you made James's rotation a mixtape, and you and Kevin finished one, so that is a match with a
+chat). The original six stay on the feed. `reset_demo.sql` puts it all back to that state.
+
+Migration 0011 makes every seed person a **stand-in**. A pg_cron job runs `standins_tick()` every 30 seconds:
+any build waiting on a stand-in who has let it sit for their pace (`standins.pace`, 45 seconds to 2.5
+minutes) gets their move, made as them through the same `send_turn` / `agree_build` / `match_back` a phone
+calls. On a mixtape they add one or two tracks from their own rotation on their first move, then agree once
+it is complete or you already have; on a plan or a dinner they swap one slot, then agree; an as-is gets
+matched back. Each move carries one of their lines (`standins.lines`) as its note, and a match gets a line
+in the chat. A move that fails is logged as a warning and retried after their pace.

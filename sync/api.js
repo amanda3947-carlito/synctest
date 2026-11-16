@@ -372,16 +372,23 @@ window.SyncAPI = (() => {
     const list = builds || [];
     if (!list.length) return [];
     const others = [...new Set(list.map((b) => (b.starter_id === me ? b.owner_id : b.starter_id)))];
-    const [{ data: profiles }, { data: media }, { data: turns }] = await Promise.all([
+    const [{ data: profiles }, { data: media }, { data: turns }, { data: pbs }] = await Promise.all([
       sb.from('profiles').select('id,name,avatar_path,seeking,taste').in('id', others),
       sb.from('profile_media').select('profile_id,kind,path,poster_path,position').in('profile_id', others).eq('approved', true).order('position'),
       sb.from('build_turns').select('build_id,actor_id,action,changes,note,created_at').in('build_id', list.map((b) => b.id)).order('created_at', { ascending: false }),
+      sb.from('profile_builds').select('id,items').in('id', list.map((b) => b.profile_build_id).filter(Boolean)),
     ]);
+    // what the owner started from, so their own rotation never counts as something they changed
+    const origin = Object.fromEntries((pbs || []).map((p) => [p.id, new Set((Array.isArray(p.items) ? p.items : []).map((t) => t.key))]));
     const prof = Object.fromEntries((profiles || []).map((p) => [p.id, p]));
     const photo = {}; for (const m of media || []) if (!photo[m.profile_id]) photo[m.profile_id] = m.kind === 'video' ? m.poster_path : m.path;
     const last = {}; for (const t of turns || []) if (!last[t.build_id]) last[t.build_id] = t;
     // what they changed: the items stamped with their id (a list's tracks or titles, a slot build's filled slots)
-    const theirs = (b, oid) => (Array.isArray(b.items) ? b.items.filter((t) => t && t.by === oid) : Object.values(b.items || {}).filter((v) => v && v.by === oid));
+    const theirs = (b, oid) => {
+      if (!Array.isArray(b.items)) return Object.values(b.items || {}).filter((v) => v && v.by === oid);
+      const from = oid === b.owner_id ? origin[b.profile_build_id] : null;
+      return b.items.filter((t) => t && t.by === oid && !(from && from.has(t.key)));
+    };
     const arts = list.flatMap((b) => theirs(b, b.starter_id === me ? b.owner_id : b.starter_id).map((t) => t.art)).filter(Boolean);
     const url = await mediaUrls([...Object.values(photo), ...Object.values(prof).map((p) => p.avatar_path), ...arts].filter(Boolean));
     const noteBy = {}; for (const t of turns || []) if (t.note && !noteBy[t.build_id]) noteBy[t.build_id] = t;

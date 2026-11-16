@@ -265,7 +265,7 @@ img { display: block; }
 .device__builds[hidden] { display: none; }
 .device.is-tab-builds .device__chrome, .device.is-tab-builds .feed { visibility: hidden; }
 .device.is-tab-builds { --nav-ink: #303030; --nav-tint-a: rgba(255, 255, 255, 0.55); --nav-tint-b: rgba(255, 255, 255, 0.4); --nav-rim: rgba(255, 255, 255, 0.8); --nav-selected: rgba(255, 255, 255, 0.7); }
-.device.is-tab-builds .gnav { box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 var(--nav-rim), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
+.device.is-tab-builds .gnav { box-shadow: 0 10px 22px -6px rgba(12, 12, 13, 0.16), 0 2px 8px rgba(12, 12, 13, 0.06), inset 0 1px 0 var(--nav-rim), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
 .builds__head { flex: 0 0 auto; height: 45px; margin: 72px 20px 0; display: flex; align-items: center; justify-content: space-between; }
 :root.is-native .builds__head { margin-top: calc(var(--sb-top) + 10px); }
 .builds__me { position: relative; width: 50px; height: 45px; padding: 0; background: none; }
@@ -290,8 +290,17 @@ img { display: block; }
 .bhl__photo { position: relative; height: 447px; border-radius: 32px; overflow: hidden; background: #e9e7e2; }
 .bhl__card--quiet .bhl__photo { height: 481px; }
 .bhl__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-.bhl__strip { position: absolute; left: 0; right: 0; bottom: 0; height: 107px; padding: 0 16px 20px 20px; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(178.9deg, rgba(0, 0, 0, 0) 6%, rgba(0, 0, 0, 0.4) 97%); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
-.bhl__strip:empty { display: none; }
+/* the protective foot: 40% black fading to clear, over a progressive blur that runs from about 8px at the
+   bottom edge to nothing at the top. Four stacked layers (1, 2, 4, 8px), each masked to fade out a little
+   lower than the one before, so the blur grows smoothly with no edge anywhere */
+.bhl__strip { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; padding: 0 16px 20px 20px; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.22) 45%, rgba(0, 0, 0, 0) 100%); }
+.bhl__strip > .bchanges { position: relative; z-index: 1; }
+.bhl__pblur { position: absolute; inset: 0; pointer-events: none; }
+.bhl__pblur i { position: absolute; inset: 0; }
+.bhl__pblur i:nth-child(1) { -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
+.bhl__pblur i:nth-child(2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 75%); mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 75%); }
+.bhl__pblur i:nth-child(3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 50%); mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 50%); }
+.bhl__pblur i:nth-child(4) { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 30%); mask-image: linear-gradient(to top, #000 0%, transparent 30%); }
 .bchanges { display: flex; flex-direction: column; gap: 4px; }
 .bthumbs { position: relative; height: 34px; }
 .bthumbs img { position: absolute; top: 0; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 4px -1px rgba(12, 12, 13, 0.1), 0 4px 4px -1px rgba(12, 12, 13, 0.05); background: #e9e7e2; }
@@ -1219,7 +1228,8 @@ img { display: block; }
   --nav-selected: rgba(255, 255, 255, 0.25);
   --glass-bg: linear-gradient(109.18deg, var(--nav-tint-a) 7.51%, var(--nav-tint-b) 91.27%);
   --glass-shadow:
-    0 16px 32px rgba(12, 12, 13, 0.4),
+    0 10px 22px -6px rgba(12, 12, 13, 0.42),
+    0 2px 8px rgba(12, 12, 13, 0.14),
     inset 0 1px 0 var(--nav-rim),
     inset 0 -1px 0 rgba(255, 255, 255, 0.12),
     inset 0 0 0 1px rgba(255, 255, 255, 0.18);
@@ -1833,7 +1843,7 @@ button.ob__cal-day:active { background: #e9e7e3; }
   --nav-ink: #1e1e1e;
   --nav-selected: rgba(32, 32, 32, 0.1);
   --glass-bg: linear-gradient(109.18deg, rgba(255, 255, 255, 0.55) 7.51%, rgba(255, 255, 255, 0.4) 91.27%);
-  --glass-shadow: 0 16px 32px rgba(12, 12, 13, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(30, 30, 30, 0.06);
+  --glass-shadow: 0 10px 22px -6px rgba(12, 12, 13, 0.14), 0 2px 8px rgba(12, 12, 13, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(30, 30, 30, 0.06);
 }
 .mine__hero { position: relative; width: 130px; height: 135px; margin: 13px auto 24px; }
 .mine__avatar { display: block; width: 130px; height: 130px; border-radius: 50%; border: 0; overflow: hidden; padding: 0; background: #ddd; box-shadow: 0 0 0 3px #fff; }

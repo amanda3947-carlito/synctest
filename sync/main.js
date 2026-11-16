@@ -1684,7 +1684,7 @@
     const discHTML = (x, cls) => `<img class="${cls}" src="${esc(x.person.disc)}" alt="" draggable="false">`;
     // Highlights: one card per build, 333 wide; the one in view stands tallest, the next peeks in a touch smaller
     const hlHTML = (x) => `<button class="bhl__card${x.note ? '' : ' bhl__card--quiet'}${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
-        <div class="bhl__photo"><img class="bhl__img" src="${img(x)}" alt="" draggable="false"><div class="bhl__strip">${changedHTML(x)}</div></div>
+        <div class="bhl__photo"><img class="bhl__img" src="${img(x)}" alt="" draggable="false">${changedHTML(x) ? `<div class="bhl__strip"><span class="bhl__pblur" aria-hidden="true"><i></i><i></i><i></i><i></i></span>${changedHTML(x)}</div>` : ''}</div>
         <div class="bhl__row"><span class="bhl__name">${esc(x.person.name)}${discHTML(x, 'bhl__disc')}</span><span class="bhl__line">${esc(line(x))}</span></div>
         ${x.note ? `<p class="bhl__note">“${esc(x.note)}”</p>` : ''}
       </button>`;

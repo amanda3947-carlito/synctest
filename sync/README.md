@@ -87,13 +87,14 @@ sync/
 - **What they're looking for** sits over the name on the feed card as a glass pill with the onboarding charm
   (the ":: home feed" frame, 1103:4663). The seed has six people: Damon, Olivia, Theo, Mohammad, Oliver and
   Veronica, each with photos, details, prompts, a rotation, a second build, a shelf and spots.
-- **The Builds tab** (":: builds", 1100:36558 and 36445) is a white plane over the feed with its own header
-  (your avatar with its badge, Builds, faders) and four chips. Highlights shows the build that most wants you
-  as one big card (their photo, their looking-for pill, name and badge, what moved last) with the rest in a
-  grid under it; New is what waits on you; Recently active is everything by last movement; Sent is what you
-  started and they still hold. Each card says what happened last ("Added 2 tracks", "You made it a mixtape",
-  "It's a mixtape"), with a mint dot when it is your move. A tap pushes that person's card in from the right
-  with their profile open on the build; the profile's back slides it out. Realtime refreshes the list.
+- **The Builds tab** (":: builds" 1100:36445, "feed for all other tabs" 1103:4420) is a white plane over the feed
+  with its own header (your avatar with its badge, Builds, faders) and four chips. Highlights is a carousel of up
+  to five 333-wide cards, snapping one at a time: the one in view stands at full size, the next peeks in a touch
+  smaller and swaps up as it lands. Each card is their photo with what they changed in a glass strip at its foot
+  (up to three track arts and "3 changed tracks"), then their name and badge, what moved last, and their note if
+  they sent one. New, Recently active and Sent are rows: their photo with their looking-for charm, name and badge,
+  what moved last (a mint dot when it is your move), their note, and the changed tracks. A tap pushes that
+  person's card in from the right with their profile open on the build; the profile's back slides it out.
 - **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. A send or a
   note takes the person off the feed (a build in flight lives on the Builds tab, coming). You can have builds
   going with several people at once; only one live build per pair. Realtime on `builds` lights the Builds dot and plays the toast on a

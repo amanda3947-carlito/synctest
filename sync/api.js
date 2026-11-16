@@ -375,16 +375,24 @@ window.SyncAPI = (() => {
     const [{ data: profiles }, { data: media }, { data: turns }] = await Promise.all([
       sb.from('profiles').select('id,name,avatar_path,seeking,taste').in('id', others),
       sb.from('profile_media').select('profile_id,kind,path,poster_path,position').in('profile_id', others).eq('approved', true).order('position'),
-      sb.from('build_turns').select('build_id,actor_id,action,changes,created_at').in('build_id', list.map((b) => b.id)).order('created_at', { ascending: false }),
+      sb.from('build_turns').select('build_id,actor_id,action,changes,note,created_at').in('build_id', list.map((b) => b.id)).order('created_at', { ascending: false }),
     ]);
     const prof = Object.fromEntries((profiles || []).map((p) => [p.id, p]));
     const photo = {}; for (const m of media || []) if (!photo[m.profile_id]) photo[m.profile_id] = m.kind === 'video' ? m.poster_path : m.path;
     const last = {}; for (const t of turns || []) if (!last[t.build_id]) last[t.build_id] = t;
-    const url = await mediaUrls([...Object.values(photo), ...Object.values(prof).map((p) => p.avatar_path)].filter(Boolean));
+    // what they changed: the items stamped with their id (a list's tracks or titles, a slot build's filled slots)
+    const theirs = (b, oid) => (Array.isArray(b.items) ? b.items.filter((t) => t && t.by === oid) : Object.values(b.items || {}).filter((v) => v && v.by === oid));
+    const arts = list.flatMap((b) => theirs(b, b.starter_id === me ? b.owner_id : b.starter_id).map((t) => t.art)).filter(Boolean);
+    const url = await mediaUrls([...Object.values(photo), ...Object.values(prof).map((p) => p.avatar_path), ...arts].filter(Boolean));
+    const noteBy = {}; for (const t of turns || []) if (t.note && !noteBy[t.build_id]) noteBy[t.build_id] = t;
     return list.map((b) => {
       const oid = b.starter_id === me ? b.owner_id : b.starter_id;
       const p = prof[oid] || { id: oid, name: 'Someone' };
+      const changed = theirs(b, oid);
+      const n = noteBy[b.id];
       return { build: b, last: last[b.id] || null, mine: b.turn_id === me, iStarted: b.starter_id === me,
+        changed: { count: changed.length, arts: changed.map((t) => url[t.art] || t.art).filter(Boolean).slice(0, 3) },
+        note: n && n.actor_id === oid ? n.note : null,
         person: { id: oid, name: p.name, seeking: p.seeking || null, disc: discFor(p), photo: url[photo[oid]] || url[p.avatar_path] || null, avatar: url[p.avatar_path] || null } };
     });
   }

@@ -1675,21 +1675,49 @@
       return x.mine ? 'Your move' : 'Their move';
     };
     const img = (x) => esc(x.person.photo || x.person.avatar || 'assets/avatar-blank.svg');
-    const cardHTML = (x) => `<button class="bgrid__card${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}"><img class="bgrid__img" src="${img(x)}" alt="" draggable="false"><div class="bgrid__text"><p class="bgrid__name">${esc(x.person.name)}</p><p class="bgrid__line">${esc(line(x))}</p></div></button>`;
-    const bigHTML = (x) => `<button class="bcard" type="button" data-build="${x.build.id}"><img class="bcard__img" src="${img(x)}" alt="" draggable="false"><div class="bcard__top">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="bcard__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"><span>${esc(SEEKING[x.person.seeking])}</span></span>` : ''}</div><div class="bcard__bottom"><span class="bcard__name">${esc(x.person.name)}</span><img class="bcard__disc" src="${esc(x.person.disc)}" alt="" draggable="false"><span class="bcard__line">${esc(line(x))}</span></div></button>`;
+    const UNIT = { mixtape: ['track', 'tracks'], watchlist: ['title', 'titles'], plan: ['change', 'changes'], dinner: ['change', 'changes'] };
+    const changedHTML = (x) => {
+      if (!x.changed || !x.changed.count) return '';
+      const u = UNIT[x.build.type_key] || UNIT.plan; const n = x.changed.count;
+      return `<div class="bchanges">${x.changed.arts.length ? `<div class="bthumbs">${x.changed.arts.map((src) => `<img src="${esc(src)}" alt="" draggable="false">`).join('')}</div>` : ''}<p class="bchanged">${n} changed ${n === 1 ? u[0] : u[1]}</p></div>`;
+    };
+    const discHTML = (x, cls) => `<img class="${cls}" src="${esc(x.person.disc)}" alt="" draggable="false">`;
+    // Highlights: one card per build, 333 wide; the one in view stands tallest, the next peeks in a touch smaller
+    const hlHTML = (x) => `<button class="bhl__card${x.note ? '' : ' bhl__card--quiet'}${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
+        <div class="bhl__photo"><img class="bhl__img" src="${img(x)}" alt="" draggable="false"><div class="bhl__strip">${changedHTML(x)}</div></div>
+        <div class="bhl__row"><span class="bhl__name">${esc(x.person.name)}${discHTML(x, 'bhl__disc')}</span><span class="bhl__line">${esc(line(x))}</span></div>
+        ${x.note ? `<p class="bhl__note">“${esc(x.note)}”</p>` : ''}
+      </button>`;
+    // every other tab: a row per build (the "feed for all other tabs" frame)
+    const rowHTML = (x) => `<button class="brow${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
+        <span class="brow__photo"><img class="brow__img" src="${img(x)}" alt="" draggable="false">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="brow__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"></span>` : ''}</span>
+        <span class="brow__body"><span class="brow__head"><span class="brow__name">${esc(x.person.name)}${discHTML(x, 'brow__disc')}</span><span class="brow__line">${esc(line(x))}</span></span>${x.note ? `<span class="brow__note">“${esc(x.note)}”</span>` : ''}${changedHTML(x)}</span>
+      </button>`;
+    // the carousel: a touch of zoom as a card lands in view, the next one a little smaller until it is the one
+    let hlRaf = 0;
+    const settleHl = () => {
+      const hl = body.querySelector('.bhl'); if (!hl) return;
+      const cards = [...hl.querySelectorAll('.bhl__card')]; if (!cards.length) return;
+      const origin = hl.scrollLeft + 20;
+      cards.forEach((c) => { const d = Math.abs(c.offsetLeft - origin); const t = Math.min(1, d / (c.offsetWidth + 20)); c.style.transform = `scale(${(1 - 0.077 * t).toFixed(4)})`; });
+    };
     const render = () => {
       chips.forEach((c) => c.classList.toggle('is-on', c.dataset.chips === view));
+      body.classList.toggle('is-highlights', view === 'highlights' && list.length > 0);
       if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
       if (view === 'highlights') {
-        const top = list.find((x) => x.mine && x.build.status !== 'agreed') || list[0];
-        const rest = list.filter((x) => x !== top);
-        body.innerHTML = bigHTML(top) + (rest.length ? `<div class="bgrid">${rest.map(cardHTML).join('')}</div>` : '');
+        const live = list.filter((x) => x.build.status !== 'agreed');
+        const featured = [...live.filter((x) => x.mine), ...live.filter((x) => !x.mine), ...list.filter((x) => x.build.status === 'agreed')].slice(0, 5);
+        body.innerHTML = `<div class="bhl">${featured.map(hlHTML).join('')}</div>`;
+        const hl = body.querySelector('.bhl');
+        hl.addEventListener('scroll', () => { if (!hlRaf) hlRaf = requestAnimationFrame(() => { hlRaf = 0; settleHl(); }); }, { passive: true });
+        settleHl();
         return;
       }
       let rows = list;
       if (view === 'new') rows = list.filter((x) => x.mine && x.build.status !== 'agreed');
       if (view === 'sent') rows = list.filter((x) => x.iStarted && !x.mine && x.build.status !== 'agreed');
-      body.innerHTML = rows.length ? `<div class="bgrid">${rows.map(cardHTML).join('')}</div>`
+      body.innerHTML = rows.length ? `<div class="blist">${rows.map(rowHTML).join('')}</div>`
         : `<div class="builds__empty"><p>${view === 'new' ? 'Nothing waiting on you.' : view === 'sent' ? 'Nothing out with them right now.' : 'Nothing here yet.'}</p></div>`;
     };
     const load = async () => { try { list = await window.SyncAPI.buildsList(); } catch (e) { console.error(e); list = []; } render(); };

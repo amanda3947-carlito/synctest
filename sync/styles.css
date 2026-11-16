@@ -281,27 +281,45 @@ img { display: block; }
 .builds__body::-webkit-scrollbar { display: none; }
 .builds__empty { padding: 72px 20px; text-align: center; color: #757575; font-size: 14px; line-height: 1.4; }
 .builds__empty p { margin: 0 0 6px; }
-/* Highlights: the one build that most wants you, as a 357 × 460 card */
-.bcard { position: relative; display: block; width: 100%; aspect-ratio: 357 / 460; margin: 0 0 16px; padding: 0; border-radius: 32px; overflow: hidden; background: var(--surface); text-align: left; isolation: isolate; }
-.bcard:active { transform: scale(0.99); }
-.bcard__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-.bcard__top { position: absolute; left: 0; right: 0; top: 0; height: 90px; padding-top: 20px; display: flex; justify-content: center; align-items: flex-start; background: linear-gradient(180.7deg, rgba(0, 0, 0, 0.4) 9%, rgba(0, 0, 0, 0) 97.5%); }
-.bcard__seek { display: inline-flex; align-items: center; gap: 2px; height: 32px; padding: 0 10px 0 8px; border-radius: 9999px; background: rgba(245, 245, 245, 0.3); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35); font-size: 12px; line-height: 1.2; color: #303030; white-space: nowrap; }
-.bcard__seek img { width: 22px; height: 22px; object-fit: contain; }
-.bcard__bottom { position: absolute; left: 0; right: 0; bottom: 0; height: 89px; padding: 16px; display: flex; align-items: center; gap: 4px; background: linear-gradient(178.3deg, rgba(0, 0, 0, 0) 5.6%, rgba(0, 0, 0, 0.4) 102.8%); }
-.bcard__name { font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 1; letter-spacing: 0.4px; color: #f3f3f3; white-space: nowrap; }
-.bcard__disc { width: 25px; height: 25px; object-fit: contain; flex: 0 0 25px; }
-.bcard__line { margin-left: auto; font-size: 12px; line-height: 1.2; color: #f3f3f3; opacity: 0.85; white-space: nowrap; }
-/* the grid: 2 across, 12 apart; the photo 157 tall on a surface card, name and what moved under it */
-.bgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.bgrid__card { display: block; padding: 0; border-radius: 32px; background: var(--surface); overflow: hidden; text-align: center; }
-.bgrid__card:active { transform: scale(0.98); }
-.bgrid__img { display: block; width: 100%; height: 157px; object-fit: cover; object-position: 50% 20%; border-radius: 32px; background: #e9e7e2; }
-.bgrid__text { padding: 10px 16px 12px; }
-.bgrid__name { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.2; color: #1e1e1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variation-settings: "opsz" 14; }
-.bgrid__line { margin: 2px 0 0; font-size: 12px; line-height: 1.1; letter-spacing: 0.06px; color: #757575; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bgrid__card.is-mine .bgrid__line { color: #1e1e1e; }
-.bgrid__card.is-mine .bgrid__line::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 5px 1px 0; border-radius: 50%; background: var(--mint, #a8face); }
+/* Highlights (:: builds, 1100:36445): a carousel of up to five 333-wide cards. The one in view stands at full size;
+   the next peeks in from the right a touch smaller, and swaps up as it lands */
+.builds__body.is-highlights { padding-left: 0; padding-right: 0; overflow-x: hidden; }
+.bhl { display: flex; gap: 20px; padding: 0 20px 24px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.bhl::-webkit-scrollbar { display: none; }
+.bhl__card { flex: 0 0 333px; scroll-snap-align: start; padding: 0; border-radius: 32px; overflow: hidden; background: var(--surface); text-align: left; box-shadow: 0 16px 16px -8px rgba(12, 12, 13, 0.1), 0 4px 4px -4px rgba(12, 12, 13, 0.05); transform-origin: 0 50%; will-change: transform; transition: transform 0.18s ease-out; }
+.bhl__photo { position: relative; height: 447px; border-radius: 32px; overflow: hidden; background: #e9e7e2; }
+.bhl__card--quiet .bhl__photo { height: 481px; }
+.bhl__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+.bhl__strip { position: absolute; left: 0; right: 0; bottom: 0; height: 107px; padding: 0 16px 20px 20px; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(178.9deg, rgba(0, 0, 0, 0) 6%, rgba(0, 0, 0, 0.4) 97%); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.bhl__strip:empty { display: none; }
+.bchanges { display: flex; flex-direction: column; gap: 4px; }
+.bthumbs { position: relative; height: 34px; }
+.bthumbs img { position: absolute; top: 0; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 4px -1px rgba(12, 12, 13, 0.1), 0 4px 4px -1px rgba(12, 12, 13, 0.05); background: #e9e7e2; }
+.bthumbs img:nth-child(1) { left: 0; } .bthumbs img:nth-child(2) { left: 20px; } .bthumbs img:nth-child(3) { left: 37px; }
+.bchanged { margin: 0; font-family: var(--font-body); font-size: 12px; line-height: 1.1; letter-spacing: 0.06px; color: #f3f3f3; font-variation-settings: "opsz" 14; }
+.bhl__row { display: flex; align-items: flex-start; gap: 4px; padding: 18px 20px 0; }
+.bhl__name { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 24px; line-height: 1.2; color: #1e1e1e; white-space: nowrap; font-variation-settings: "opsz" 14; }
+.bhl__disc, .brow__disc { width: 25px; height: 25px; object-fit: contain; flex: 0 0 25px; }
+.bhl__line { margin-left: auto; padding-top: 6px; font-family: var(--font-body); font-size: 12px; line-height: 1.1; letter-spacing: 0.06px; color: #757575; white-space: nowrap; font-variation-settings: "opsz" 14; }
+.bhl__card.is-mine .bhl__line { color: #1e1e1e; }
+.bhl__note { margin: 6px 20px 20px; font-family: var(--font-body); font-size: 14px; line-height: 1.4; color: #000; font-variation-settings: "opsz" 14; }
+.bhl__card--quiet .bhl__row { padding-bottom: 20px; }
+/* every other tab ("feed for all other tabs", 1103:4420): a row per build, their photo at the left with their charm */
+.blist { display: flex; flex-direction: column; gap: 12px; }
+.brow { display: flex; align-items: center; gap: 10px; min-height: 190px; padding: 9px 8px; border-radius: 32px; background: var(--surface); border: 0.5px solid #d9d9d9; text-align: left; }
+.brow:active { transform: scale(0.99); }
+.brow__photo { position: relative; flex: 0 0 132px; width: 132px; height: 172px; border-radius: 24px; overflow: hidden; background: #e9e7e2; }
+.brow__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
+.brow__seek { position: absolute; left: 6px; bottom: 6px; width: 27px; height: 27px; border-radius: 50%; background: rgba(245, 245, 245, 0.3); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.35); }
+.brow__seek img { width: 20px; height: 20px; object-fit: contain; }
+.brow__body { flex: 1 1 auto; min-width: 0; padding: 0 16px 0 2px; display: flex; flex-direction: column; gap: 8px; }
+.brow__head { display: flex; flex-direction: column; gap: 2px; }
+.brow__name { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 16px; line-height: 1.2; color: #1e1e1e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variation-settings: "opsz" 14; }
+.brow__line { font-family: var(--font-body); font-size: 12px; line-height: 1.4; color: #757575; font-variation-settings: "opsz" 14; }
+.brow.is-mine .brow__line { color: #1e1e1e; }
+.brow.is-mine .brow__line::before { content: ""; display: inline-block; width: 6px; height: 6px; margin: 0 5px 1px 0; border-radius: 50%; background: var(--mint, #a8face); }
+.brow__note { font-family: var(--font-body); font-size: 14px; line-height: 1.4; color: #000; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-variation-settings: "opsz" 14; }
+.brow .bchanged { color: #757575; line-height: 1.4; }
 /* the push: a build's card slides in from the right edge on top of the tab, under the nav, and back out the same way */
 .device__push { position: absolute; inset: 0; z-index: 2; background: var(--white); transform: translateX(100%); transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); box-shadow: -16px 0 48px rgba(12, 12, 13, 0.22); will-change: transform; }
 .device__push[hidden] { display: none; }

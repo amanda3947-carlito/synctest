@@ -284,23 +284,13 @@ img { display: block; }
 /* Highlights (:: builds, 1100:36445): a carousel of up to five 333-wide cards. The one in view stands at full size;
    the next peeks in from the right a touch smaller, and swaps up as it lands */
 .builds__body.is-highlights { padding-left: 0; padding-right: 0; overflow-x: hidden; }
-.bhl { display: flex; gap: 20px; padding: 0 20px 24px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.bhl { display: flex; gap: 20px; padding: 24px 20px 56px; margin: -24px 0 -32px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 20px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .bhl::-webkit-scrollbar { display: none; }
-.bhl__card { flex: 0 0 333px; scroll-snap-align: start; padding: 0; border-radius: 32px; overflow: hidden; background: var(--surface); text-align: left; box-shadow: 0 16px 16px -8px rgba(12, 12, 13, 0.1), 0 4px 4px -4px rgba(12, 12, 13, 0.05); transform-origin: 0 50%; will-change: transform; transition: transform 0.18s ease-out; }
+.bhl__card { flex: 0 0 333px; scroll-snap-align: start; padding: 0; border-radius: 32px; overflow: hidden; background: var(--surface); text-align: left; box-shadow: 0 16px 32px -4px rgba(12, 12, 13, 0.12), 0 4px 4px -4px rgba(12, 12, 13, 0.06); transform-origin: 0 50%; will-change: transform; transition: transform 0.18s ease-out; }
 .bhl__photo { position: relative; height: 447px; border-radius: 32px; overflow: hidden; background: #e9e7e2; }
 .bhl__card--quiet .bhl__photo { height: 481px; }
 .bhl__img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
-/* the protective foot: 40% black fading to clear, over a progressive blur that runs from about 8px at the
-   bottom edge to nothing at the top. Four stacked layers (1, 2, 4, 8px), each masked to fade out a little
-   lower than the one before, so the blur grows smoothly with no edge anywhere */
-.bhl__strip { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; padding: 0 16px 20px 20px; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.22) 45%, rgba(0, 0, 0, 0) 100%); }
-.bhl__strip > .bchanges { position: relative; z-index: 1; }
-.bhl__pblur { position: absolute; inset: 0; pointer-events: none; }
-.bhl__pblur i { position: absolute; inset: 0; }
-.bhl__pblur i:nth-child(1) { -webkit-backdrop-filter: blur(1px); backdrop-filter: blur(1px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to top, #000 0%, #000 55%, transparent 100%); }
-.bhl__pblur i:nth-child(2) { -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 75%); mask-image: linear-gradient(to top, #000 0%, #000 35%, transparent 75%); }
-.bhl__pblur i:nth-child(3) { -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); -webkit-mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 50%); mask-image: linear-gradient(to top, #000 0%, #000 15%, transparent 50%); }
-.bhl__pblur i:nth-child(4) { -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); -webkit-mask-image: linear-gradient(to top, #000 0%, transparent 30%); mask-image: linear-gradient(to top, #000 0%, transparent 30%); }
+.bhl__strip { position: absolute; left: 0; right: 0; bottom: 0; height: 168px; padding: 0 16px 20px 20px; display: flex; flex-direction: column; justify-content: flex-end; background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.22) 45%, rgba(0, 0, 0, 0) 100%); }   /* the protective gradient: 40% black at the foot fading to clear */
 .bchanges { display: flex; flex-direction: column; gap: 4px; }
 .bthumbs { position: relative; height: 34px; }
 .bthumbs img { position: absolute; top: 0; width: 34px; height: 34px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 4px -1px rgba(12, 12, 13, 0.1), 0 4px 4px -1px rgba(12, 12, 13, 0.05); background: #e9e7e2; }

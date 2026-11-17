@@ -13,7 +13,7 @@ The first upload takes about an hour, most of it in App Store Connect. After tha
 1. Go to appstoreconnect.apple.com, then **Apps**, then **+**, then **New App**.
 2. Fill in:
    - Platform: iOS.
-   - Name: the store name. "aux" alone is probably taken, so have a backup ready, such as "aux: build a mixtape". Testers see the icon and the name under it on the home screen; that short name is `appName` in `capacitor.config.js`, which stays "aux".
+   - Name: try **aux** first. If App Store Connect says it's taken, use **get aux**. "Pass the AUX" is already on the store, so that one is out. The name under the icon on the home screen stays "aux" either way; that short name is `appName` in `capacitor.config.js`.
    - Primary language: English (U.S.).
    - Bundle ID: **app.aux.sync**. If it isn't in the list yet, do step 4 below first. Xcode registers it the first time you choose your team, then it shows up here.
    - SKU: anything, for example `aux-ios`.
@@ -40,10 +40,14 @@ In Xcode:
 
 The build appears in App Store Connect under **TestFlight** after 5–20 minutes of processing.
 
-## Testers
+## Testers: friends and family
 
-- **Internal testers** (up to 100 people added to your App Store Connect team under Users and Access): no review needed. Make a group under TestFlight, then Internal Testing, and add the build. They get an email and install the app through the TestFlight app.
-- **External testers** (anyone with an email or a public link): the first build goes through Beta App Review, which usually takes a day. It needs a beta description, a feedback email, and a **sign-in for the reviewer**. Give them the demo account: +1 555 000 0010, code 123456.
+Apple has two kinds of TestFlight tester, and the names are misleading:
+
+- **Internal** testers must be members of your App Store Connect team (Users and Access, up to 100). Each friend gets an invite into your developer account. Builds reach them with no review. Use this for yourself and anyone working on aux with you.
+- **External** testers are anyone you invite by email or with a **public link**. This is the right fit for friends and family. The first build of each version goes through Beta App Review, which usually takes a day. Later builds of the same version usually go through without another review. The link only works for people you give it to, and you can cap how many people can join.
+
+To set up the external group: go to TestFlight, then the **+** next to External Testing. Name the group "Friends & family", add the build, and fill in the beta description and the feedback email (getaux.nyc@gmail.com). Under **Sign-In Information**, give the reviewer the demo account: +1 555 000 0010, code 123456. Once the build is approved, turn on **Public Link**, set a tester limit (say 50), and send the link around.
 
 ## Which version of the app is inside
 
@@ -52,5 +56,9 @@ The build appears in App Store Connect under **TestFlight** after 5–20 minutes
 
 ## Before outside testers can sign up
 
-- **Real text messages.** Sign-in currently works only for the test numbers set up in Supabase, such as the demo number. Anyone else needs a real SMS provider. Create a Twilio account, set up a Verify service, then enter its Account SID, Auth Token and Verify Service SID in Supabase under Authentication, then Sign In / Providers, then Phone. Expect about $0.05 per code.
-- **Contact email.** `sync/privacy.html` and `sync/support.html` have a highlighted `[contact email]` placeholder. Fill it in before external testing. App Store Connect asks for a support URL; use https://amanda3947-carlito.github.io/synctest/sync/support.html.
+- **Real text messages.** Supabase is connected to Twilio, but through plain Twilio Messaging. US carriers block that unless the number has been through A2P 10DLC registration, which takes weeks. Twilio **Verify** needs no registration, so switch Supabase to it:
+  1. In console.twilio.com, check for a **Trial** banner. A trial account can only text numbers you've verified, so upgrade by adding a card ($20 minimum).
+  2. Go to **Verify**, then **Services**, then **Create new**. Name it "aux" (the text reads "Your aux verification code is: 123456") and turn on SMS. Copy the **Service SID**; it starts with VA.
+  3. In Supabase, go to **Authentication**, then **Sign In / Providers**, then **Phone**. Change SMS provider from Twilio to **Twilio Verify**. Enter the Account SID and Auth Token (from the Twilio console home page) and the Verify Service SID, then save. Leave the test numbers in place; the demo number keeps working with 123456.
+  Each code costs about $0.05.
+- **Support URL.** App Store Connect asks for one; use https://amanda3947-carlito.github.io/synctest/sync/support.html.

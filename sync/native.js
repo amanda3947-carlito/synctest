@@ -7,11 +7,17 @@
   document.documentElement.classList.add('is-native');
   const StatusBar = cap.Plugins && cap.Plugins.StatusBar;
   const set = (style) => { if (StatusBar && StatusBar.setStyle) StatusBar.setStyle({ style }).catch(() => {}); };
-  // the onboarding / your-profile root is white when shown; the feed and profiles are photos
-  const sync = () => { const auth = document.querySelector('.device__auth'); set(auth && !auth.hidden ? 'LIGHT' : 'DARK'); };
+  // dark text over the white screens (onboarding, your profile, the Builds list); light over photos
+  // (the feed, a person's card, a build pushed in from the Builds tab)
+  const sync = () => {
+    const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
+    const onWhite = (auth && !auth.hidden) || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'));
+    set(onWhite ? 'LIGHT' : 'DARK');
+  };
   const start = () => {
-    const auth = document.querySelector('.device__auth');
+    const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
     if (auth) new MutationObserver(sync).observe(auth, { attributes: true, attributeFilter: ['hidden'] });
+    if (dev) new MutationObserver(sync).observe(dev, { attributes: true, attributeFilter: ['class'] });
     sync();
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();

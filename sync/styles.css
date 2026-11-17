@@ -1976,6 +1976,11 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 :root.is-native .device { max-width: none; max-height: none; border-radius: 0; }
 :root.is-native .statusbar { height: var(--sb-top); padding: 0; visibility: hidden; }
 :root.is-native .pbar::before, :root.is-native .pbar::after { top: var(--sb-top); }
+/* the profile's collapsed bar: its status strip stays a solid surface under the real status bar (only the drawn
+   clock and icons go), and the bar is as tall as the notch plus its row, so nothing scrolls through above it */
+:root.is-native .pbar { height: calc(var(--sb-top) + 56px); margin-bottom: calc(-1 * (var(--sb-top) + 56px)); }
+:root.is-native .pbar .statusbar { visibility: visible; }
+:root.is-native .pbar .statusbar > * { visibility: hidden; }
 :root.is-native .auth { padding-top: calc(var(--sb-top) + 9px); }
 :root.is-native .auth--board { padding-top: calc(var(--sb-top) + 9px); }
 :root.is-native .mine__top { top: calc(var(--sb-top) + 9px); }

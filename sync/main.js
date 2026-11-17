@@ -762,6 +762,10 @@
       let last = scroller.scrollTop;
       scroller.addEventListener('scroll', () => {
         const y = scroller.scrollTop;
+        const end = scroller.scrollHeight - scroller.clientHeight;
+        // on iOS the scroller bounces past its ends; the bounce back is not the person scrolling up or down
+        if (y < 0) { nav.show(); last = 0; return; }
+        if (y > end - 2) { last = Math.min(y, end); return; }
         const dy = y - last;
         if (Math.abs(dy) < 6) return;
         if (dy > 0 && y > 24) nav.hide(); else nav.show();
@@ -1358,6 +1362,7 @@
     const bigAvatar = profile.querySelector('.pavatar');
     const bigDisc = profile.querySelector('.pavatar-disc');
     const smallAvatar = profile.querySelector('.pbar__avatar');
+    const pbarRow = profile.querySelector('.pbar__row');
     const BIG = { ax: 136, ay: 129, as: 130, dx: 230, dy: 220, ds: 40 };   // frame positions
     const SMALL = { ax: 66, ay: 60, as: 42, dx: 96, dy: 85, ds: 18 };     // bar: 20 + 36 + 10 in, 53 + 7 down
     let collapseTicking = false;
@@ -1365,6 +1370,9 @@
       collapseTicking = false;
       const y = profile.scrollTop;
       const p = clamp(y / COLLAPSE_PX, 0, 1);
+      // the bar's row sits under the status strip: 53px on the web, the notch's height in the app
+      const rowTop = pbarRow.offsetTop;
+      SMALL.ay = rowTop + 7; SMALL.dy = rowTop + 32;
       pbar.style.opacity = p;
       pbar.style.pointerEvents = p > 0.5 ? 'auto' : 'none';
       bigNav.style.opacity = 1 - p;

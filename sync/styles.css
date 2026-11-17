@@ -1842,7 +1842,7 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .mine__badge img { width: 48px; height: 48px; display: block; border-radius: 50%; background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
 .mine__sec { margin: 0 -4px 22px; }
 /* the nav stays over your profile (1110:2745): above the cover plane, the like out of the way */
-.device.is-covered .device__nav { z-index: 9; }
+.device.is-covered:has(.device__auth .auth--mine) .device__nav { z-index: 9; }   /* only on your profile itself, never over its steps or the menu */
 .device.is-covered .device__like { opacity: 0; pointer-events: none; }
 .mine__scroll { padding-bottom: 120px; }
 /* photos: the first run's grid, live on the page. 2 × 2 dashed tiles on the surface card, the caption under */
@@ -1988,6 +1988,9 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 :root.is-native .sky__me { top: calc(var(--sb-top) + 9px); }
 :root.is-native .device__nav { bottom: max(24px, var(--sb-bottom)); }
 :root.is-native .ob__foot { padding-bottom: max(24px, var(--sb-bottom)); }
+/* with the keyboard up the home indicator is covered, so the buttons sit just above the keys */
+:root.is-native.is-kb-open .ob__foot { padding-bottom: 16px; }
+:root.is-native.is-kb-open .ob__realbar { padding-bottom: 16px; }
 :root.is-native .ob__realbar { padding-bottom: max(28px, calc(var(--sb-bottom) + 4px)); }
 
 .ob__build { text-align: center; padding: 18px 0 8px; color: #b3b3b3; }

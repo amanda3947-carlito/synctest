@@ -14,6 +14,7 @@
     const fit = () => {
       raf = 0;
       document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
+      document.documentElement.classList.toggle('is-kb-open', vv.height < window.innerHeight - 120);   // the real keyboard is up
       if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);   // iOS nudges the page up for a field: put it back, the field is scrolled into view instead
       const el = document.activeElement;
       if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && el.type !== 'file') el.scrollIntoView({ block: 'center', behavior: 'smooth' });

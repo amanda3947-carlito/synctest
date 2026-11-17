@@ -14,7 +14,8 @@
     const fit = () => {
       raf = 0;
       document.documentElement.style.setProperty('--vvh', `${Math.round(vv.height)}px`);
-      document.documentElement.classList.toggle('is-kb-open', vv.height < window.innerHeight - 120);   // the real keyboard is up
+      // the real keyboard is up. In the iOS app the web view itself gets shorter, so the keyboard plugin says so (native.js)
+      document.documentElement.classList.toggle('is-kb-open', document.documentElement.dataset.kb === 'open' || vv.height < window.innerHeight - 120);
       if (window.scrollY || vv.offsetTop) window.scrollTo(0, 0);   // iOS nudges the page up for a field: put it back, the field is scrolled into view instead
       const el = document.activeElement;
       if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && el.type !== 'file') el.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -865,7 +866,7 @@
     const removeBtn = root.querySelector('.compose__remove');
     const grid = root.querySelector('.compose__grid');
     const titleEl = root.querySelector('.compose__title');
-    const coarse = () => window.matchMedia('(pointer: coarse)').matches;
+    const coarse = () => document.documentElement.classList.contains('is-native') || window.matchMedia('(pointer: coarse)').matches;   // a real keyboard comes up
     let session = null;      // { unit, punit, scope, fieldBtn, draftHost, prompt, title, onSend, onClose, hideNav, lift }
     let attachment = null;
     let voice = null;        // { blob, seconds, url } once a note is recorded

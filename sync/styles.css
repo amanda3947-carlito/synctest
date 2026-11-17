@@ -2013,3 +2013,6 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .ob__row--danger .t-sub { color: #e0332f; }
 .ob__legal { text-align: center; margin-top: 4px; }
 .ob__legal a { color: inherit; }
+
+/* in the iOS app the real keyboard is always the one: the drawn stand-ins (onboarding, the reply panel) never show */
+:root.is-native .ob__kb, :root.is-native .device__keyboard { display: none !important; }

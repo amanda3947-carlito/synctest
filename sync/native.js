@@ -20,5 +20,14 @@
     if (dev) new MutationObserver(sync).observe(dev, { attributes: true, attributeFilter: ['class'] });
     sync();
   };
+  // the keyboard: the shell shrinks the web view to the space above it (capacitor.config.js), and tells the page
+  // so the bottom bars drop their home-indicator padding while it's up
+  const Keyboard = cap.Plugins && cap.Plugins.Keyboard;
+  if (Keyboard && Keyboard.addListener) {
+    const root = document.documentElement;
+    const kb = (open) => () => { root.dataset.kb = open ? 'open' : ''; root.classList.toggle('is-kb-open', open); };
+    Keyboard.addListener('keyboardWillShow', kb(true));
+    Keyboard.addListener('keyboardWillHide', kb(false));
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();

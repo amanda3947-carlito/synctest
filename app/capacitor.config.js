@@ -20,6 +20,9 @@ const config = {
   },
   plugins: {
     StatusBar: { overlaysWebView: true, style: 'DARK' },
+    // the keyboard makes the web view shorter instead of sliding the page up under it: what's on screen
+    // reflows into the space above the keys, and the page never zooms or drifts
+    Keyboard: { resize: 'native', resizeOnFullScreen: true },
   },
   ...(MODE === 'live' ? { server: { url: LIVE_URL, cleartext: false } } : {}),
 };

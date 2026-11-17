@@ -54,6 +54,11 @@ To set up the external group: go to TestFlight, then the **+** next to External 
 - `npm run testflight` **bundles** the web app from `../sync` into the build. What testers run is fixed to the commit you built from. To ship changes, pull, run `npm run testflight` again, and archive. The build number goes up by itself.
 - `npm run live` is for your own phone or the simulator. The shell loads the GitHub Pages site, so every push shows up without rebuilding. Don't upload a live build: Apple reviews what's in the app, and a live build could change after review.
 
+## Testing in the Simulator
+
+- **The keyboard.** The Simulator types with your Mac's keyboard by default, so the iPhone keyboard never appears. Turn that off once, in the Simulator's menu bar: **I/O**, then **Keyboard**, then untick **Connect Hardware Keyboard** (⇧⌘K). The iPhone keyboard then appears for every text field, the way it does on a phone. ⌘K shows or hides it at any time.
+- **After a pull that changes native code** (a new plugin in `app/package.json`), rebuild the app: `cd app && npm install && npm run ios`, then press Run in Xcode. Changes to `sync/` alone show up on the next app launch without a rebuild, because the app loads the live site.
+
 ## Before outside testers can sign up
 
 - **Real text messages.** Supabase is connected to Twilio, but through plain Twilio Messaging. US carriers block that unless the number has been through A2P 10DLC registration, which takes weeks. Twilio **Verify** needs no registration, so switch Supabase to it:

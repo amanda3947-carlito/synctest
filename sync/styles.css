@@ -1994,3 +1994,22 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 :root.is-native .ob__realbar { padding-bottom: max(28px, calc(var(--sb-bottom) + 4px)); }
 
 .ob__build { text-align: center; padding: 18px 0 8px; color: #b3b3b3; }
+
+/* ── the action sheet (Report / Block, Delete account): iOS's own pattern, in the app's glass ── */
+.asheet { position: absolute; inset: 0; z-index: 60; pointer-events: auto; }
+.asheet__scrim { position: absolute; inset: 0; background: rgba(12, 12, 13, 0.32); opacity: 0; transition: opacity 0.25s; }
+.asheet.is-in .asheet__scrim { opacity: 1; }
+.asheet__panel { position: absolute; left: 10px; right: 10px; bottom: calc(10px + var(--sb-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; transform: translateY(calc(100% + 40px)); transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1); }
+.asheet.is-in .asheet__panel { transform: none; }
+.asheet__group { border-radius: 24px; overflow: hidden; background: rgba(255, 255, 255, 0.86); -webkit-backdrop-filter: blur(30px) saturate(1.6); backdrop-filter: blur(30px) saturate(1.6); box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06); }
+.asheet__head { padding: 14px 20px 12px; text-align: center; border-bottom: 0.5px solid rgba(60, 60, 67, 0.2); }
+.asheet__title { margin: 0; font-family: var(--font-body); font-size: 13px; font-weight: 600; color: #6e6e73; }
+.asheet__msg { margin: 4px 0 0; font-family: var(--font-body); font-size: 13px; line-height: 1.35; color: #8a8a8e; }
+.asheet__item { display: block; width: 100%; height: 56px; padding: 0 16px; background: transparent; border: 0; font-family: -apple-system, BlinkMacSystemFont, system-ui, var(--font-body), sans-serif; font-size: 18px; color: #1e1e1e; text-align: center; }
+.asheet__group .asheet__item + .asheet__item { border-top: 0.5px solid rgba(60, 60, 67, 0.2); }
+.asheet__item:active { background: rgba(0, 0, 0, 0.06); }
+.asheet__item.is-danger { color: #e0332f; }
+.asheet__cancel { border-radius: 24px; background: #fff; font-weight: 600; box-shadow: 0 0 0 0.5px rgba(0, 0, 0, 0.06); }
+.ob__row--danger .t-sub { color: #e0332f; }
+.ob__legal { text-align: center; margin-top: 4px; }
+.ob__legal a { color: inherit; }

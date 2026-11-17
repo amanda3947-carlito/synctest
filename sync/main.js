@@ -754,6 +754,29 @@
   grab.addEventListener('pointercancel', endSheetDrag);
 
 
+  // ── the action sheet: a glass panel from the bottom with its choices, and Cancel apart below them.
+  // Resolves with the chosen value, or null for Cancel or a tap outside.
+  function sheetMenu({ title, message, items }) {
+    return new Promise((resolve) => {
+      const el = document.createElement('div');
+      el.className = 'asheet';
+      el.innerHTML = `<div class="asheet__scrim"></div><div class="asheet__panel" role="dialog" aria-label="${esc(title || 'Options')}">
+          <div class="asheet__group">${title || message ? `<div class="asheet__head">${title ? `<p class="asheet__title">${esc(title)}</p>` : ''}${message ? `<p class="asheet__msg">${esc(message)}</p>` : ''}</div>` : ''}
+            ${items.map((it, i) => `<button class="asheet__item${it.danger ? ' is-danger' : ''}" type="button" data-i="${i}">${esc(it.label)}</button>`).join('')}</div>
+          <button class="asheet__item asheet__cancel" type="button" data-cancel>Cancel</button>
+        </div>`;
+      device.appendChild(el);
+      requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-in')));
+      const done = (v) => { el.classList.remove('is-in'); setTimeout(() => el.remove(), 260); resolve(v); };
+      el.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-i]');
+        if (b) { done(items[Number(b.dataset.i)].value); return; }
+        if (e.target.closest('[data-cancel]') || e.target.classList.contains('asheet__scrim')) done(null);
+      });
+    });
+  }
+  const REPORT_REASONS = ['Fake profile or impersonation', 'Inappropriate photos', 'Harassment or hate', 'Spam or scam', 'Seems under 18', 'Something else'];
+
   // ── floating nav: always up on the feed; on the profile it hides on scroll down and returns on scroll up
   const nav = {
     show() { device.classList.remove('is-nav-hidden'); },
@@ -1536,6 +1559,27 @@
     });
     refresh();
 
+    // the "…" on a profile: report them or block them. Either way they are gone from your feed and builds.
+    const goneFromView = () => {
+      if (card.parentElement === feed) { closeProfile(false); setTimeout(leave, 450); }
+      else closeProfile(false);   // a card pushed in from Builds slides back out; the list refreshes
+    };
+    profile.querySelectorAll('.pnav__btn[aria-label="More options"]').forEach((btn) => btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const pick = await sheetMenu({ items: [{ label: `Report ${person.name}`, value: 'report', danger: true }, { label: `Block ${person.name}`, value: 'block', danger: true }] });
+      if (pick === 'report') {
+        const reason = await sheetMenu({ title: `Report ${person.name}`, message: 'They won’t know it was you. We’ll also block them for you.', items: REPORT_REASONS.map((r) => ({ label: r, value: r })) });
+        if (!reason) return;
+        try { await window.SyncAPI.reportProfile(person.id, reason); await window.SyncAPI.blockProfile(person.id); notice('Thanks for telling us. You won’t see them again.'); goneFromView(); }
+        catch (ex) { notice(errText(ex)); }
+      } else if (pick === 'block') {
+        const sure = await sheetMenu({ title: `Block ${person.name}?`, message: 'They won’t see you and you won’t see them. Anything you were building together ends.', items: [{ label: 'Block', value: 'yes', danger: true }] });
+        if (sure !== 'yes') return;
+        try { await window.SyncAPI.blockProfile(person.id); notice(`${person.name} is blocked.`); goneFromView(); }
+        catch (ex) { notice(errText(ex)); }
+      }
+    }));
+
     // "Not interested" records the pass and moves on to the next person
     profile.querySelector('[data-action="not-interested"]').addEventListener('click', () => {
       window.SyncAPI.pass(person.id).catch((e) => notice(errText(e)));
@@ -1848,7 +1892,7 @@
 
   // ── sign-in and first run live in onboard.js; it draws into .device__auth and uses the mixtape sheet
   const authRoot = device.querySelector('.device__auth');
-  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText, profileHTML });
+  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText, profileHTML, ask: sheetMenu });
   const ensureSignedIn = () => window.SyncOnboard.run();
 
   // ── boot: sign in, load the people, build the feed, then listen for builds moving

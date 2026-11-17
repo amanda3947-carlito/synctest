@@ -6,7 +6,10 @@
   "scripts": {
     "sync": "cap sync ios",
     "open": "cap open ios",
-    "ios": "cap sync ios && cap open ios"
+    "ios": "cap sync ios && cap open ios",
+    "bump": "node scripts/bump-build.js",
+    "testflight": "node scripts/bump-build.js && AUX_MODE=bundled cap sync ios && cap open ios",
+    "live": "AUX_MODE=live cap sync ios && cap open ios"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.0",

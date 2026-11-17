@@ -94,3 +94,10 @@ calls. On a mixtape they add one or two tracks from their own rotation on their 
 it is complete or you already have; on a plan or a dinner they swap one slot, then agree; an as-is gets
 matched back. Each move carries one of their lines (`standins.lines`) as its note, and a match gets a line
 in the chat. A move that fails is logged as a warning and retried after their pace.
+
+## Deleting an account
+
+Apple requires any app with sign-up to let people delete their account in the app. Migration 0012 adds
+`delete_my_account()`. It removes the caller's builds (along with their turns, matches and chats), then the
+auth user. The profile, photos, places, shelf, blocks and reports go with it by cascade. Report and Block on
+a profile call the existing `report_profile` and `block_profile`.

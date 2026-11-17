@@ -1253,13 +1253,20 @@ window.SyncOnboard = (() => {
     if (initial) { const sec = sections.find(([k]) => k === initial); if (sec) { root().hidden = false; await sec[2](); await loadMe(); } return viewMine(); }
     while (true) {
       frame({ title: me ? me.name : 'You', sub: 'Everything on your profile, one piece at a time.', cta: 'Done', ready: true, cancel: false,
-        body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button></div><p class="ob__cap ob__build">Build ${BUILD}</p>` });
+        body: `<div class="ob__menu">${sections.map(([k, label]) => `<button class="prow ob__row" type="button" data-section="${k}"><div class="prow__details"><p class="t-sub">${esc(label)}</p></div><img src="assets/caret-left-dark.svg" width="20" height="20" alt="" style="opacity:.45;transform:scaleX(-1)"></button>`).join('')}<button class="prow ob__row ob__row--quiet" type="button" data-signout><div class="prow__details"><p class="t-sub">Sign out</p></div></button><button class="prow ob__row ob__row--quiet ob__row--danger" type="button" data-delete><div class="prow__details"><p class="t-sub">Delete account</p></div></button></div><p class="ob__cap ob__legal"><a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p><p class="ob__cap ob__build">Build ${BUILD}</p>` });
       const choice = await new Promise((res) => {
-        const h = (e) => { const s = e.target.closest('[data-section]'); if (s) { panel().removeEventListener('click', h); res(s.dataset.section); return; } if (e.target.closest('[data-signout]')) { panel().removeEventListener('click', h); res('signout'); return; } if (e.target.closest('[data-next]')) { panel().removeEventListener('click', h); res('done'); } };
+        const h = (e) => { const s = e.target.closest('[data-section]'); if (s) { panel().removeEventListener('click', h); res(s.dataset.section); return; } if (e.target.closest('[data-signout]')) { panel().removeEventListener('click', h); res('signout'); return; } if (e.target.closest('[data-delete]')) { panel().removeEventListener('click', h); res('delete'); return; } if (e.target.closest('[data-next]')) { panel().removeEventListener('click', h); res('done'); } };
         panel().addEventListener('click', h);
       });
       if (choice === 'done') break;
-      if (choice === 'signout') { await a.signOut(); location.reload(); return; }
+      if (choice === 'signout') { await a.signOut(); location.reload(); return new Promise(() => {}); }   // the page is going: nothing behind this menu carries on
+      if (choice === 'delete') {
+        const sure = deps.ask ? await deps.ask({ title: 'Delete your account?', message: 'Your profile, photos, builds and chats go for good. This can’t be undone.', items: [{ label: 'Delete account', value: 'yes', danger: true }] }) : (window.confirm('Delete your account? This can’t be undone.') ? 'yes' : null);
+        if (sure !== 'yes') continue;
+        try { await a.deleteAccount(); } catch (ex) { deps.notice(deps.errText(ex)); continue; }
+        try { await a.signOut(); } catch (ex) { /* the account is already gone */ }
+        location.reload(); return new Promise(() => {});
+      }
       await sections.find(([k]) => k === choice)[2]();
       await loadMe();
     }

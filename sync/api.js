@@ -488,6 +488,9 @@ window.SyncAPI = (() => {
   const counterAsIs = (buildId, items) => rpc('counter_as_is', { p_build: buildId, p_items: items });
   const closeBuild = (buildId) => rpc('close_build', { p_build: buildId });
   const pass = (profileId) => rpc('pass_profile', { p_profile: profileId });
+  const blockProfile = (profileId) => rpc('block_profile', { p_profile: profileId });
+  const reportProfile = (profileId, reason, details) => rpc('report_profile', { p_profile: profileId, p_reason: reason, p_details: details || null });
+  const deleteAccount = () => rpc('delete_my_account', {});
 
   // ── realtime: any change to a build I'm in
   function watchBuilds(onChange) {
@@ -502,6 +505,6 @@ window.SyncAPI = (() => {
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
-           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass,
+           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
            watchBuilds, mediaUrls, trackItem };
 })();

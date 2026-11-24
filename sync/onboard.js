@@ -917,10 +917,10 @@ window.SyncOnboard = (() => {
     root().hidden = false;
     const real = panel().querySelector('.ob__real');
     real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is your profile as people see it. Everything on it can change from your avatar, any time.</p>';
-    real.querySelectorAll('.pnav__btn, .preply__field, [data-action]:not([data-action="shelf"]):not([data-action="spot"]), .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
+    real.querySelectorAll('.pnav__btn, .preply__field, [data-action]:not([data-action="shelf"]):not([data-action="spot"]):not([data-action="style"]), .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
     return new Promise((res) => {
       panel().addEventListener('click', async (e) => {
-        if (e.target.closest('[data-board]')) { res('board'); return; }
+        if (e.target.closest('[data-board], [data-action="style"]')) { res('board'); return; }
         if (e.target.closest('[data-next]')) { res('next'); return; }
         const act = e.target.closest('[data-action="shelf"], [data-action="spot"]');
         if (act) { if (await openAdd(act.dataset.action, person)) res('refresh'); }
@@ -1055,6 +1055,7 @@ window.SyncOnboard = (() => {
           if (e.target.closest('[data-static="phone"]')) { deps.notice('Your number is how you sign in. Ask us to change it.'); return; }
           const act = e.target.closest('[data-action="shelf"], [data-action="spot"]'); if (act) { done(act.dataset.action); return; }
           if (e.target.closest('[data-action="featured"]')) { done('featured'); return; }
+          if (e.target.closest('[data-action="style"]')) { done('board'); return; }   // "Add more vibes" on your own profile: the board
           if (e.target.closest('[data-action="mixtape"]')) { done('rotation'); return; }
           const ed = e.target.closest('[data-edit]'); if (ed) done(ed.dataset.edit);
         };

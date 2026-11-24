@@ -1042,8 +1042,8 @@
     // a note out of the blue (the like): nothing to reply to, so the panel carries a title
     // instead of a lifted unit. `scope` is what dims and holds still: the profile if it is
     // up, otherwise the feed card itself. The draft lives on the card, one per person.
-    function openNote(scope, name, card, onSend, onClose) {
-      start({ unit: null, punit: null, scope, fieldBtn: null, draftHost: card, prompt: 'Say something', title: name, onSend, onClose, hideNav: scope.classList.contains('profile') }, 'text');
+    function openNote(scope, name, card, onSend, onClose, mode = 'text') {
+      start({ unit: null, punit: null, scope, fieldBtn: null, draftHost: card, prompt: 'Say something', title: name, onSend, onClose, hideNav: scope.classList.contains('profile'), vibe: mode === 'gif' }, mode);
     }
     function start(s, mode) {
       if (session) close();
@@ -1059,7 +1059,7 @@
       if (attachment) thumb.src = attachment.src;
       refresh();
       root.classList.toggle('is-note', !unit);
-      titleEl.innerHTML = title ? `Sending a note to <b>${esc(title)}</b>` : '';
+      titleEl.innerHTML = title ? `Sending a ${s.vibe ? 'vibe' : 'note'} to <b>${esc(title)}</b>` : '';
       if (unit) { unit.classList.add('is-composing'); punit.classList.add('is-focus'); }
       scope.classList.add('is-composing');
       device.classList.add('is-composing');
@@ -1704,7 +1704,7 @@
     // the like with a note (the heart): always open to you. With nothing between you yet it's a like as is, waiting
     // on their response (that's their Responses tab); with a build going, the note goes to them on it; once you've
     // matched it lands in your chat. A note is required: the composer won't send an empty one.
-    const note = () => {
+    const note = (mode = 'text') => {
       if (compose.active) return;
       const b = person.activeBuild && person.activeBuild.status !== 'closed' ? person.activeBuild : null;
       if (!b && !person.mixtapeBuildId) { notice('Nothing of theirs to like yet'); return; }
@@ -1723,8 +1723,11 @@
           closeProfile(false);
           return wait(600);
         }).then(b ? resume : leave);
-      }, resume);
+      }, resume, mode);
     };
+    // "Add more vibes" on their profile: a vibe for them, a GIF (and words if you like), sent the way a note is
+    const vibeBtn = profile.querySelector('[data-action="style"]');
+    if (vibeBtn) vibeBtn.addEventListener('click', (e) => { e.stopPropagation(); note('gif'); });
     // the tile opens whatever you two are building (a mixtape when it's nothing yet)
     mixTile.addEventListener('click', (e) => openBuild(person.activeBuild ? person.activeBuild.type_key : 'mixtape')(e));
     profile.querySelector('[data-action="mixtape"]').addEventListener('click', openBuild('mixtape'));

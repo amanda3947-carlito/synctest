@@ -966,15 +966,16 @@ window.SyncOnboard = (() => {
       const sess = await a.session();
       const phone = fmtPhone(sess && sess.user && sess.user.phone);
       const top = `<div class="mine__top">
-          <button class="ob__back" type="button" data-done aria-label="Back to the feed"><img src="assets/chevron-left.svg" width="9" height="17" alt=""></button>
+          <span class="mine__topgap" aria-hidden="true"></span>
           <div class="seg" role="tablist"><button class="seg__btn${mode === 'edit' ? ' is-on' : ''}" type="button" role="tab" data-mode="edit">Edit</button><button class="seg__btn${mode === 'view' ? ' is-on' : ''}" type="button" role="tab" data-mode="view">View</button></div>
-          <button class="ob__back" type="button" data-menu aria-label="More"><img src="assets/dots-three-circle-dark.svg" width="24" height="24" alt=""></button>
+          <button class="ob__back mine__close" type="button" data-done aria-label="Close your profile"><img src="assets/x-circle.svg" width="24" height="24" alt=""></button>
         </div>`;
       const panelEl = freshPanel('auth--mine' + (mode === 'view' ? ' auth--real auth--mine-view' : ' auth--mine-edit'));
       if (mode === 'view') {
         panelEl.innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>` + top;
         const real = panelEl.querySelector('.ob__real');
         real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is you, as people see you.</p>';
+        const pc = real.querySelector('.pcover'); if (pc) pc.insertAdjacentHTML('beforeend', `<p class="mine__covername">${esc(me.name || '')}</p>`);
         real.querySelectorAll('.pnav__btn, .preply__field, [data-action="not-interested"], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
       } else {
         const prompts = Object.keys(me.prompts || {}).length;
@@ -985,7 +986,7 @@ window.SyncOnboard = (() => {
         const coverName = (id) => id.split('-').map((w, i) => (i ? w : w[0].toUpperCase() + w.slice(1))).join(' ');
         const rows = [
           ['cover', 'Cover', me.cover ? coverName(coverOf(me.cover).id) : 'No cover added'],
-          ['describes', 'Your badge', taste ? taste[1] : 'None yet'],
+          ['describes', 'Badge', taste ? taste[1] : 'None yet'],
           ['seeking', 'Looking for', me.seeking ? seekingLabel(me.seeking) : 'Not picked yet'],
           ['prompts', 'Prompts', `${prompts} of ${PROMPTS.length} added`],
           ['rotation', 'Rotation', plural(n(person.rotation), 'track', 'tracks', 'added')],
@@ -995,13 +996,12 @@ window.SyncOnboard = (() => {
           ['spot', 'Spots', plural(n(p.spots), 'place', 'places', 'listed')],
         ];
         panelEl.innerHTML = top + `<div class="mine__scroll">
-          <div class="mine__hero"><span class="mine__avatar"><img src="${esc(p.avatar)}" alt=""></span><button class="mine__badge" type="button" data-edit="describes" aria-label="Change your badge"><img src="${esc(person.disc)}" alt=""></button></div>
           <section class="mine__sec">
             <div class="mine__sechead"><span>Photos</span></div>
             <div class="mine__card mine__card--photos"><div class="ob__grid mine__photos" id="mn-photos"></div><p class="mine__hint">Drag to reorder or tap x to remove</p></div>
           </section>
           <section class="mine__sec">
-            <div class="mine__sechead"><span>Essentials</span><button class="mine__pencil" type="button" data-edit="basics" aria-label="Edit the essentials">${PENCIL}</button></div>
+            <div class="mine__sechead"><span>Essentials</span></div>
             <div class="mine__card mine__card--ess"><div class="ob__acc" id="mn-acc"></div></div>
           </section>
           <section class="mine__sec">
@@ -1009,9 +1009,9 @@ window.SyncOnboard = (() => {
             <div class="mine__list">${rows.map(([k, label, sub]) => `<button class="mine__row" type="button" data-edit="${k}"><span class="mine__rowtext"><span class="mine__rowlabel">${esc(label)}</span><span class="mine__rowsub">${esc(sub)}</span></span><span class="mine__pencil">${PENCIL}</span></button>`).join('')}</div>
           </section>
           <section class="mine__sec mine__basics">
-            <div class="mine__sechead"><span>The basics</span><button class="mine__pencil" type="button" data-basics-toggle aria-label="Edit the basics">${PENCIL}</button></div>
+            <div class="mine__sechead"><span>Basics</span></div>
             <div class="mine__card mine__card--basics">
-              <p class="mine__hint mine__basics-hint">Tap edit to change your Name, Age, and Phone number</p>
+              <button class="mine__basics-toggle" type="button" data-basics-toggle aria-expanded="false"><span>Edit Name, Birthday &amp; Phone number</span><img src="assets/caret-right-basics.svg" width="21" height="21" alt=""></button>
               <div class="mine__basics-fields">
                 <label class="mine__fld"><span class="mine__lbl">Name</span><input class="mine__val" id="mn-name" type="text" autocomplete="name" maxlength="100" placeholder="Your name" value="${esc([me.name, me.last_name].filter(Boolean).join(' '))}"></label>
                 <label class="mine__fld is-static" data-static="phone"><span class="mine__lbl">Phone number</span><input class="mine__val" id="mn-phone" type="tel" value="${esc(phone || 'Not on file')}" readonly tabindex="-1"></label>
@@ -1019,7 +1019,12 @@ window.SyncOnboard = (() => {
               </div>
             </div>
           </section>
-          <p class="ob__cap mine__cap">Switch to View to see it as people do.</p></div>`;
+          <div class="mine__foot">
+            <button class="mine__signout" type="button" data-signout>Sign out</button>
+            <button class="mine__delete" type="button" data-delete><img src="assets/trash-danger.svg" width="18" height="18" alt="">Delete account</button>
+            <p class="ob__cap ob__legal"><a href="privacy.html" target="_blank" rel="noopener">Privacy policy</a> · <a href="support.html" target="_blank" rel="noopener">Support</a></p>
+            <p class="ob__cap ob__build">Build ${BUILD}</p>
+          </div></div>`;
         mountEditor(panelEl, person);
       }
       // the control is background-aware: over the cover it is the light glass with white ink; once the cover has
@@ -1051,7 +1056,8 @@ window.SyncOnboard = (() => {
           const f = e.target.closest('[data-focus]'); if (f) { const el = document.getElementById(f.dataset.focus); if (el) { el.focus(); el.select && el.select(); } return; }
           const m = e.target.closest('[data-mode]'); if (m) { done('mode:' + m.dataset.mode); return; }
           if (e.target.closest('[data-done]')) { done('done'); return; }
-          if (e.target.closest('[data-menu]')) { done('menu'); return; }
+          if (e.target.closest('[data-signout]')) { done('signout'); return; }
+          if (e.target.closest('[data-delete]')) { done('delete'); return; }
           if (e.target.closest('[data-static="phone"]')) { deps.notice('Your number is how you sign in. Ask us to change it.'); return; }
           const act = e.target.closest('[data-action="shelf"], [data-action="spot"]'); if (act) { done(act.dataset.action); return; }
           if (e.target.closest('[data-action="featured"]')) { done('featured'); return; }
@@ -1064,7 +1070,14 @@ window.SyncOnboard = (() => {
       });
       if (choice === 'done') { await coverOut(); return me; }
       if (choice.startsWith('mode:')) { mode = choice.slice(5); continue; }
-      if (choice === 'menu') { await edit(); continue; }
+      if (choice === 'signout') { await a.signOut(); location.reload(); return new Promise(() => {}); }   // the page is going
+      if (choice === 'delete') {
+        const sure = deps.ask ? await deps.ask({ title: 'Delete your account?', message: 'Your profile, photos, builds and chats go for good. This can’t be undone.', items: [{ label: 'Delete account', value: 'yes', danger: true }] }) : (window.confirm('Delete your account? This can’t be undone.') ? 'yes' : null);
+        if (sure !== 'yes') continue;
+        try { await a.deleteAccount(); } catch (ex) { deps.notice(deps.errText(ex)); continue; }
+        try { await a.signOut(); } catch (ex) { /* the account is already gone */ }
+        location.reload(); return new Promise(() => {});
+      }
       if (choice === 'shelf' || choice === 'spot') { await openAdd(choice, person); continue; }
       const sec = SECTIONS.find(([k]) => k === choice);
       if (sec) await sec[2]();
@@ -1080,7 +1093,7 @@ window.SyncOnboard = (() => {
     const d = { ...((me && me.details) || {}) };
     let t = 0;
     mountBasics(panelEl.querySelector('#mn-acc'), d, () => { clearTimeout(t); t = setTimeout(async () => { try { me = await a.updateProfile({ details: { ...d } }); } catch (ex) { deps.notice(deps.errText(ex)); } }, 600); }, { topInset: 124 });
-    panelEl.querySelector('[data-basics-toggle]').addEventListener('click', () => { const c = panelEl.querySelector('.mine__basics'); c.classList.toggle('is-open'); if (c.classList.contains('is-open')) setTimeout(() => c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60); });
+    panelEl.querySelector('[data-basics-toggle]').addEventListener('click', (e) => { const c = panelEl.querySelector('.mine__basics'); c.classList.toggle('is-open'); e.currentTarget.setAttribute('aria-expanded', c.classList.contains('is-open')); if (c.classList.contains('is-open')) setTimeout(() => c.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 60); });
     mountPhotos(panelEl.querySelector('#mn-photos'), panelEl).catch((ex) => deps.notice(deps.errText(ex)));
   }
   async function mountPhotos(root, panelEl) {

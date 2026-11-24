@@ -1826,7 +1826,7 @@ button.ob__cal-day:active { background: #e9e7e3; }
 /* ── your profile from the avatar (1110:2745): Edit | View under the status bar, the avatar, the basics card, the rows ── */
 .auth--mine { padding: 0; overflow: hidden; position: relative; }
 /* the control floats over whatever scrolls beneath it, in both modes */
-.mine__top { position: absolute; left: 20px; right: 20px; top: 62px; height: 54px; z-index: 12; display: grid; grid-template-columns: 28px 1fr 28px; align-items: center; }
+.mine__top { position: absolute; left: 20px; right: 20px; top: 62px; height: 54px; z-index: 12; display: grid; grid-template-columns: 36px 1fr 36px; align-items: center; padding-bottom: 10px; box-sizing: border-box; }   /* Nav (Victor) 1110:3234: a 36 gap, Edit | View, the close */
 .mine__scroll { position: absolute; inset: 0; overflow-y: auto; scrollbar-width: none; padding: 116px 20px 0; }
 .mine__scroll::-webkit-scrollbar { display: none; }
 .auth--mine-view .ob__real { inset: 0; }
@@ -2109,3 +2109,30 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .note__text { display: block; }
 .note__gif { display: block; max-width: 180px; max-height: 140px; border-radius: 12px; margin-top: 6px; object-fit: cover; }
 .remix__note .note__gif { max-width: 100%; max-height: 180px; }
+
+/* ── your profile (1110:2745 edit, 1157:12924 view): Edit | View as a white pill, the close at right, no ••• ── */
+.mine__topgap { width: 36px; height: 36px; }
+.mine__close { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
+.mine__top .seg { width: 192px; padding: 2px; background: #fff; box-shadow: 0 4px 20px 1px rgba(0, 0, 0, 0.08); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.mine__top .seg__btn { height: 40px; color: #000; }
+.mine__top .seg__btn.is-on { background: rgba(32, 32, 32, 0.12); }
+/* View: the cover sits 72 lower and shows your name in it; the avatar, badge and page move down with it */
+.auth--mine-view .pcover { height: 298px; }
+.mine__covername { position: absolute; left: 0; right: 0; top: 139px; margin: 0; height: 40px; z-index: 2; text-align: center; font-family: var(--font-display); font-weight: 700; font-size: 24px; line-height: 40px; letter-spacing: 0.4px; color: #f3f3f3; pointer-events: none; }
+.auth--mine-view .pavatar { top: 208px; }
+.auth--mine-view .pavatar-disc { top: 295px; }
+.auth--mine-view .pbody { margin-top: 23px; }
+/* Basics: a dropdown; tap it and your name, number and birthday open under it */
+.mine__card--basics { padding: 8px 16px 6px 20px; min-height: 76px; justify-content: center; }
+.mine__basics-toggle { width: 100%; height: 57px; padding: 0 0 0 4px; display: flex; align-items: center; justify-content: space-between; background: none; border: 0; text-align: left; font-family: var(--font-body); font-size: 12px; font-weight: 600; line-height: 1.2; color: #b3b3b3; font-variation-settings: "opsz" 14; }
+.mine__basics-toggle img { transform: rotate(90deg); transition: transform 0.25s; }
+.mine__basics.is-open .mine__basics-toggle img { transform: rotate(-90deg); }
+.mine__basics.is-open .mine__card--basics { padding-bottom: 18px; }
+/* the foot: Sign out, then Delete account (1157:12909) */
+.mine__foot { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 24px 0 8px; }
+.mine__signout { width: 302px; max-width: 100%; height: 48px; border: 0; border-radius: 24px; background: #f5f5f5; font-family: var(--font-body); font-size: 14px; font-weight: 600; line-height: 1.2; color: #1e1e1e; font-variation-settings: "opsz" 14; }
+.mine__delete { display: inline-flex; align-items: center; gap: 10px; padding: 0 6px; border: 0; background: none; font-family: var(--font-body); font-size: 14px; line-height: 1.4; color: #c00f0c; font-variation-settings: "opsz" 14; }
+.mine__foot .ob__cap { margin: -12px 0 0; }
+/* Edit scrolls under the top: a white band behind the status bar and Edit | View, fading into the page */
+.auth--mine-edit .mine__top::before { content: ""; position: absolute; z-index: -1; left: -20px; right: -20px; top: -62px; bottom: -14px; background: linear-gradient(to bottom, #fff calc(100% - 18px), rgba(255, 255, 255, 0)); pointer-events: none; }
+:root.is-native .auth--mine-edit .mine__top::before { top: calc(-1 * (var(--sb-top) + 9px)); }

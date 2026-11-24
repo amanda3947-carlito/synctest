@@ -413,7 +413,7 @@
 
   const trackRowHTML = (t) => `
       <div class="srow${t.added ? ' srow--added' : ''}" data-key="${esc(t.key || t.title)}" data-title="${esc(t.title)}">
-        ${t.added ? '<span class="srow__badge">Your add</span>' : ''}
+        ${t.added ? '<span class="srow__badge">Your add</span>' : t.theirs ? '<span class="srow__badge srow__badge--theirs">Their add</span>' : ''}
         <div class="srow__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="" draggable="false">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
         <div class="srow__details">
           <p class="t-body-sm">${esc(t.artist)}</p>
@@ -1526,6 +1526,14 @@
       mixTile.classList.toggle('is-waiting', !!b && b.status !== 'agreed' && b.turn_id !== ME);
       mixTile.classList.toggle('is-agreed', !!b && b.status === 'agreed');
     };
+    // what they changed in a build between you: their adds, never the tracks that were theirs to begin with
+    const theirChange = (b, t) => {
+      const other = b.starter_id === ME ? b.owner_id : b.starter_id;
+      if (!t || t.by !== other) return false;
+      if (other !== b.owner_id) return true;   // they remixed yours: everything they put in is a change
+      const origin = b.type_key === 'mixtape' ? (person.rotation || []) : ((person.featured && person.featured.items) || []);
+      return !origin.some((o) => o.key === t.key);
+    };
     const profileBuildFor = (type) => (type === 'mixtape' ? person.mixtapeBuildId : person.featured && person.featured.type === type ? person.featured.id : null);
     // sending: the profile (if up) and the sheet drop away, the toast plays over the
     // photo, then the feed moves on to the next person by itself. The database answers
@@ -1573,7 +1581,7 @@
       const opts = type === 'mixtape' ? {} : { kind: type, search: (q) => API.searchRows(type, q), placeholder: copy.placeholder, blank: copy.blank, title: copy.title, sub: copy.sub };
       if (b) {
         // the live version, with your own adds marked
-        person.sheetItems = (await API.withArt(b.items)).map((t) => ({ ...API.toRow(type, t), added: t.by === ME }));
+        person.sheetItems = (await API.withArt(b.items)).map((t) => ({ ...API.toRow(type, t), added: false, theirs: theirChange(b, t) }));
         openSheet(person, more.onClose || resume, onSent(type), {
           ...opts,
           title: b.status === 'as_is' ? `${person.name} loved yours` : 'Your turn',
@@ -1608,7 +1616,7 @@
           <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)}’s remix" data-min="${esc(person.name)}’s ${noun}"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
           <div class="remix__body">
             <div class="remix__list">
-              ${rows.map((t) => `<div class="prow remix__row">
+              ${rows.map((t, i) => `<div class="prow remix__row">${theirChange(b, items[i]) ? '<span class="srow__badge srow__badge--theirs">Their add</span>' : ''}
                 <div class="prow__img${t.art ? '' : ' is-type'}">${art(t)}</div>
                 <div class="prow__details"><p class="t-body-sm">${esc(t.artist || '')}</p><p class="t-sub">${esc(t.title)}</p></div>
                 <div class="prow__action">${type === 'mixtape' ? PLAY_BTN(esc(t.title)) : ''}</div>
@@ -1912,8 +1920,8 @@
       body.classList.toggle('is-highlights', view === 'highlights' && list.length > 0);
       if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
       if (view === 'highlights') {
-        // three people: what waits on you first, then what's out with them, then what you finished
-        const featured = [...live().filter((x) => x.mine), ...live().filter((x) => !x.mine), ...list.filter((x) => x.build.status === 'agreed')].slice(0, 3);
+        // three people: what waits on you first, then what's out with them
+        const featured = [...live().filter((x) => x.mine), ...live().filter((x) => !x.mine)].slice(0, 3);
         body.innerHTML = `<div class="bhl">${featured.map(hlHTML).join('')}</div>`;
         const hl = body.querySelector('.bhl');
         hl.addEventListener('scroll', () => { if (!hlRaf) hlRaf = requestAnimationFrame(() => { hlRaf = 0; settleHl(); }); }, { passive: true });
@@ -1924,7 +1932,9 @@
       body.innerHTML = rows.length ? `<div class="blist">${rows.map(rowHTML).join('')}</div>`
         : `<div class="builds__empty"><p>${EMPTY[view] || 'Nothing here yet.'}</p></div>`;
     };
-    const load = async () => { try { list = await window.SyncAPI.buildsList(); } catch (e) { console.error(e); list = []; } render(); };
+    // what's still being built: a finished build (a match), or one you've sent back as is, moves on to Chats
+    const stillBuilding = (x) => x.build.status !== 'agreed' && !(x.build.agreed_by || []).includes(ME);
+    const load = async () => { try { list = (await window.SyncAPI.buildsList()).filter(stillBuilding); } catch (e) { console.error(e); list = []; } render(); };
     chips.forEach((c) => c.addEventListener('click', () => { view = c.dataset.chips; render(); body.scrollTop = 0; }));
     // a tap pushes that person's card in from the right with their profile open on the build; closing the profile slides it back out
     const closePush = (instant) => {

@@ -2078,3 +2078,9 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .remix__send { margin: 0 20px; height: 48px; border: 0; border-radius: 24px; background: #a8face; color: #1e1e1e; font-family: var(--font-body); font-size: 14px; font-weight: 600; line-height: 1.2; font-variation-settings: "opsz" 14; }
 .remix__send:disabled { background: #ececec; color: #757575; }
 .bhl__foot .bthumbs { flex: 0 0 34px; width: 71px; }
+
+/* "Their add": what the other person changed, in the remix and in the sheet (a build seen from your side) */
+.srow__badge--theirs { background: #f1a2ff; color: #1e1e1e; }
+.remix__row { position: relative; overflow: visible; }
+.remix__row .srow__badge { left: 74px; top: -4px; }
+.remix__list { padding-top: 6px; }

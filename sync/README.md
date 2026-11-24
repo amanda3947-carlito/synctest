@@ -106,8 +106,8 @@ sync/
   profile with the remix lightboxed on top; the caret tucks it to a full-width bar at the foot so the whole profile
   reads, and the bar brings it back. "Make another change" turns it into the mixtape sheet with search ("Make it a
   full build to unlock chat"); "Send it back as is" agrees to it as it stands (or matches back on a loved-as-is),
-  and once you both have, that's the match. Until you've each put in enough (two tracks each on a mixtape, one
-  spot or title each on a featured build) the button says to add your change first.
+  and once you both have, that's the match. There's no minimum from each person (migration 0014): whoever's turn
+  it is can always send it back as is.
 - **Make it a mixtape** sends real turns; the heart is love-as-is; "Not interested" is a pass. A send or a
   note takes the person off the feed (a build in flight lives on the Builds tab, coming). You can have builds
   going with several people at once; only one live build per pair. Realtime on `builds` lights the Builds dot and plays the toast on a

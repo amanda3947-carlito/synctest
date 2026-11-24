@@ -49,8 +49,10 @@ select count(*) as olivia_notices from notifications where profile_id = :'olivia
 select pg_temp.as_user(:'olivia');
 select count(*) as olivia_notices from notifications where profile_id = :'olivia';   -- 1
 
-\echo '--- Olivia tries to agree too early (she has not added anything yet)'
-select pg_temp.expect_error(format($$select agree_build(%L)$$, :'build_id'), 'not there yet');
+\echo '--- no minimum from each side: Olivia could agree to it as it stands (send it back as is)'
+select public.build_complete(t, b.items, b.starter_id, b.owner_id) as agreeable_as_is
+  from builds b join build_types t on t.key = b.type_key where b.id = :'build_id';   -- t
+select not public.owner_complete(t, '[]') as owner_still_needs_three from build_types t where key = 'mixtape';   -- t: a profile's own mixtape still needs 3 tracks
 
 \echo '--- a pure reorder counts as one change'
 select public.build_changes('list', '[{"key":"a"},{"key":"b"}]', '[{"key":"b"},{"key":"a"}]') as reorder_changes;   -- 1

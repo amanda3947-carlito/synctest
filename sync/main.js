@@ -1623,7 +1623,7 @@
               </div>`).join('')}
               <button class="prow remix__row" type="button" data-remix="change">
                 <div class="prow__img prow__img--empty remix__slot"></div>
-                <div class="prow__details"><p class="t-sub remix__wrap">${ready ? 'Make another change' : 'Make another change to finish the build'}</p></div>
+                <div class="prow__details"><p class="t-sub remix__wrap">${ready ? 'Make another change' : 'Make a change to finish the build'}</p></div>
                 <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
               </button>
             </div>

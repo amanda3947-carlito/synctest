@@ -523,9 +523,9 @@ window.SyncAPI = (() => {
   //    title), art}; these turn a build's items into rows and rows back into items, and search each kind.
   const SHELF_TAG = { film: 'Movie', show: 'Show', book: 'Book' };
   const BUILD_KINDS = {
-    mixtape: { noun: 'mixtape', unit: ['track', 'tracks'], min: 3, each: 2 },
-    spots: { noun: 'spots', unit: ['spot', 'spots'], min: 3, each: 1 },
-    shelf: { noun: 'picks', unit: ['title', 'titles'], min: 3, each: 1 },
+    mixtape: { noun: 'mixtape', unit: ['track', 'tracks'], min: 3, each: 0 },
+    spots: { noun: 'spots', unit: ['spot', 'spots'], min: 3, each: 0 },
+    shelf: { noun: 'picks', unit: ['title', 'titles'], min: 3, each: 0 },
   };
   // the database's rule, mirrored so a screen can say whether a build can be agreed as it stands
   const buildComplete = (b) => {

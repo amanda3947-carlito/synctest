@@ -3,9 +3,9 @@
 -- Safe to re-run: everything upserts on fixed ids.
 
 insert into public.build_types (key, name, verb, kind, unit, capacity, min_items, min_each, per_turn, slots, position) values
-  ('mixtape', 'Mixtape',            'Remix', 'list', 'track', 8, 3, 2, 2, '[]', 1),
-  ('spots',   'Spots',              'Swap',  'list', 'spot',  6, 3, 1, 2, '[]', 2),
-  ('shelf',   'Watching & Reading', 'Swap',  'list', 'title', 6, 3, 1, 2, '[]', 3)
+  ('mixtape', 'Mixtape',            'Remix', 'list', 'track', 8, 3, 0, 2, '[]', 1),
+  ('spots',   'Spots',              'Swap',  'list', 'spot',  6, 3, 0, 2, '[]', 2),
+  ('shelf',   'Watching & Reading', 'Swap',  'list', 'title', 6, 3, 0, 2, '[]', 3)
 on conflict (key) do update set name = excluded.name, verb = excluded.verb, kind = excluded.kind, unit = excluded.unit,
   capacity = excluded.capacity, min_items = excluded.min_items, min_each = excluded.min_each, per_turn = excluded.per_turn,
   slots = excluded.slots, position = excluded.position;

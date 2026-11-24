@@ -11,6 +11,7 @@ supabase/
   migrations/0004_shelf.sql               reading & watching: profile_shelf and shared_shelf()
   migrations/0005_essentials.sql          last_name and the basics (details jsonb)
   migrations/0013_collections.sql  mixtape + one featured collection (spots or shelf); old builds retired; photo captions
+  migrations/0014_send_back_as_is.sql  no minimum from each person: whoever's turn it is can agree as it stands
   seed.sql                   build types, Brooklyn places and events, three demo profiles
   storage.sql                the private `media` bucket and its upload/read policies
   tests/run.sh               runs migration + seed + an end-to-end scenario on a local Postgres

@@ -1158,7 +1158,7 @@ window.SyncOnboard = (() => {
   async function stepRotation() {
     const current = await api().myBuild('mixtape');
     frame({ title: 'Your rotation', sub: 'Four or more tracks you’d put on for someone. People remix it to say hi.', cta: current ? 'Change it' : 'Pick tracks', back: true,
-      body: current ? `<div class="ob__tracks">${current.items.map((t) => `<div class="ob__track"><img src="${esc(t.art || 'assets/prof-rot-1.png')}" alt=""><div><p class="t-body-sm">${esc(t.artist)}</p><p class="t-sub">${esc(t.title)}</p></div></div>`).join('')}</div>` : '<p class="ob__cap">Nothing yet.</p>' });
+      body: current ? `<div class="ob__tracks">${current.items.map((t) => `<div class="ob__track"><span class="ob__track-art">${t.art ? `<img src="${esc(t.art)}" alt="" data-letter="${esc((t.title || '?').slice(0, 1))}">` : `<i class="art-letter">${esc((t.title || '?').slice(0, 1))}</i>`}</span><div><p class="t-body-sm">${esc(t.artist)}</p><p class="t-sub">${esc(t.title)}</p></div></div>`).join('')}</div>` : '<p class="ob__cap">Nothing yet.</p>' });
     setReady(true);
     return step(() => new Promise((res) => {
       root().hidden = true;

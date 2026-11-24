@@ -160,6 +160,26 @@
   };
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  // a track's cover that isn't there, or doesn't load, gives way to the mixtape sheet's tile: the first letter of the title
+  const ART_SLOTS = '.tile, .prow__img, .srow__art, .sres__art, .bthumbs, .ob__track-art';
+  function artLetter(img) {
+    const slot = img.parentElement; if (!slot) return;
+    const letter = img.dataset.letter || (slot.classList.contains('bthumbs') ? '♪' : ((img.alt || '').split('—').pop().trim() || '?').slice(0, 1));
+    const i = document.createElement('i'); i.className = 'art-letter'; i.textContent = letter;
+    if (slot.classList.contains('bthumbs')) { i.classList.add('art-letter--thumb'); img.replaceWith(i); return; }
+    slot.classList.add('art-type'); img.replaceWith(i);
+  }
+  document.addEventListener('error', (e) => {
+    const img = e.target;
+    if (!img || img.tagName !== 'IMG') return;
+    // a spot's photo that doesn't load: the pin, as for a spot without one
+    const spot = img.closest('.pspot__img');
+    if (spot && !img.classList.contains('pspot__pin')) { spot.classList.add('pspot__img--pin'); img.replaceWith(Object.assign(document.createElement('img'), { className: 'pspot__pin', src: 'assets/details/map-pin-line.svg', alt: '' })); return; }
+    // a cover on the shelf that doesn't load: the title card, as for a title without one
+    const book = img.closest('.pbook__art');
+    if (book) { const t = book.closest('.pbook'); const span = document.createElement('span'); span.className = 'pbook__type'; span.textContent = (t && t.querySelector('.t-sub') ? t.querySelector('.t-sub').textContent : ''); img.replaceWith(span); return; }
+    if (img.closest(ART_SLOTS) && !img.closest('.tile--mixtape')) artLetter(img);
+  }, true);
 
   function profileHTML(person) {
     // the person's own content from the database; Damon's frame content stands in for anything they haven't filled yet
@@ -194,35 +214,17 @@
       </section>`;
     const rotationRows = (person.rotation || ROTATIONS[person.name] || []).map((r) => `
       <div class="prow">
-        <div class="prow__img"><img src="${r.art}" alt=""></div>
+        <div class="prow__img${r.art ? '' : ' art-type'}">${r.art ? `<img src="${esc(r.art)}" alt="" data-letter="${esc((r.title || '?').slice(0, 1))}">` : `<i>${esc((r.title || '?').slice(0, 1))}</i>`}</div>
         <div class="prow__details">
           <p class="t-body-sm">${esc(r.artist)}</p>
           <p class="t-sub">${esc(r.title)}</p>
         </div>
         <div class="prow__action">${PLAY_BTN(esc(r.title))}</div>
       </div>`).join('');
-    // the featured build: 3 to 6 of their spots or titles, to swap your own into (a mixtape's sibling)
+    // the featured build (3 to 6 of their spots or titles to swap yours into) has no section of its own: the unit it
+    // comes from carries a "Featured" tag, and that unit's add card opens the swap
     const feat = person.featured;
-    const featArt = (t) => (t.art ? `<img src="${esc(t.art)}" alt="">` : feat.type === 'spots' ? '<img class="prow__pin" src="assets/details/map-pin-line.svg" alt="">' : `<i>${esc((t.title || '?').slice(0, 1))}</i>`);
-    const featuredHTML = feat ? `
-        <section class="punit punit--featured">
-          <p class="punit__title">${feat.type === 'spots' ? 'Their spots' : 'Watching and reading'} <span class="punit__tag">Featured</span></p>
-          <div class="prow-list">
-            ${feat.items.map((t) => `
-            <div class="prow prow--feat">
-              <div class="prow__img prow__img--${feat.type}${t.art ? '' : ' is-type'}">${featArt(t)}</div>
-              <div class="prow__details">
-                <p class="t-body-sm">${esc(window.SyncAPI.toRow(feat.type, t).artist || '')}</p>
-                <p class="t-sub">${esc(t.title)}</p>
-              </div>
-            </div>`).join('')}
-            <button class="prow" type="button" data-action="featured">
-              <div class="prow__img prow__img--empty"></div>
-              <div class="prow__details"><p class="t-sub">${feat.type === 'spots' ? 'Swap in your spots' : 'Swap in your picks'}</p></div>
-              <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
-            </button>
-          </div>
-        </section>` : '';
+    const featTag = (type) => (feat && feat.type === type ? ' <span class="punit__tag">Featured</span>' : '');
     const spotCards = p.spots.map((s) => `
       <div class="pspot">
         <div class="pspot__img${s.img ? '' : ' pspot__img--pin'}">${s.img ? `<img src="${s.img}" alt="">` : '<img class="pspot__pin" src="assets/details/map-pin-line.svg" alt="">'}${s.shared ? '<span class="pspot__you">you too</span>' : ''}</div>
@@ -280,7 +282,6 @@
             </button>
           </div>
         </section>
-        ${featuredHTML}
         ${(person.details && DETAIL_ORDER.some((k) => person.details[k])) ? `
         <section class="punit">
           <p class="punit__title">Details</p>
@@ -296,9 +297,8 @@
         </section>
         ${(p.lyric.quote || p.lyric.voice) ? quoteUnit('Lyrics to live by', p.lyric) : ''}
         ${p.dealbreakers && (p.dealbreakers.quote || p.dealbreakers.voice) ? quoteUnit('Deal-breakers', p.dealbreakers) : ''}
-        ${p.obsession && (p.obsession.quote || p.obsession.voice) ? quoteUnit('Current obsession', p.obsession) : ''}
         <section class="punit">
-          <p class="punit__title">Watching and Reading</p>
+          <p class="punit__title">Watching and Reading${featTag('shelf')}</p>
           <div class="pshelf">
             ${(p.shelf || []).map((sh) => `
             <div class="pbook pbook--${sh.kind}">
@@ -310,13 +310,14 @@
             </button>
           </div>
         </section>
+        ${p.obsession && (p.obsession.quote || p.obsession.voice) ? quoteUnit('Current obsession', p.obsession) : ''}
         <section class="punit">
-          <p class="punit__title">Spots</p>
+          <p class="punit__title">Spots${featTag('spots')}</p>
           <div class="pspots">
             ${spotCards}
             <button class="pspot" type="button" data-action="spot">
               <div class="pspot__img pspot__img--empty"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
-              <div class="pspot__cap"><p class="t-sub">Suggest a spot</p></div>
+              <div class="pspot__cap"><p class="t-sub">${feat && feat.type === 'spots' ? 'Swap in your spots' : 'Suggest a spot'}</p></div>
             </button>
           </div>
         </section>
@@ -414,7 +415,7 @@
   const trackRowHTML = (t) => `
       <div class="srow${t.added ? ' srow--added' : ''}" data-key="${esc(t.key || t.title)}" data-title="${esc(t.title)}">
         ${t.added ? '<span class="srow__badge">Your add</span>' : t.theirs ? '<span class="srow__badge srow__badge--theirs">Their add</span>' : ''}
-        <div class="srow__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="" draggable="false">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
+        <div class="srow__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="" draggable="false" data-letter="${esc((t.title || '?').slice(0, 1))}">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
         <div class="srow__details">
           <p class="t-body-sm">${esc(t.artist)}</p>
           <p class="t-sub">${esc(t.title)}</p>
@@ -424,7 +425,7 @@
       </div>`;
   const resultRowHTML = (t, i, disabled) => `
       <div class="sres" data-index="${i}">
-        <div class="sres__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
+        <div class="sres__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="" data-letter="${esc((t.title || '?').slice(0, 1))}">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
         <div class="sres__body">
           <div class="sres__details">
             <p class="t-body-sm">${esc(t.artist)}</p>
@@ -1282,8 +1283,10 @@
     const playlist = card.querySelector('.playlist');
     person.rotation.forEach((track) => {
       const t = tileTpl.content.firstElementChild.cloneNode(true);
-      t.querySelector('img').src = track.art;
-      t.querySelector('img').alt = `${track.artist} — ${track.title}`;
+      const im = t.querySelector('img');
+      im.alt = `${track.artist} — ${track.title}`;
+      im.dataset.letter = (track.title || '?').slice(0, 1);
+      if (track.art) im.src = track.art; else artLetter(im);   // no cover: the letter tile, as in the mixtape sheet
       playlist.appendChild(t);
     });
     const mixTile = mixtapeTpl.content.firstElementChild.cloneNode(true);
@@ -1515,7 +1518,8 @@
     const API = window.SyncAPI;
     const mixTile = card.querySelector('.tile--mixtape');
     const mixRow = profile.querySelector('[data-action="mixtape"] .t-sub');
-    const featRow = profile.querySelector('[data-action="featured"] .t-sub');
+    const featBtn = person.featured ? profile.querySelector(person.featured.type === 'spots' ? '[data-action="spot"]' : '[data-action="shelf"]') : null;
+    const featRow = featBtn && person.featured.type === 'spots' ? featBtn.querySelector('.t-sub') : null;
     const featCta = () => (person.featured && person.featured.type === 'spots' ? 'Swap in your spots' : 'Swap in your picks');
     const refresh = () => {
       const b = person.activeBuild;
@@ -1609,7 +1613,7 @@
       const noun = type === 'mixtape' ? 'mixtape' : type === 'spots' ? 'spots' : 'picks';
       const rows = items.map((t) => API.toRow(type, t));
       const ready = b.status === 'as_is' || API.buildComplete(b);
-      const art = (t) => (t.art ? `<img src="${esc(t.art)}" alt="" draggable="false">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`);
+      const art = (t) => (t.art ? `<img src="${esc(t.art)}" alt="" draggable="false" data-letter="${esc((t.title || '?').slice(0, 1))}">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`);
       if (!remixEl) { remixEl = document.createElement('div'); remixEl.className = 'remix'; card.appendChild(remixEl); }
       remixEl.innerHTML = `<div class="remix__scrim"></div>
         <section class="remix__panel" role="dialog" aria-label="${esc(person.name)}’s ${noun}">
@@ -1685,8 +1689,7 @@
     // the tile opens whatever you two are building (a mixtape when it's nothing yet)
     mixTile.addEventListener('click', (e) => openBuild(person.activeBuild ? person.activeBuild.type_key : 'mixtape')(e));
     profile.querySelector('[data-action="mixtape"]').addEventListener('click', openBuild('mixtape'));
-    const featBtn = profile.querySelector('[data-action="featured"]');
-    if (featBtn && person.featured) featBtn.addEventListener('click', openBuild(person.featured.type));
+    if (featBtn) featBtn.addEventListener('click', openBuild(person.featured.type));
     wireRecordPlayers(profile.querySelector('.prow-list'), '.prow');
     profile.querySelectorAll('.pvoice').forEach((v) => {
       const audio = new Audio(v.dataset.voice); audio.preload = 'none';

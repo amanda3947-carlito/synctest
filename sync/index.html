@@ -7,8 +7,8 @@
   <meta name="theme-color" content="#000000">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=83">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,600&display=swap">
+  <link rel="stylesheet" href="styles.css?v=84">
 </head>
 <body>
   <!-- ":: home 1" — 402 × 874 device frame. On a phone it fills the viewport; on a
@@ -87,11 +87,13 @@
         <h1 class="builds__title">Builds</h1>
         <button class="builds__filter" type="button" aria-label="Filter"><img src="assets/icon-faders.svg" width="20" height="20" alt="" draggable="false"></button>
       </div>
-      <div class="builds__chips" role="tablist">
-        <button class="builds__chip is-on" type="button" role="tab" data-chips="highlights">Highlights</button>
-        <button class="builds__chip" type="button" role="tab" data-chips="new">New</button>
-        <button class="builds__chip" type="button" role="tab" data-chips="recent">Recently active</button>
-        <button class="builds__chip" type="button" role="tab" data-chips="sent">Sent</button>
+      <!-- the tabs as text (1148:11064): Highlights, then each kind with its count in the accent -->
+      <div class="builds__tabs" role="tablist">
+        <button class="btab is-on" type="button" role="tab" data-chips="highlights">Highlights</button>
+        <button class="btab" type="button" role="tab" data-chips="mixtape"><span class="btab__n">0</span> Mixtapes</button>
+        <button class="btab" type="button" role="tab" data-chips="responses"><span class="btab__n">0</span> Responses</button>
+        <button class="btab" type="button" role="tab" data-chips="spots"><span class="btab__n">0</span> Spots</button>
+        <button class="btab" type="button" role="tab" data-chips="shelf"><span class="btab__n">0</span> W&amp;R</button>
       </div>
       <div class="builds__body"></div>
     </section>
@@ -233,10 +235,10 @@
   </template>
 
   <script src="vendor/supabase-2.49.4.js"></script>
-  <script src="config.js?v=83"></script>
-  <script src="api.js?v=83"></script>
-  <script src="onboard.js?v=83"></script>
-  <script src="native.js?v=83"></script>
-  <script src="main.js?v=83"></script>
+  <script src="config.js?v=84"></script>
+  <script src="api.js?v=84"></script>
+  <script src="onboard.js?v=84"></script>
+  <script src="native.js?v=84"></script>
+  <script src="main.js?v=84"></script>
 </body>
 </html>

@@ -1570,8 +1570,8 @@
       const done = person.activeBuild.status === 'agreed';
       celebrate(card, done ? 'msg' : 'mix', done ? SHEET[person.activeBuild.type_key || 'mixtape'].done : 'Agreed. Their call now.').then(leave);
     };
-    const openBuild = (type) => (e) => {
-      e.stopPropagation();
+    const openBuild = (type, more = {}) => async (e) => {
+      if (e) e.stopPropagation();
       const b = person.activeBuild;
       if (b && b.type_key !== type) { notice(`You two are already building ${b.type_key === 'mixtape' ? 'a mixtape' : b.type_key === 'spots' ? 'on their spots' : 'on their picks'}`); return; }
       if (b && b.status === 'agreed') { notice('You two already made this one'); return; }
@@ -1582,18 +1582,83 @@
       const opts = type === 'mixtape' ? {} : { kind: type, search: (q) => API.searchRows(type, q), placeholder: copy.placeholder, blank: copy.blank, title: copy.title, sub: copy.sub };
       if (b) {
         // the live version, with your own adds marked
-        person.sheetItems = b.items.map((t) => ({ ...API.toRow(type, t), added: t.by === ME }));
-        openSheet(person, resume, onSent(type), {
+        person.sheetItems = (await API.withArt(b.items)).map((t) => ({ ...API.toRow(type, t), added: t.by === ME }));
+        openSheet(person, more.onClose || resume, onSent(type), {
           ...opts,
           title: b.status === 'as_is' ? `${person.name} loved yours` : 'Your turn',
           sub: b.status === 'as_is' ? 'Match back, or counter with a change' : `Round ${b.round}. Change up to two things, or call it`,
           canAgree: true, onAgree, addLimit: 2,
+          ...more.sheet,
         });
       } else {
         person.sheetItems = type === 'mixtape' ? null : person.featured.items.map((t) => API.toRow(type, t));
         openSheet(person, resume, onSent(type), opts);
       }
     };
+
+    // ── the remix, lightboxed (1148:9307): opened from Builds, what they made sits over their profile. The caret
+    // tucks it to a full-width bar at the foot (1148:10273) so the whole profile reads; the bar brings it back.
+    // "Make another change" turns it into the mixtape sheet with search; "Send it back as is" agrees to it as it
+    // stands (or matches back on a loved-as-is), which is the last step of a build.
+    let remixEl = null;
+    const remix = async (state = 'open') => {
+      const b = person.activeBuild;
+      if (!b || b.status === 'agreed' || b.turn_id !== ME) { if (remixEl) { remixEl.remove(); remixEl = null; } return; }
+      const items = await API.withArt(b.items);
+      const type = b.type_key || 'mixtape';
+      const noun = type === 'mixtape' ? 'mixtape' : type === 'spots' ? 'spots' : 'picks';
+      const rows = items.map((t) => API.toRow(type, t));
+      const ready = b.status === 'as_is' || API.buildComplete(b);
+      const art = (t) => (t.art ? `<img src="${esc(t.art)}" alt="" draggable="false">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`);
+      if (!remixEl) { remixEl = document.createElement('div'); remixEl.className = 'remix'; card.appendChild(remixEl); }
+      remixEl.innerHTML = `<div class="remix__scrim"></div>
+        <section class="remix__panel" role="dialog" aria-label="${esc(person.name)}’s ${noun}">
+          <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)}’s remix" data-min="${esc(person.name)}’s ${noun}"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
+          <div class="remix__body">
+            <div class="remix__list">
+              ${rows.map((t) => `<div class="prow remix__row">
+                <div class="prow__img${t.art ? '' : ' is-type'}">${art(t)}</div>
+                <div class="prow__details"><p class="t-body-sm">${esc(t.artist || '')}</p><p class="t-sub">${esc(t.title)}</p></div>
+                <div class="prow__action">${type === 'mixtape' ? PLAY_BTN(esc(t.title)) : ''}</div>
+              </div>`).join('')}
+              <button class="prow remix__row" type="button" data-remix="change">
+                <div class="prow__img prow__img--empty remix__slot"></div>
+                <div class="prow__details"><p class="t-sub remix__wrap">${ready ? 'Make another change' : 'Make another change to finish the build'}</p></div>
+                <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
+              </button>
+            </div>
+            <button class="remix__send" type="button" data-remix="send"${ready ? '' : ' disabled'}>${ready ? 'Send it back as is' : 'Add your change to send it back'}</button>
+          </div>
+        </section>`;
+      wireRecordPlayers(remixEl.querySelector('.remix__list'), '.remix__row');
+      remixEl.dataset.state = state;
+    };
+    // open ⇄ tucked, with the panel carried between its two places
+    const setRemix = (state) => {
+      if (!remixEl) return;
+      const panel = remixEl.querySelector('.remix__panel');
+      const host = remixEl.getBoundingClientRect(), a = panel.getBoundingClientRect();
+      remixEl.dataset.state = state;
+      remixEl.querySelector('.remix__head').setAttribute('aria-expanded', state === 'open');
+      if (reduceMotion) return;
+      const z = panel.getBoundingClientRect();
+      const box = (r) => ({ top: `${r.top - host.top}px`, left: `${r.left - host.left}px`, width: `${r.width}px`, height: `${r.height}px` });
+      panel.animate([box(a), box(z)], { duration: 420, easing: 'cubic-bezier(0.32, 0.72, 0, 1)' });
+    };
+    card.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-remix]'); if (!btn || !remixEl || !remixEl.contains(btn)) return;
+      e.stopPropagation();
+      const act = btn.dataset.remix;
+      if (act === 'toggle') { setRemix(remixEl.dataset.state === 'open' ? 'min' : 'open'); return; }
+      if (act === 'send') { if (btn.disabled) return; remixEl.remove(); remixEl = null; onAgree(); return; }
+      if (act === 'change') {
+        // the tape anchors to the foot and becomes the mixtape sheet with search; closing it leaves the tucked bar
+        setRemix('min');
+        const type = (person.activeBuild && person.activeBuild.type_key) || 'mixtape';
+        openBuild(type, { onClose: () => { resume(); remix('min'); }, sheet: { title: 'Make it a full build to unlock chat', sub: type === 'mixtape' ? 'Search, reorder and add tracks' : 'Search, reorder and add', sendLabel: 'Send it back' } })();
+        if (remixEl) remixEl.dataset.state = 'hidden';
+      }
+    });
 
     // a note from the like: compose opens over whatever is up (the profile, or the photo
     // itself, held still). Sending is "love it as is" on their mixtape: the note goes
@@ -1676,7 +1741,7 @@
     let drag = null;
     card.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (e.target.closest('.playlist, .pshelf, .pdetails')) return;   // the rotation row, the shelf and the chips scroll on their own
+      if (e.target.closest('.playlist, .pshelf, .pdetails, .remix')) return;   // the rotation row, the shelf, the chips and the remix take their own touches
       if (e.target.closest('.preply')) return;     // the reply row's buttons are taps, not swipes
       drag = { x: e.clientX, y: e.clientY, dx: 0, dy: 0, axis: null, id: e.pointerId, open: card.classList.contains('is-profile-open'), inProfile: !!e.target.closest('.profile'), vx: 0, vy: 0, lastX: e.clientX, lastY: e.clientY, lastT: e.timeStamp, startTop: feed.scrollTop };
       suppressClick = false;
@@ -1756,7 +1821,7 @@
     // sideways burst toggles the profile, then locks until the gesture ends
     let wheelAcc = 0, wheelReset = 0, wheelLock = false;
     card.addEventListener('wheel', (e) => {
-      if (e.target.closest('.playlist, .pshelf, .pdetails, .sheet')) return;
+      if (e.target.closest('.playlist, .pshelf, .pdetails, .sheet, .remix')) return;
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.2) return;
       wheelAcc += e.deltaX;
       clearTimeout(wheelReset);
@@ -1776,7 +1841,7 @@
       refresh,
       activate() { active = true; card.focus({ preventScroll: true }); if (!card.classList.contains('is-profile-open')) play(); },
       deactivate() { active = false; pause(); card.classList.remove('is-paused'); hideControl(); },
-      openProfile, closeProfile,
+      openProfile, closeProfile, remix,
     };
   }
 
@@ -1791,7 +1856,7 @@
   const buildsTab = (() => {
     const root = device.querySelector('.device__builds');
     const body = root.querySelector('.builds__body');
-    const chips = [...root.querySelectorAll('.builds__chip')];
+    const chips = [...root.querySelectorAll('.btab')];
     const push = device.querySelector('.device__push');
     let list = [], view = 'highlights', isOpen = false, pushed = null, pushSettled = false;
     const TYPE = { mixtape: ['mixtape', 'Made it a mixtape', 'track', 'tracks'], spots: ['match', 'Swapped in their spots', 'spot', 'spots'], shelf: ['match', 'Swapped in their picks', 'title', 'titles'] };
@@ -1816,11 +1881,20 @@
     };
     const discHTML = (x, cls) => `<img class="${cls}" src="${esc(x.person.disc)}" alt="" draggable="false">`;
     // Highlights: one card per build, 333 wide; the one in view stands tallest, the next peeks in a touch smaller
-    const hlHTML = (x) => `<button class="bhl__card${x.note ? '' : ' bhl__card--quiet'}${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
-        <div class="bhl__photo"><img class="bhl__img" src="${img(x)}" alt="" draggable="false">${changedHTML(x) ? `<div class="bhl__strip">${changedHTML(x)}</div>` : ''}</div>
-        <div class="bhl__row"><span class="bhl__name">${esc(x.person.name)}${discHTML(x, 'bhl__disc')}</span><span class="bhl__line">${esc(line(x))}</span></div>
-        ${x.note ? `<p class="bhl__note">“${esc(x.note)}”</p>` : ''}
+    // Highlights (1148:9213): their photo edge to edge, the photo dots on top, and at the foot their name and
+    // badge, what moved, and the art of what they changed
+    const hlHTML = (x) => {
+      const n = Math.min(5, Math.max(1, x.person.photos || 1));
+      return `<button class="bhl__card${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}" aria-label="${esc(x.person.name)}: ${esc(line(x))}">
+        <img class="bhl__img" src="${img(x)}" alt="" draggable="false">
+        <span class="bhl__top" aria-hidden="true"><span class="bhl__dots">${Array.from({ length: n }, (_, i) => `<i${i ? '' : ' class="is-on"'}></i>`).join('')}</span></span>
+        <span class="bhl__foot">
+          <span class="bhl__name">${esc(x.person.name)}${discHTML(x, 'bhl__disc')}</span>
+          <span class="bhl__line">${esc(line(x))}</span>
+          ${x.changed && x.changed.arts.length ? `<span class="bthumbs">${x.changed.arts.map((src) => `<img src="${esc(src)}" alt="" draggable="false">`).join('')}</span>` : ''}
+        </span>
       </button>`;
+    };
     // every other tab: a row per build (the "feed for all other tabs" frame)
     const rowHTML = (x) => `<button class="brow${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
         <span class="brow__photo"><img class="brow__img" src="${img(x)}" alt="" draggable="false">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="brow__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"></span>` : ''}</span>
@@ -1834,24 +1908,29 @@
       const origin = hl.scrollLeft + 20;
       cards.forEach((c) => { const d = Math.abs(c.offsetLeft - origin); const t = Math.min(1, d / (c.offsetWidth + 20)); c.style.transform = `scale(${(1 - 0.077 * t).toFixed(4)})`; });
     };
+    // the tabs: Highlights, then what's live by kind, and Responses: what they've sent back that waits on you
+    const live = () => list.filter((x) => x.build.status !== 'agreed');
+    const inView = (v) => (v === 'responses' ? live().filter((x) => x.mine) : live().filter((x) => x.build.type_key === v));
+    const EMPTY = { mixtape: 'No mixtapes going right now.', responses: 'Nothing waiting on you.', spots: 'No spots going right now.', shelf: 'Nothing on watching & reading right now.' };
     const render = () => {
-      chips.forEach((c) => c.classList.toggle('is-on', c.dataset.chips === view));
+      chips.forEach((c) => {
+        c.classList.toggle('is-on', c.dataset.chips === view); c.setAttribute('aria-selected', c.dataset.chips === view);
+        const n = c.querySelector('.btab__n'); if (n) n.textContent = inView(c.dataset.chips).length;
+      });
       body.classList.toggle('is-highlights', view === 'highlights' && list.length > 0);
       if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
       if (view === 'highlights') {
-        const live = list.filter((x) => x.build.status !== 'agreed');
-        const featured = [...live.filter((x) => x.mine), ...live.filter((x) => !x.mine), ...list.filter((x) => x.build.status === 'agreed')].slice(0, 5);
+        // three people: what waits on you first, then what's out with them, then what you finished
+        const featured = [...live().filter((x) => x.mine), ...live().filter((x) => !x.mine), ...list.filter((x) => x.build.status === 'agreed')].slice(0, 3);
         body.innerHTML = `<div class="bhl">${featured.map(hlHTML).join('')}</div>`;
         const hl = body.querySelector('.bhl');
         hl.addEventListener('scroll', () => { if (!hlRaf) hlRaf = requestAnimationFrame(() => { hlRaf = 0; settleHl(); }); }, { passive: true });
         settleHl();
         return;
       }
-      let rows = list;
-      if (view === 'new') rows = list.filter((x) => x.mine && x.build.status !== 'agreed');
-      if (view === 'sent') rows = list.filter((x) => x.iStarted && !x.mine && x.build.status !== 'agreed');
+      const rows = inView(view);
       body.innerHTML = rows.length ? `<div class="blist">${rows.map(rowHTML).join('')}</div>`
-        : `<div class="builds__empty"><p>${view === 'new' ? 'Nothing waiting on you.' : view === 'sent' ? 'Nothing out with them right now.' : 'Nothing here yet.'}</p></div>`;
+        : `<div class="builds__empty"><p>${EMPTY[view] || 'Nothing here yet.'}</p></div>`;
     };
     const load = async () => { try { list = await window.SyncAPI.buildsList(); } catch (e) { console.error(e); list = []; } render(); };
     chips.forEach((c) => c.addEventListener('click', () => { view = c.dataset.chips; render(); body.scrollTop = 0; }));
@@ -1872,6 +1951,7 @@
       const c = controller(buildCard(person));
       push.innerHTML = ''; push.appendChild(c.card); push.hidden = false; pushed = c; device.classList.add('is-push-in');
       c.openProfile();
+      c.remix('open');   // what they made, lightboxed over their profile (only when it waits on you)
       requestAnimationFrame(() => requestAnimationFrame(() => { push.classList.add('is-in'); setTimeout(() => { pushSettled = true; }, 500); }));
       new MutationObserver(() => { if (pushSettled && pushed === c && !c.card.classList.contains('is-profile-open')) closePush(false); }).observe(c.card, { attributes: true, attributeFilter: ['class'] });
     };
@@ -2023,7 +2103,7 @@
       const c = cards.find((x) => x.person.id === other);
       const before = c && c.person.activeBuild;
       if (c) { c.person.activeBuild = b; c.refresh(); }
-      const pc = buildsTab.pushed; if (pc && pc.person.id === other) { pc.person.activeBuild = b; pc.refresh(); }
+      const pc = buildsTab.pushed; if (pc && pc.person.id === other) { pc.person.activeBuild = b; pc.refresh(); if (b.turn_id !== ME || b.status === 'agreed') pc.remix(); }
       if (buildsTab.isOpen && !pc) buildsTab.refresh();
       if (b.status === 'agreed' && (!before || before.status !== 'agreed')) { badgeBuilds(); if (c) celebrate(c.card, 'msg', SHEET[b.type_key] ? SHEET[b.type_key].done : 'It\'s a match'); }
       else if (b.turn_id === ME && (!before || before.turn_id !== ME)) badgeBuilds();

@@ -391,7 +391,8 @@ window.SyncAPI = (() => {
     // what the owner started from, so their own rotation never counts as something they changed
     const origin = Object.fromEntries((pbs || []).map((p) => [p.id, new Set((Array.isArray(p.items) ? p.items : []).map((t) => t.key))]));
     const prof = Object.fromEntries((profiles || []).map((p) => [p.id, p]));
-    const photo = {}; for (const m of media || []) if (!photo[m.profile_id]) photo[m.profile_id] = m.kind === 'video' ? m.poster_path : m.path;
+    const photo = {}, photos = {};
+    for (const m of media || []) { photos[m.profile_id] = (photos[m.profile_id] || 0) + 1; if (!photo[m.profile_id]) photo[m.profile_id] = m.kind === 'video' ? m.poster_path : m.path; }
     const last = {}; for (const t of turns || []) if (!last[t.build_id]) last[t.build_id] = t;
     // what they changed: the items stamped with their id (a list's tracks or titles, a slot build's filled slots)
     const theirs = (b, oid) => {
@@ -410,7 +411,7 @@ window.SyncAPI = (() => {
       return { build: b, last: last[b.id] || null, mine: b.turn_id === me, iStarted: b.starter_id === me,
         changed: { count: changed.length, arts: changed.map((t) => url[t.art] || t.art).filter(Boolean).slice(0, 3) },
         note: n && n.actor_id === oid ? n.note : null,
-        person: { id: oid, name: p.name, seeking: p.seeking || null, disc: discFor(p), photo: url[photo[oid]] || url[p.avatar_path] || null, avatar: url[p.avatar_path] || null } };
+        person: { id: oid, name: p.name, seeking: p.seeking || null, disc: discFor(p), photo: url[photo[oid]] || url[p.avatar_path] || null, avatar: url[p.avatar_path] || null, photos: photos[oid] || 1 } };
     });
   }
   async function hydrate(p, me) {
@@ -522,9 +523,15 @@ window.SyncAPI = (() => {
   //    title), art}; these turn a build's items into rows and rows back into items, and search each kind.
   const SHELF_TAG = { film: 'Movie', show: 'Show', book: 'Book' };
   const BUILD_KINDS = {
-    mixtape: { noun: 'mixtape', unit: ['track', 'tracks'] },
-    spots: { noun: 'spots', unit: ['spot', 'spots'] },
-    shelf: { noun: 'picks', unit: ['title', 'titles'] },
+    mixtape: { noun: 'mixtape', unit: ['track', 'tracks'], min: 3, each: 2 },
+    spots: { noun: 'spots', unit: ['spot', 'spots'], min: 3, each: 1 },
+    shelf: { noun: 'picks', unit: ['title', 'titles'], min: 3, each: 1 },
+  };
+  // the database's rule, mirrored so a screen can say whether a build can be agreed as it stands
+  const buildComplete = (b) => {
+    const k = BUILD_KINDS[b.type_key] || BUILD_KINDS.mixtape; const items = Array.isArray(b.items) ? b.items : [];
+    const by = (id) => items.filter((t) => t && t.by === id).length;
+    return items.length >= k.min && by(b.starter_id) >= k.each && by(b.owner_id) >= k.each;
   };
   const strip = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null && v !== ''));
   function toRow(type, t) {
@@ -537,6 +544,12 @@ window.SyncAPI = (() => {
     if (type === 'shelf') return strip({ key: r.key, kind: r.kind, title: r.title, meta: r.meta != null ? r.meta : ((r.artist || '').replace(/^(Movie|Show|Book)( · )?/, '') || null), art: r.art });
     const pl = r.place || {};
     return strip({ key: r.key, title: r.title, meta: r.meta || r.artist, art: r.art, place_id: r.place_id || (isUuid(r.id) ? r.id : null) || (isUuid(pl.id) ? pl.id : null), lat: r.lat != null ? r.lat : pl.lat, lng: r.lng != null ? r.lng : pl.lng });
+  }
+  // a build's items as stored keep storage paths for their art (demo/…, a person's folder); this turns them into URLs
+  async function withArt(items) {
+    const list = Array.isArray(items) ? items : [];
+    const url = await mediaUrls(list.map((t) => t && t.art).filter(Boolean));
+    return list.map((t) => (t && t.art ? { ...t, art: url[t.art] || t.art } : t));
   }
   // a search for the sheet, per kind: tracks from Apple; films, shows and books together; spots from the map
   async function searchRows(type, q) {
@@ -552,5 +565,5 @@ window.SyncAPI = (() => {
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
-           watchBuilds, mediaUrls, trackItem, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, toRow, toItem, searchRows };
+           watchBuilds, mediaUrls, trackItem, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
 })();

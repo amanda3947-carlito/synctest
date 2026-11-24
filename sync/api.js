@@ -588,5 +588,5 @@ window.SyncAPI = (() => {
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, sendNote, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
-           watchBuilds, mediaUrls, trackItem, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
+           watchBuilds, mediaUrls, trackItem, searchGifs, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
 })();

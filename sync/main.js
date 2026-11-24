@@ -160,6 +160,13 @@
   };
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+  // a note as people read it: its words, and a GIF sent with it ([gif:url] in the note) drawn as the GIF itself
+  const noteHTML = (note) => {
+    const raw = String(note || '');
+    const gif = (raw.match(/\[gif:(https:\/\/[^\]\s]+)\]/) || [])[1];
+    const words = raw.replace(/\s*\[gif:[^\]]+\]/g, '').replace(/\s*\[voice:[^\]]+\]/g, '').trim();
+    return `${words ? `<span class="note__text">“${esc(words)}”</span>` : ''}${gif ? `<img class="note__gif" src="${esc(gif)}" alt="GIF" loading="lazy" draggable="false">` : ''}`;
+  };
   // a track's cover that isn't there, or doesn't load, gives way to the mixtape sheet's tile: the first letter of the title
   const ART_SLOTS = '.tile, .prow__img, .srow__art, .sres__art, .bthumbs, .ob__track-art';
   function artLetter(img) {
@@ -953,7 +960,26 @@
     };
     let placeTimer = 0;
 
-    grid.innerHTML = GIFS.map((g, i) => `<button class="compose__tile" type="button" data-index="${i}" aria-label="${esc(g.alt)}"><img src="${g.src}" alt="" loading="lazy" draggable="false"></button>`).join('');
+    // the drawer's GIFs: GIPHY's trending to start, then search as you type (the bundled reel if GIPHY doesn't answer)
+    let shownGifs = GIFS;
+    const drawGifs = (list) => {
+      shownGifs = list;
+      grid.innerHTML = list.length ? list.map((g, i) => `<button class="compose__tile" type="button" data-index="${i}" aria-label="${esc(g.alt)}"><img src="${esc(g.thumb || g.src)}" alt="" loading="lazy" draggable="false"></button>`).join('')
+        : '<p class="compose__gifnone">No GIFs for that. Try another word.</p>';
+    };
+    drawGifs(GIFS);
+    const gifQ = root.querySelector('.compose__gifq');
+    let gifSeq = 0, gifTimer = 0, gifsLoaded = false;
+    const loadGifs = async (term) => {
+      const seq = ++gifSeq;
+      let hits = [];
+      try { hits = await window.SyncAPI.searchGifs(term); } catch (e) { hits = []; }
+      if (seq !== gifSeq) return;   // a newer search is out
+      drawGifs(hits.map((h) => ({ src: h.art, thumb: h.thumb || h.art, alt: h.title || 'GIF' })));
+      grid.scrollTop = 0;
+    };
+    gifQ.addEventListener('input', () => { clearTimeout(gifTimer); gifTimer = setTimeout(() => loadGifs(gifQ.value.trim()), 300); });
+    gifQ.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); gifQ.blur(); } });
 
     const refresh = () => {
       const hasText = input.value.trim().length > 0;
@@ -1002,6 +1028,7 @@
       device.classList.add('is-gifs-up');
       input.blur();
       setKb();
+      if (!gifsLoaded) { gifsLoaded = true; loadGifs(''); }   // trending, the first time the drawer opens
     };
     const onOutside = (e) => { if (session && !e.target.closest('.pquote.is-composing')) close(); };
     const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); } };
@@ -1101,8 +1128,8 @@
     grid.addEventListener('click', (e) => {
       const tile = e.target.closest('.compose__tile');
       if (!tile) return;
-      attachment = GIFS[Number(tile.dataset.index)];
-      thumb.src = attachment.src;
+      attachment = shownGifs[Number(tile.dataset.index)];
+      thumb.src = attachment.thumb || attachment.src;
       refresh();
       showKeyboard();   // the picked GIF sits in the field and the keyboard comes back (1063:5870)
       placeSoon();      // the unit rides up to stay above the taller field
@@ -1474,7 +1501,10 @@
     // prompts ("intro" 1062:5702): the GIF, photo and field pills open compose mode. Sending
     // follows the mixtape pattern: the toast plays here on the profile, then the profile
     // slides back to the feed and the feed moves on to the next person.
-    const noteText = ({ text, gif, voice, seconds }) => text || (voice ? `Voice note · ${seconds}s [voice:${voice}]` : gif ? 'Sent a GIF' : '');
+    const noteText = ({ text, gif, voice, seconds }) => {
+      if (voice) return `${text ? text + ' ' : ''}Voice note · ${seconds}s [voice:${voice}]`;
+      return [text, gif ? `[gif:${gif.src}]` : ''].filter(Boolean).join(' ');
+    };
     const onReplySent = (payload) => {
       const { text, gif, voice } = payload;
       celebrate(card, 'msg', text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '')).then(() => {
@@ -1622,7 +1652,7 @@
         <section class="remix__panel" role="dialog" aria-label="${esc(person.name)}’s ${noun}">
           <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)}’s ${b.status === 'as_is' ? 'note' : 'remix'}" data-min="${esc(person.name)}’s ${noun}"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
           <div class="remix__body">
-            ${b.status === 'as_is' && b.as_is_note ? `<p class="remix__note">“${esc(b.as_is_note.replace(/\s*\[voice:[^\]]+\]/, ''))}”</p>` : ''}
+            ${b.status === 'as_is' && b.as_is_note ? `<div class="remix__note">${noteHTML(b.as_is_note)}</div>` : ''}
             <div class="remix__list">
               ${rows.map((t, i) => `<div class="prow remix__row">${theirChange(b, items[i]) ? '<span class="srow__badge srow__badge--theirs">Their add</span>' : ''}
                 <div class="prow__img${t.art ? '' : ' is-type'}">${art(t)}</div>
@@ -1910,7 +1940,7 @@
     // every other tab: a row per build (the "feed for all other tabs" frame)
     const rowHTML = (x) => `<button class="brow${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
         <span class="brow__photo"><img class="brow__img" src="${img(x)}" alt="" draggable="false">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="brow__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"></span>` : ''}</span>
-        <span class="brow__body"><span class="brow__head"><span class="brow__name">${esc(x.person.name)}${discHTML(x, 'brow__disc')}</span><span class="brow__line">${esc(line(x))}</span></span>${x.note ? `<span class="brow__note">“${esc(x.note)}”</span>` : ''}${changedHTML(x)}</span>
+        <span class="brow__body"><span class="brow__head"><span class="brow__name">${esc(x.person.name)}${discHTML(x, 'brow__disc')}</span><span class="brow__line">${esc(line(x))}</span></span>${x.note ? `<span class="brow__note">${noteHTML(x.note)}</span>` : ''}${changedHTML(x)}</span>
       </button>`;
     // the carousel: a touch of zoom as a card lands in view, the next one a little smaller until it is the one
     let hlRaf = 0;

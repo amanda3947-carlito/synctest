@@ -1423,6 +1423,9 @@ img { display: block; }
 .sheet__agree { display: none; flex: 1 1 0; height: 48px; padding: 10px 12px; border-radius: 24px; background: #a8face; color: var(--black); font-size: 14px; line-height: 1.2; font-weight: 600; font-variation-settings: "opsz" 14; white-space: nowrap; }
 .sheet__cta.has-agree .sheet__agree { display: block; }
 .sheet__cta.has-agree .sheet__send { flex: 1 1 0; width: auto; }
+/* one button at a time on a build that's yours to answer: "It's a mixtape" until you change something, then "Send it back" */
+.sheet__cta.has-agree:not(.is-changed) .sheet__send { display: none; }
+.sheet__cta.has-agree.is-changed .sheet__agree { display: none; }
 .sheet__cta.has-agree.is-bin .sheet__agree { flex-basis: 0; width: 0; padding: 0; opacity: 0; overflow: hidden; }
 /* a quiet line for what the database said no to */
 .notice { position: absolute; left: 50%; top: 64px; z-index: 20; transform: translate(-50%, -8px); max-width: 340px; padding: 10px 16px; border-radius: 999px; background: rgba(30, 30, 30, 0.92); color: #f3f3f3; font-size: 13.5px; font-weight: 500; font-variation-settings: "opsz" 14; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.25s, transform 0.25s; }

@@ -490,7 +490,8 @@
       showResults(tracks, tracks.length ? '' : failed ? 'down' : 'none');
     }, 200);
   };
-  const markDirty = () => { sheet.classList.add('is-dirty'); sheetSend.disabled = false; };
+  // a change swaps the one button over: "It's a mixtape" (send it back as is) becomes "Send it back"
+  const markDirty = () => { sheet.classList.add('is-dirty'); sheetSend.disabled = false; sheetCta.classList.add('is-changed'); };
 
   // animate the sheet's height across a content change (it is bottom-anchored, so the top edge moves)
   const withHeight = (mutate) => {
@@ -517,7 +518,9 @@
     sheet.querySelector('.sheet__sub').textContent = opts.sub || 'Search, reorder and add tracks';
     sheetSend.textContent = opts.sendLabel || 'Send it back';
     sheetAgree.hidden = !opts.canAgree;
+    sheetAgree.textContent = opts.agreeLabel || 'It\'s a mixtape';
     sheetCta.classList.toggle('has-agree', !!opts.canAgree);
+    sheetCta.classList.remove('is-changed');
     sheet.classList.remove('is-dirty', 'is-searching');
     sheetSend.disabled = !opts.ready;   // ready: there is something to save before any change (a first featured pick)
     sheetInput.value = '';
@@ -1623,7 +1626,7 @@
           ...opts,
           title: b.status === 'as_is' ? `${person.name} loved yours` : 'Your turn',
           sub: b.status === 'as_is' ? 'Match back, or counter with a change' : `Round ${b.round}. Change up to two things, or call it`,
-          canAgree: true, onAgree, addLimit: 2,
+          canAgree: true, onAgree, addLimit: 2, agreeLabel: type === 'mixtape' ? 'It\'s a mixtape' : 'Looks good! Send it back',
           ...more.sheet,
         });
       } else {

@@ -97,6 +97,14 @@ it is complete or you already have; on featured spots or titles they add one or 
 matched back. Each move carries one of their lines (`standins.lines`) as its note, and a match gets a line
 in the chat. A move that fails is logged as a warning and retried after their pace.
 
+## More people: `people.sql`
+
+Fourteen more people for the feed (after `seed.sql` and migration 0011): Marcus, Kwame, Sofia, Arjun, June, Camille,
+Rafa, Leo, Ivy, Amara, Zuri, Nia, Finn and Kai. Their photos are in `sync/assets/people/` (paths `demo/people/…`).
+Each has a five-track mixtape with real covers, prompts, details, three spots, watching & reading, six of them a
+featured build (spots or shelf), and a stand-in row so they answer your remixes and likes. Ten new Brooklyn,
+Queens and Manhattan spots come with them. Safe to re-run. `reset_me.sql` puts the live demo account's own builds back.
+
 ## Deleting an account
 
 Apple requires any app with sign-up to let people delete their account in the app. Migration 0012 adds

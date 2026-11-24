@@ -68,7 +68,7 @@ window.SyncOnboard = (() => {
       ${sub ? `<p class="ob__p">${sub}</p>` : ''}
       <div class="ob__body">${body}</div>
       <p class="ob__err" aria-live="polite"></p>
-      ${cta ? `<div class="ob__foot"><button class="ob__cta${ready ? ' is-ready' : ''}" type="button" data-next><span>${esc(cta)}</span><img src="assets/arrow-right.svg" width="15" height="15" alt="" class="ob__cta-arrow"></button>${showCancel ? `<button class="ob__cta ob__cta--ghost" type="button" data-cancel>${esc(typeof cancel === 'string' ? cancel : 'Cancel')}</button>` : ''}</div>` : ''}`;
+      ${cta ? `<div class="ob__foot"><button class="ob__cta${ready ? ' is-ready' : ''}" type="button" data-next><span>${esc(cta)}</span></button>${showCancel ? `<button class="ob__cta ob__cta--ghost" type="button" data-cancel>${esc(typeof cancel === 'string' ? cancel : 'Cancel')}</button>` : ''}</div>` : ''}`;
     root().hidden = false;
     root().scrollTop = 0;
     panel().scrollTop = 0;
@@ -913,7 +913,7 @@ window.SyncOnboard = (() => {
     const prof = await api().myProfile();
     const person = await api().hydrate(prof, prof.id);
     freshPanel('auth--real').innerHTML = `<aside class="profile ob__real">${deps.profileHTML(person)}</aside>
-      <div class="ob__realbar"><button class="ob__cta ob__cta--quiet" type="button" data-board>Make it yours</button><button class="ob__cta is-ready" type="button" data-next><span>Looks good</span><img src="assets/arrow-right.svg" width="15" height="15" alt="" class="ob__cta-arrow"></button></div>`;
+      <div class="ob__realbar"><button class="ob__cta ob__cta--quiet" type="button" data-board>Make it yours</button><button class="ob__cta is-ready" type="button" data-next><span>Looks good</span></button></div>`;
     root().hidden = false;
     const real = panel().querySelector('.ob__real');
     real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is your profile as people see it. Everything on it can change from your avatar, any time.</p>';

@@ -270,6 +270,7 @@ img { display: block; }
 .builds__me { flex: 0 0 36px; }
 .builds__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* the frame has no visible title; kept for screen readers */
 .builds__filter { width: 36px; height: 36px; padding: 0; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; }
+.builds__filter img { filter: invert(0.81); }   /* the faders are drawn white; on the light chip they read as #303030 */
 /* the tabs (1148:11064): 20px Plus Jakarta, 16 apart; the one you're on in ink and bold, the rest grey with the count in the accent */
 .builds__tabs { flex: 0 0 auto; display: flex; gap: 16px; padding: 17px 20px 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .builds__tabs::-webkit-scrollbar { display: none; }
@@ -1461,10 +1462,7 @@ img { display: block; }
 .auth--sky .ob__foot { background: none; }
 .auth--board .ob__foot { position: static; background: none; padding: 12px 0 20px; }
 .ob__cta { width: 100%; height: 48px; padding: 0 12px; border-radius: 24px; text-align: center; background: #f5f5f5; color: #757575; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-body); font-size: 14px; line-height: 1.2; font-weight: 600; font-variation-settings: "opsz" 14; transition: background 0.25s, color 0.25s, transform 0.15s, opacity 0.2s; }
-/* the arrow hangs off the label's right so the word itself sits dead centre, not the word-plus-arrow group */
-.ob__cta-arrow { opacity: 0.5; transition: opacity 0.25s; margin-right: -23px; }
 .ob__cta.is-ready { background: #a8face; color: #1e1e1e; }
-.ob__cta.is-ready .ob__cta-arrow { opacity: 1; }
 .ob__cta:active { transform: scale(0.98); }
 .ob__cta:disabled, .ob__cta.is-busy { opacity: 0.6; }
 .ob__cta--quiet { background: var(--surface); color: #1e1e1e; }
@@ -1823,7 +1821,7 @@ button.ob__cal-day:active { background: #e9e7e3; }
 .mine__scroll::-webkit-scrollbar { display: none; }
 .auth--mine-view .ob__real { inset: 0; }
 .auth--mine-view .pnav { visibility: hidden; }
-.auth--mine-view:not(.is-light) .mine__top .ob__back img { filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3)) brightness(10); }
+.auth--mine-view:not(.is-light) .mine__top .ob__back img { filter: invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35)); }   /* the chevron is pure black: invert, since brightening black stays black */
 .mine__top .ob__back img { transition: filter 0.25s; }
 /* the control is liquid glass, the nav's recipe: tint, rim, frost and the deep shadow. Over the cover (View) it is the
    nav's light glass with white ink; on the white page (Edit) it takes the nav's dark variant, ink on a brighter tint */

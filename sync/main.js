@@ -1451,7 +1451,9 @@
       SMALL.ay = rowTop + 7; SMALL.dy = rowTop + 32;
       pbar.style.opacity = p;
       pbar.style.pointerEvents = p > 0.5 ? 'auto' : 'none';
-      bigNav.style.opacity = 1 - p;
+      // the cover's light icons are gone by halfway; the bar's dark ones only come in once its ground is mostly there
+      bigNav.style.opacity = clamp(1 - p / 0.5, 0, 1);
+      pbarRow.querySelectorAll('.pnav__btn, .pbar__title').forEach((el) => { el.style.opacity = clamp((p - 0.6) / 0.4, 0, 1); });
       const done = p >= 1;
       bigAvatar.style.visibility = done ? 'hidden' : 'visible';
       bigDisc.style.visibility = done ? 'hidden' : 'visible';
@@ -1601,7 +1603,7 @@
 
     // ── the remix, lightboxed (1148:9307): opened from Builds, what they made sits over their profile. The caret
     // tucks it to a full-width bar at the foot (1148:10273) so the whole profile reads; the bar brings it back.
-    // "Make another change" turns it into the mixtape sheet with search; "Send it back as is" agrees to it as it
+    // "Make another change" turns it into the mixtape sheet with search; "Looks good! Send it back" agrees to it as it
     // stands (or matches back on a loved-as-is), which is the last step of a build.
     let remixEl = null;
     const remix = async (state = 'open') => {
@@ -1631,7 +1633,7 @@
                 <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
               </button>
             </div>
-            <button class="remix__send" type="button" data-remix="send"${ready ? '' : ' disabled'}>${ready ? 'Send it back as is' : 'Add your change to send it back'}</button>
+            <button class="remix__send" type="button" data-remix="send"${ready ? '' : ' disabled'}>${ready ? 'Looks good! Send it back' : 'Add your change to send it back'}</button>
           </div>
         </section>`;
       wireRecordPlayers(remixEl.querySelector('.remix__list'), '.remix__row');

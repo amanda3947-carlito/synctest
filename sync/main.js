@@ -845,6 +845,7 @@
   const likeBtn = device.querySelector('.device__like');
   const likeArt = likeBtn.querySelector('.device__like-art');
   likeBtn.addEventListener('click', () => {
+    if (buildsTab.pushed) { buildsTab.pushed.note(); return; }
     if (!cards.length) return;
     cards[nearestPage()].note();
     if (reduceMotion) return;
@@ -1619,8 +1620,9 @@
       if (!remixEl) { remixEl = document.createElement('div'); remixEl.className = 'remix'; card.appendChild(remixEl); }
       remixEl.innerHTML = `<div class="remix__scrim"></div>
         <section class="remix__panel" role="dialog" aria-label="${esc(person.name)}’s ${noun}">
-          <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)}’s remix" data-min="${esc(person.name)}’s ${noun}"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
+          <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)}’s ${b.status === 'as_is' ? 'note' : 'remix'}" data-min="${esc(person.name)}’s ${noun}"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
           <div class="remix__body">
+            ${b.status === 'as_is' && b.as_is_note ? `<p class="remix__note">“${esc(b.as_is_note.replace(/\s*\[voice:[^\]]+\]/, ''))}”</p>` : ''}
             <div class="remix__list">
               ${rows.map((t, i) => `<div class="prow remix__row">${theirChange(b, items[i]) ? '<span class="srow__badge srow__badge--theirs">Their add</span>' : ''}
                 <div class="prow__img${t.art ? '' : ' is-type'}">${art(t)}</div>
@@ -1669,23 +1671,28 @@
     // a note from the like: compose opens over whatever is up (the profile, or the photo
     // itself, held still). Sending is "love it as is" on their mixtape: the note goes
     // with it, and they decide whether to match back.
+    // the like with a note (the heart): always open to you. With nothing between you yet it's a like as is, waiting
+    // on their response (that's their Responses tab); with a build going, the note goes to them on it; once you've
+    // matched it lands in your chat. A note is required: the composer won't send an empty one.
     const note = () => {
       if (compose.active) return;
-      if (person.activeBuild) { notice('You two already have a build going'); return; }
-      if (!person.mixtapeBuildId) { notice('Nothing of theirs to love yet'); return; }
+      const b = person.activeBuild && person.activeBuild.status !== 'closed' ? person.activeBuild : null;
+      if (!b && !person.mixtapeBuildId) { notice('Nothing of theirs to like yet'); return; }
       const open = card.classList.contains('is-profile-open');
       if (!open) hold();
       compose.openNote(open ? profile : card, person.name, card, async (payload) => {
         const { text, gif, voice } = payload;
         try {
-          person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, noteText(payload) || 'Loved it as is');
-          refresh();
+          if (b) await window.SyncAPI.sendNote(b.id, noteText(payload));
+          else { person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, noteText(payload)); refresh(); }
         } catch (e) { await buildError(e); resume(); return; }
-        celebrate(card, 'msg', text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '')).then(() => {
+        const line = text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '');
+        if (card.parentElement !== feed) { await celebrate(card, 'msg', line); if (remixEl) { remixEl.remove(); remixEl = null; } closeProfile(false); return; }   // opened from Builds
+        celebrate(card, 'msg', line).then(() => {
           if (!card.classList.contains('is-profile-open')) return;
           closeProfile(false);
           return wait(600);
-        }).then(leave);
+        }).then(b ? resume : leave);
       }, resume);
     };
     // the tile opens whatever you two are building (a mixtape when it's nothing yet)
@@ -1868,7 +1875,7 @@
     const line = (x) => {
       const t = TYPE[x.build.type_key] || TYPE.mixtape; const b = x.build, l = x.last; const you = l && l.actor_id === ME;
       if (b.status === 'agreed') return `It’s a ${t[0]}`;
-      if (b.status === 'as_is') return x.iStarted ? 'You loved it as is' : 'Loved it as is';
+      if (b.status === 'as_is') return x.iStarted ? 'You sent a like' : 'Liked you with a note';
       if (!l) return x.mine ? 'Your move' : 'Their move';
       if (l.action === 'start') return you ? `You ${t[1][0].toLowerCase()}${t[1].slice(1)}` : t[1];
       if (l.action === 'turn') { const n = l.changes || 1; const w = `${n} ${n === 1 ? t[2] : t[3]}`; return you ? `You added ${w}` : `Added ${w}`; }
@@ -1915,8 +1922,8 @@
     };
     // the tabs: Highlights, then what's live by kind, and Responses: what they've sent back that waits on you
     const live = () => list.filter((x) => x.build.status !== 'agreed');
-    const inView = (v) => (v === 'responses' ? live().filter((x) => x.mine) : live().filter((x) => x.build.type_key === v));
-    const EMPTY = { mixtape: 'No mixtapes going right now.', responses: 'Nothing waiting on you.', spots: 'No spots going right now.', shelf: 'Nothing on watching & reading right now.' };
+    const inView = (v) => (v === 'responses' ? live().filter((x) => x.build.status === 'as_is' && x.mine) : live().filter((x) => x.build.type_key === v && x.build.status === 'open'));
+    const EMPTY = { mixtape: 'No mixtapes going right now.', responses: 'No likes waiting on your response.', spots: 'No spots going right now.', shelf: 'Nothing on watching & reading right now.' };
     const render = () => {
       chips.forEach((c) => {
         c.classList.toggle('is-on', c.dataset.chips === view); c.setAttribute('aria-selected', c.dataset.chips === view);

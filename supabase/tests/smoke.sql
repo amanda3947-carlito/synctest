@@ -84,11 +84,14 @@ select name from feed();   -- Theo only
 
 \echo '--- love as is: Theo loves Damon''s featured spots with a note; Damon matches back'
 select pg_temp.as_user(:'theo');
-select pg_temp.expect_error($$select love_as_is('00000000-0000-4000-8000-00000000d102', 'ok')$$, 'say something');
+select pg_temp.expect_error($$select love_as_is('00000000-0000-4000-8000-00000000d102', '  ')$$, 'add a note');
 select id as asis_id, status, as_is_note from love_as_is('00000000-0000-4000-8000-00000000d102', 'Public Records at golden hour is exactly my speed.') \gset
 select pg_temp.as_user(:'damon');
 select status, via from match_back(:'asis_id');
 select body from messages m join matches x on x.id = m.match_id where x.build_id = :'asis_id';   -- the note opens the chat
+\echo '--- a note once matched lands in the chat; a short note is fine'
+select (send_note(:'asis_id', 'hi')).status as still_agreed;
+select count(*) = 2 as two_messages from messages m join matches x on x.id = m.match_id where x.build_id = :'asis_id';
 
 \echo '--- counter an as-is: Olivia loves Theo''s watching & reading, Theo swaps one title, it becomes a build'
 select pg_temp.as_user(:'olivia');
@@ -99,6 +102,11 @@ select status, round, turn_id = :'olivia' as olivias_turn from counter_as_is(:'a
     from builds, jsonb_array_elements(items) e where id = :'asis2'));
 select changes, (select e->>'by' from builds, jsonb_array_elements(items) e where id = :'asis2' and e->>'key' = 'seed:the-overstory') = :'theo' as stamped
   from build_turns where build_id = :'asis2' and action = 'counter';
+
+\echo '--- a note on a build in flight: it rides as a turn note, the turn stays where it was'
+select pg_temp.as_user(:'olivia');
+select (send_note(:'asis2', 'nice pick')).turn_id = :'olivia' as still_olivias_turn;
+select action, note from build_turns where build_id = :'asis2' and action = 'note';
 
 \echo '--- pass, block, report'
 select pg_temp.as_user(:'olivia');

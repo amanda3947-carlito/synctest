@@ -521,6 +521,8 @@ window.SyncAPI = (() => {
   const sendTurn = (buildId, items) => rpc('send_turn', { p_build: buildId, p_items: items });
   const agree = (buildId) => rpc('agree_build', { p_build: buildId });
   const loveAsIs = (profileBuildId, note) => rpc('love_as_is', { p_profile_build: profileBuildId, p_note: note });
+  // a note on a build you already have going with them (or, once matched, a message in your chat)
+  const sendNote = (buildId, note) => rpc('send_note', { p_build: buildId, p_note: note });
   const matchBack = (buildId) => rpc('match_back', { p_build: buildId });
   const counterAsIs = (buildId, items) => rpc('counter_as_is', { p_build: buildId, p_items: items });
   const closeBuild = (buildId) => rpc('close_build', { p_build: buildId });
@@ -585,6 +587,6 @@ window.SyncAPI = (() => {
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
-           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
+           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, sendNote, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
            watchBuilds, mediaUrls, trackItem, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
 })();

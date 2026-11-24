@@ -341,17 +341,6 @@
 
 
   // ── "Make it a mixtape" bottom sheet ────────────────────────────────
-  // Fallback search results (the frame's list) for when the live catalog is unreachable.
-  const CATALOG = [
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker', title: 'Body' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker ft. Bryson Tiller', title: 'Playing Games' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker ft. Usher', title: 'Come Thur' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker', title: 'Potential' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker', title: 'Tonight' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker ft. PARTYNEXTDOOR', title: 'Just Might' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker', title: 'Anna Mae' },
-    { art: 'assets/prof-rot-1.png', artist: 'Summer Walker', title: 'Drunk Dialing...LODT' },
-  ];
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
   // a CSS cubic-bezier() as a function of progress, for animations that drive scrollTop
   function cubicBezier(x1, y1, x2, y2) {
@@ -423,7 +412,7 @@
   const errText = (e) => (e && (e.message || e.error_description || e.details)) || 'Something went wrong';
 
   const trackRowHTML = (t) => `
-      <div class="srow${t.added ? ' srow--added' : ''}" data-title="${esc(t.title)}">
+      <div class="srow${t.added ? ' srow--added' : ''}" data-key="${esc(t.key || t.title)}" data-title="${esc(t.title)}">
         ${t.added ? '<span class="srow__badge">Your add</span>' : ''}
         <div class="srow__art${t.art ? '' : ' srow__art--type'}">${t.art ? `<img src="${t.art}" alt="" draggable="false">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`}</div>
         <div class="srow__details">
@@ -467,21 +456,15 @@
     shownResults = tracks;
     const inList = new Set(mixtapeOf(sheetPerson).flatMap((t) => [t.artist + '|' + t.title, t.key].filter(Boolean)));
     if (!tracks.length) {
-      sheetResults.innerHTML = note === 'start' ? BLANK_START() : note === 'none' ? BLANK_NONE() : '';
+      sheetResults.innerHTML = note === 'start' ? BLANK_START() : note === 'none' ? BLANK_NONE() : note === 'down' ? blankHTML('Search didn’t answer', 'Check your connection and try again.') : '';
       return;
     }
     sheetResults.innerHTML = tracks.map((t, i) => resultRowHTML(t, i, sheetPerson.added || inList.has(t.artist + '|' + t.title) || (t.key && inList.has(t.key)))).join('')
       + (note && note !== 'start' && note !== 'none' ? `<p class="sheet__empty">${esc(note)}</p>` : '');
   };
-  const localHits = (q) => CATALOG.filter((t) => !q || (t.artist + ' ' + t.title).toLowerCase().includes(q));
-  // Apple's search API answers cross-origin; map songs to our track shape
-  const liveSearch = async (q) => {
-    const url = `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=8&country=us`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(res.status);
-    const data = await res.json();
-    return data.results.map((r) => ({ art: (r.artworkUrl100 || '').replace('100x100bb', '200x200bb'), artist: r.artistName, title: r.trackName }));
-  };
+  // the mixtape sheet's search: Apple's catalog, ranked so the real recording by the artist you typed comes first
+  // (api.js rankTracks); each hit carries its own track id, so its cover always travels with it
+  const liveSearch = (q) => window.SyncAPI.searchRows('mixtape', q);
   let searchTimer = 0;
   const renderResults = () => {
     const q = sheetInput.value.trim().toLowerCase();
@@ -493,10 +476,10 @@
     const blank = sheetResults.querySelector('.sheet__blank');
     if (blank) blank.classList.add('is-loading');
     searchTimer = setTimeout(async () => {
-      let tracks;
-      try { tracks = sheetSearch ? await sheetSearch(q) : await liveSearch(q); } catch (e) { tracks = sheetSearch ? [] : localHits(q); }
-      if (seq !== searchSeq) return;
-      showResults(tracks, tracks.length ? '' : 'none');
+      let tracks, failed = false;
+      try { tracks = sheetSearch ? await sheetSearch(q) : await liveSearch(q); } catch (e) { tracks = []; failed = true; }
+      if (seq !== searchSeq) return;   // a newer search has gone out: its results win
+      showResults(tracks, tracks.length ? '' : failed ? 'down' : 'none');
     }, 200);
   };
   const markDirty = () => { sheet.classList.add('is-dirty'); sheetSend.disabled = false; };
@@ -589,7 +572,7 @@
     const d = device.getBoundingClientRect();
     sheetPerson.adds += 1;
     sheetPerson.added = sheetPerson.adds >= addLimitOf(sheetPerson);
-    mixtapeOf(sheetPerson).push({ ...track, key: track.key || window.SyncAPI.trackItem(track).key, added: true });
+    mixtapeOf(sheetPerson).unshift({ ...track, key: track.key || window.SyncAPI.trackItem(track).key, added: true });   // new adds go on top
 
     if (reduceMotion) {
       withHeight(() => { sheet.classList.remove('is-searching'); sheetInput.blur(); sheetInput.value = ''; renderList(); });
@@ -624,14 +607,15 @@
       sheetInput.blur();
       sheetInput.value = '';
       renderList();
-      sheetList.lastElementChild.classList.add('is-slot');
+      sheetList.scrollTop = 0;
+      sheetList.firstElementChild.classList.add('is-slot');
     });
     sheetResults.getAnimations().forEach((a) => a.cancel());
     await lift.finished;
     await wait(300);   // let the height settle under the hovering pill
 
     // 3. drop: into the slot, untilting the scale as it lands, with a soft overshoot
-    const slot = sheetList.lastElementChild;
+    const slot = sheetList.firstElementChild;
     const to = slot.getBoundingClientRect();
     const dx = (to.left - d.left) - parseFloat(pill.style.left);
     const dy = (to.top - d.top) - parseFloat(pill.style.top);
@@ -726,8 +710,8 @@
       ], { duration: 240, easing: 'cubic-bezier(0.5, 0, 0.8, 0.4)', fill: 'forwards' }).finished;
     }
     row.remove();
-    const title = row.dataset.title;
-    sheetPerson.mixtape = sheetPerson.mixtape.filter((t) => t.title !== title);
+    const key = row.dataset.key;
+    sheetPerson.mixtape = sheetPerson.mixtape.filter((t) => (t.key || t.title) !== key);
     if (row.classList.contains('srow--added')) { sheetPerson.adds = Math.max(0, sheetPerson.adds - 1); sheetPerson.added = false; }   // that add is free again
     // the can jiggles as the bin folds back to the button row
     sheetTrash.classList.remove('is-fed');
@@ -759,8 +743,8 @@
     slot.replaceWith(row);
     row.classList.remove('srow--moving');
     row.style.top = ''; row.style.left = ''; row.style.transform = '';
-    const order = [...sheetList.children].map((el) => el.dataset.title);
-    sheetPerson.mixtape.sort((a, b) => order.indexOf(a.title) - order.indexOf(b.title));
+    const order = [...sheetList.children].map((el) => el.dataset.key);
+    sheetPerson.mixtape.sort((a, b) => order.indexOf(a.key || a.title) - order.indexOf(b.key || b.title));
     if ([...sheetList.children].indexOf(row) !== startIndex) markDirty();
   };
   sheetList.addEventListener('pointerup', endReorder);
@@ -838,7 +822,7 @@
   // ── floating nav: always up on the feed; on the profile it hides on scroll down and returns on scroll up
   const nav = {
     show() { device.classList.remove('is-nav-hidden'); },
-    hide() { device.classList.add('is-nav-hidden'); },
+    hide() { if (!device.classList.contains('is-nav-pinned')) device.classList.add('is-nav-hidden'); },   // pinned: over a remix opened from Builds the nav never hides
     // watch a scroller; small jitters are ignored, direction decides
     watch(scroller) {
       let last = scroller.scrollTop;
@@ -1557,8 +1541,11 @@
         person.activeBuild = next;
         refresh();
       } catch (e) { await buildError(e); resume(); return; }
+      if (remixEl) { remixEl.remove(); remixEl = null; }
+      const toast = type === 'mixtape' ? '' : SHEET[type].sent;
+      if (card.parentElement !== feed) { await celebrate(card, 'mix', toast); closeProfile(false); return; }   // opened from Builds
       if (card.classList.contains('is-profile-open')) closeProfile(false);
-      celebrate(card, 'mix', type === 'mixtape' ? '' : SHEET[type].sent).then(leave);
+      celebrate(card, 'mix', toast).then(leave);
     };
     const onAgree = async () => {
       try {
@@ -1566,9 +1553,13 @@
         person.activeBuild = b.status === 'as_is' ? await API.matchBack(b.id) : await API.agree(b.id);
         refresh();
       } catch (e) { await buildError(e); resume(); return; }
-      if (card.classList.contains('is-profile-open')) closeProfile(false);
       const done = person.activeBuild.status === 'agreed';
-      celebrate(card, done ? 'msg' : 'mix', done ? SHEET[person.activeBuild.type_key || 'mixtape'].done : 'Agreed. Their call now.').then(leave);
+      const kind = SHEET[person.activeBuild.type_key || 'mixtape'];
+      // sent back as is: "Mixtape sent" (or "Spots sent"), the same toast as the first send; a match says so
+      const [k, line] = done ? ['msg', kind.done] : ['mix', kind.sent || ''];
+      if (card.parentElement !== feed) { await celebrate(card, k, line); closeProfile(false); return; }   // opened from Builds
+      if (card.classList.contains('is-profile-open')) closeProfile(false);
+      celebrate(card, k, line).then(leave);
     };
     const openBuild = (type, more = {}) => async (e) => {
       if (e) e.stopPropagation();
@@ -1603,7 +1594,8 @@
     let remixEl = null;
     const remix = async (state = 'open') => {
       const b = person.activeBuild;
-      if (!b || b.status === 'agreed' || b.turn_id !== ME) { if (remixEl) { remixEl.remove(); remixEl = null; } return; }
+      if (!b || b.status === 'agreed' || b.turn_id !== ME) { if (remixEl) { remixEl.remove(); remixEl = null; } device.classList.remove('is-nav-pinned'); return; }
+      device.classList.add('is-nav-pinned'); nav.show();
       const items = await API.withArt(b.items);
       const type = b.type_key || 'mixtape';
       const noun = type === 'mixtape' ? 'mixtape' : type === 'spots' ? 'spots' : 'picks';
@@ -1650,7 +1642,7 @@
       e.stopPropagation();
       const act = btn.dataset.remix;
       if (act === 'toggle') { setRemix(remixEl.dataset.state === 'open' ? 'min' : 'open'); return; }
-      if (act === 'send') { if (btn.disabled) return; remixEl.remove(); remixEl = null; onAgree(); return; }
+      if (act === 'send') { if (btn.disabled) return; remixEl.remove(); remixEl = null; device.classList.remove('is-nav-pinned'); onAgree(); return; }
       if (act === 'change') {
         // the tape anchors to the foot and becomes the mixtape sheet with search; closing it leaves the tucked bar
         setRemix('min');
@@ -1939,7 +1931,7 @@
       if (!pushed) return;
       const c = pushed; pushed = null; pushSettled = false;
       c.deactivate();
-      device.classList.remove('is-sheet-up', 'is-push-in');
+      device.classList.remove('is-sheet-up', 'is-push-in', 'is-nav-pinned');
       if (instant) { push.classList.remove('is-in'); push.hidden = true; push.innerHTML = ''; return; }
       push.classList.remove('is-in');
       setTimeout(() => { if (!pushed) { push.hidden = true; push.innerHTML = ''; } load(); }, 480);
@@ -1962,7 +1954,6 @@
       open(meAvatar, meDisc) {
         isOpen = true; root.hidden = false; device.classList.add('is-tab-builds');
         if (meAvatar) root.querySelector('.builds__me-img').src = meAvatar;
-        if (meDisc) root.querySelector('.builds__me-disc').src = meDisc;
         body.scrollTop = 0; load();
       },
       close() { if (!isOpen) return; isOpen = false; closePush(true); root.hidden = true; device.classList.remove('is-tab-builds'); },
@@ -2063,10 +2054,12 @@
     meDisc = discForMe(me);
     const header = device.querySelector('.header__me img');
     if (me.avatar_path) { const u = await api.mediaUrls([me.avatar_path]); if (u[me.avatar_path]) header.src = u[me.avatar_path]; }
-    device.querySelector('.header__me').addEventListener('click', async () => {
+    // your avatar is part of the nav: on the feed and on Builds it's the same button in the same place, opening your profile
+    const openMine = async () => {
       const updated = await window.SyncOnboard.viewMine();
-      if (updated && updated.avatar_path) { const u = await api.mediaUrls([updated.avatar_path]); if (u[updated.avatar_path]) header.src = u[updated.avatar_path]; }
-    });
+      if (updated && updated.avatar_path) { const u = await api.mediaUrls([updated.avatar_path]); if (u[updated.avatar_path]) { header.src = u[updated.avatar_path]; device.querySelector('.builds__me-img').src = u[updated.avatar_path]; } }
+    };
+    device.querySelectorAll('.header__me').forEach((b) => b.addEventListener('click', openMine));
     let people;
     try { people = await api.peopleForFeed(); } catch (e) { notice(errText(e)); people = []; }
     // the sky has been the loading state since the first paint. It lifts only when the first card's picture is

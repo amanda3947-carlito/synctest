@@ -91,31 +91,31 @@ on conflict do nothing;
 -- the owners' builds, fully filled: each person's mixtape, plus one featured collection (spots or watching & reading)
 insert into public.profile_builds (id, profile_id, type_key, items, position) values
   ('00000000-0000-4000-8000-00000000d101', '00000000-0000-4000-8000-000000000001', 'mixtape', '[
-     {"key":"drake-classic-pt2","artist":"Drake","title":"Classic PT2","art":"demo/rot-damon-1.jpg"},
-     {"key":"jhene-break","artist":"Jhené Aiko","title":"Break","art":"demo/rot-damon-2.jpg"},
-     {"key":"lacy-nothing","artist":"Steve Lacy","title":"nothing","art":"demo/rot-damon-3.jpg"},
-     {"key":"sza-sos","artist":"SZA","title":"SOS","art":"demo/rot-damon-4.jpg"},
-     {"key":"pnd-padre","artist":"PARTYNEXTDOOR & Drake","title":"MEET YOUR PADRE","art":"demo/rot-damon-5.jpg"}]', 0),
+     {"key":"drake-classic-pt2","artist":"Drake","title":"Classic PT2","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/bb/45/62/bb4562a3-45a2-539c-b557-a18ea060a476/26UMGIM63616.rgb.jpg/600x600bb.jpg"},
+     {"key":"jhene-break","artist":"Jhené Aiko","title":"Break","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/5f/51/9f/5f519f49-44c1-6aeb-f289-5b14c677abb1/26UM1IM17017.rgb.jpg/600x600bb.jpg"},
+     {"key":"lacy-nothing","artist":"Steve Lacy","title":"nothing","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1c/b2/46/1cb246db-afae-a599-d377-44a7ea7267fa/196874346976.jpg/600x600bb.jpg"},
+     {"key":"sza-sos","artist":"SZA","title":"SOS","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/62/93/13/6293132e-20ff-67ab-3d1f-96bb6797a6ba/196589564955.jpg/600x600bb.jpg"},
+     {"key":"pnd-padre","artist":"PARTYNEXTDOOR & Drake","title":"MEET YOUR PADRE","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/65/a1/d8/65a1d809-dede-adf4-d85e-964070e77f58/808391285897.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d102', '00000000-0000-4000-8000-000000000001', 'spots', '[
      {"key":"place:00000000-0000-4000-8000-00000000b001","place_id":"00000000-0000-4000-8000-00000000b001","title":"Public Records","meta":"Restaurant • Gowanus"},
      {"key":"place:00000000-0000-4000-8000-00000000b002","place_id":"00000000-0000-4000-8000-00000000b002","title":"Hidden Rivers","meta":"Bar • Gowanus"},
      {"key":"place:00000000-0000-4000-8000-00000000b003","place_id":"00000000-0000-4000-8000-00000000b003","title":"Books Are Magic","meta":"Store • Cobble Hill"}]', 1),
   ('00000000-0000-4000-8000-00000000d201', '00000000-0000-4000-8000-000000000002', 'mixtape', '[
-     {"key":"rodrigo-maggots","artist":"Olivia Rodrigo","title":"maggots for brains","art":"demo/rot-imani-1.jpg"},
-     {"key":"grande-petal","artist":"Ariana Grande","title":"petal","art":"demo/rot-imani-2.jpg"},
-     {"key":"dean-intro","artist":"Olivia Dean","title":"The Art of Loving (Intro)","art":"demo/rot-imani-3.jpg"},
-     {"key":"swift-patient-zero","artist":"Taylor Swift","title":"Patient Zero","art":"demo/rot-imani-4.jpg"},
-     {"key":"styles-american-girls","artist":"Harry Styles","title":"American Girls","art":"demo/rot-imani-5.jpg"}]', 0),
+     {"key":"rodrigo-maggots","artist":"Olivia Rodrigo","title":"maggots for brains","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/1d/1b/f9/1d1bf9b1-44c6-9a6c-6ffb-c158488c06ce/26UMGIM39303.rgb.jpg/600x600bb.jpg"},
+     {"key":"grande-petal","artist":"Ariana Grande","title":"petal","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/56/f4/96/56f49612-02dd-83f4-44fe-d2118cc70707/26UMGIM51129.rgb.jpg/600x600bb.jpg"},
+     {"key":"dean-intro","artist":"Olivia Dean","title":"The Art of Loving (Intro)","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/08/e2/21/08e22164-7c0b-1522-818f-e0e74f62dc49/25UMGIM69703.rgb.jpg/600x600bb.jpg"},
+     {"key":"swift-patient-zero","artist":"Taylor Swift","title":"Patient Zero","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/a0/dd/fd/a0ddfd72-ee9e-f046-6466-a5dbefc696fa/26UM1IM21436.rgb.jpg/600x600bb.jpg"},
+     {"key":"styles-american-girls","artist":"Harry Styles","title":"American Girls","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/07/41/6a/07416a78-38b9-2d47-7ce8-8a52a44c510f/196874010112.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d202', '00000000-0000-4000-8000-000000000002', 'shelf', '[
      {"key":"seed:fleabag","kind":"show","title":"Fleabag","meta":"BBC"},
      {"key":"seed:intermezzo","kind":"book","title":"Intermezzo","meta":"Sally Rooney"},
      {"key":"seed:past-lives","kind":"film","title":"Past Lives","meta":"2023 · Celine Song"}]', 1),
   ('00000000-0000-4000-8000-00000000d301', '00000000-0000-4000-8000-000000000003', 'mixtape', '[
-     {"key":"kahan-divide","artist":"Noah Kahan","title":"The Great Divide","art":"demo/rot-theo-1.jpg"},
-     {"key":"bryan-lodi","artist":"Zach Bryan","title":"Lodi When","art":"demo/rot-theo-2.jpg"},
-     {"key":"bunny-nuevayol","artist":"Bad Bunny","title":"NUEVAYoL","art":"demo/rot-theo-3.jpg"},
-     {"key":"karol-bby","artist":"KAROL G","title":"BbY WOW","art":"demo/rot-theo-4.jpg"},
-     {"key":"wallen-just-in-case","artist":"Morgan Wallen","title":"Just In Case","art":"demo/rot-theo-5.jpg"}]', 0),
+     {"key":"kahan-divide","artist":"Noah Kahan","title":"The Great Divide","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/e0/53/5b/e0535bb5-a269-8cc4-e12f-589e26809569/26UMGIM02802.rgb.jpg/600x600bb.jpg"},
+     {"key":"bryan-lodi","artist":"Zach Bryan","title":"Lodi When","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/ea/98/f2/ea98f2b8-5131-29ae-2064-997234ef13bc/093624812647.jpg/600x600bb.jpg"},
+     {"key":"bunny-nuevayol","artist":"Bad Bunny","title":"NUEVAYoL","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/90/5e/7e/905e7ed5-a8fa-a8f3-cd06-0028fdf3afaa/199066342442.jpg/600x600bb.jpg"},
+     {"key":"karol-bby","artist":"KAROL G","title":"BbY WOW","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/2b/66/b2/2b66b26c-ab23-faa1-c4ee-06fa2cce8f76/26UM1IM00558.rgb.jpg/600x600bb.jpg"},
+     {"key":"wallen-just-in-case","artist":"Morgan Wallen","title":"Just In Case","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/fa/60/fe/fa60fe4a-4329-a0bb-eb7c-3b6094a4d831/25UMGIM46049.rgb.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d302', '00000000-0000-4000-8000-000000000003', 'shelf', '[
      {"key":"seed:aftersun","kind":"film","title":"Aftersun","meta":"2022 · Charlotte Wells"},
      {"key":"seed:severance","kind":"show","title":"Severance","meta":"Apple TV+"},
@@ -216,31 +216,31 @@ on conflict do nothing;
 
 insert into public.profile_builds (id, profile_id, type_key, items, position) values
   ('00000000-0000-4000-8000-00000000d401', '00000000-0000-4000-8000-000000000004', 'mixtape', '[
-     {"key":"levant-deira","artist":"Saint Levant","title":"Deira","art":"demo/rot-new-1.jpg"},
-     {"key":"nas-ny-state","artist":"Nas","title":"N.Y. State of Mind","art":"demo/rot-new-2.jpg"},
-     {"key":"toto-mghayer","artist":"ElGrandeToto","title":"Mghayer","art":"demo/rot-new-3.jpg"},
-     {"key":"khruangbin-time","artist":"Khruangbin","title":"Time (You and I)","art":"demo/rot-new-4.jpg"},
-     {"key":"ocean-nights","artist":"Frank Ocean","title":"Nights","art":"demo/rot-new-5.jpg"}]', 0),
+     {"key":"levant-deira","artist":"Saint Levant","title":"Deira","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/e3/01/63/e301635c-5d1b-8f38-d1a1-bc90b5d7b1c7/196922854101_Cover.jpg/600x600bb.jpg"},
+     {"key":"nas-ny-state","artist":"Nas","title":"N.Y. State of Mind","art":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/d0/88/20/d0882040-a591-c85e-fa24-87a6edbf6a39/074646975329.jpg/600x600bb.jpg"},
+     {"key":"toto-mghayer","artist":"ElGrandeToto","title":"Mghayer"},
+     {"key":"khruangbin-time","artist":"Khruangbin","title":"Time (You and I)","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/94/a7/44/94a74465-1fe9-b897-a1ed-99b2e5b3b497/656605149363.jpg/600x600bb.jpg"},
+     {"key":"ocean-nights","artist":"Frank Ocean","title":"Nights"}]', 0),
   ('00000000-0000-4000-8000-00000000d402', '00000000-0000-4000-8000-000000000004', 'spots', '[
      {"key":"place:00000000-0000-4000-8000-00000000b005","place_id":"00000000-0000-4000-8000-00000000b005","title":"Fort Greene Park","meta":"Park • Fort Greene"},
      {"key":"place:00000000-0000-4000-8000-00000000b001","place_id":"00000000-0000-4000-8000-00000000b001","title":"Public Records","meta":"Restaurant • Gowanus"},
      {"key":"place:00000000-0000-4000-8000-00000000b008","place_id":"00000000-0000-4000-8000-00000000b008","title":"Brooklyn Bridge Park, Pier 1","meta":"Park • DUMBO"}]', 1),
   ('00000000-0000-4000-8000-00000000d501', '00000000-0000-4000-8000-000000000005', 'mixtape', '[
-     {"key":"outkast-atliens","artist":"Outkast","title":"ATLiens","art":"demo/rot-new-2.jpg"},
-     {"key":"future-march-madness","artist":"Future","title":"March Madness","art":"demo/rot-new-4.jpg"},
-     {"key":"tyler-new-magic-wand","artist":"Tyler, The Creator","title":"NEW MAGIC WAND","art":"demo/rot-new-1.jpg"},
-     {"key":"gambino-redbone","artist":"Childish Gambino","title":"Redbone","art":"demo/rot-new-5.jpg"},
-     {"key":"metro-creepin","artist":"Metro Boomin","title":"Creepin’","art":"demo/rot-new-3.jpg"}]', 0),
+     {"key":"outkast-atliens","artist":"Outkast","title":"ATLiens","art":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/fb/1a/a0/fb1aa0c5-9f37-0a77-4044-9b1bd165660e/730082603225.jpg/600x600bb.jpg"},
+     {"key":"future-march-madness","artist":"Future","title":"March Madness","art":"https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/b0/ca/34/b0ca349f-d3ce-3734-a97f-31578f0b214e/886445475784.jpg/600x600bb.jpg"},
+     {"key":"tyler-new-magic-wand","artist":"Tyler, The Creator","title":"NEW MAGIC WAND"},
+     {"key":"gambino-redbone","artist":"Childish Gambino","title":"Redbone"},
+     {"key":"metro-creepin","artist":"Metro Boomin","title":"Creepin’","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/c3/ef/1d/c3ef1dfc-e1f5-e885-8be7-f3155581ddf8/22UM1IM40165.rgb.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d502', '00000000-0000-4000-8000-000000000005', 'shelf', '[
      {"key":"seed:atlanta","kind":"show","title":"Atlanta","meta":"FX"},
      {"key":"seed:challengers","kind":"film","title":"Challengers","meta":"2024 · Luca Guadagnino"},
      {"key":"seed:sneaker-wars","kind":"book","title":"Sneaker Wars","meta":"Barbara Smit"}]', 1),
   ('00000000-0000-4000-8000-00000000d601', '00000000-0000-4000-8000-000000000006', 'mixtape', '[
-     {"key":"garbage-only-happy","artist":"Garbage","title":"Only Happy When It Rains","art":"demo/rot-new-3.jpg"},
-     {"key":"portishead-glory-box","artist":"Portishead","title":"Glory Box","art":"demo/rot-new-5.jpg"},
-     {"key":"four-tet-baby","artist":"Four Tet","title":"Baby","art":"demo/rot-new-2.jpg"},
-     {"key":"jamie-xx-loud-places","artist":"Jamie xx","title":"Loud Places","art":"demo/rot-new-1.jpg"},
-     {"key":"bjork-hyperballad","artist":"Björk","title":"Hyperballad","art":"demo/rot-new-4.jpg"}]', 0),
+     {"key":"garbage-only-happy","artist":"Garbage","title":"Only Happy When It Rains","art":"https://is1-ssl.mzstatic.com/image/thumb/Music114/v4/81/8e/64/818e6487-df77-bb60-7245-7f87c40d6f2d/00602547364890.rgb.jpg/600x600bb.jpg"},
+     {"key":"portishead-glory-box","artist":"Portishead","title":"Glory Box","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/c1/71/93/c1719342-df7d-e9c5-c87c-53dae5afb289/00042282855329.rgb.jpg/600x600bb.jpg"},
+     {"key":"four-tet-baby","artist":"Four Tet","title":"Baby","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/5a/ee/e0/5aeee0ff-c8ea-1b18-62f5-5df25aa06e76/3663729107213_cover.jpg/600x600bb.jpg"},
+     {"key":"jamie-xx-loud-places","artist":"Jamie xx","title":"Loud Places","art":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b9/dc/ce/b9dcce9c-8cf8-4105-0fab-fb048702bce2/cover.jpg/600x600bb.jpg"},
+     {"key":"bjork-hyperballad","artist":"Björk","title":"Hyperballad","art":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/7f/b0/6e/7fb06eee-ad5b-2071-4497-7dda15e1fd50/075596278768.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d602', '00000000-0000-4000-8000-000000000006', 'spots', '[
      {"key":"place:00000000-0000-4000-8000-00000000b009","place_id":"00000000-0000-4000-8000-00000000b009","title":"Human Head Records","meta":"Store • Bushwick"},
      {"key":"place:00000000-0000-4000-8000-00000000b004","place_id":"00000000-0000-4000-8000-00000000b004","title":"Nitehawk Prospect Park","meta":"Cinema • Park Slope"},

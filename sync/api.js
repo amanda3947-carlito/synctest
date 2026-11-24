@@ -86,18 +86,39 @@ window.SyncAPI = (() => {
   async function searchKind(kind, q) {
     const term = q.trim();
     if (kind === 'track') {
-      const d = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=10&country=us`).then((r) => r.json());
-      return d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }));
+      const d = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=40&country=us`).then((r) => r.json());
+      return rankTracks(term, d.results || []).slice(0, 10).map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }));
     }
     if (kind === 'place') return (await searchPlaces(term)).map(placeHit);
     if (kind === 'gif') return searchGifs(term);
     return searchShelf(kind, term);
   }
+  // Apple's own order puts covers, karaoke, edits and sound-alikes ahead of the real recording ("Tame Impala The Less
+  // I Know" opens on a club edit). Rank by how much of what you typed is in the artist and the title, the real
+  // recording over versions of it, and drop exact repeats (the same song on a single and an album).
+  const VERSION = /\b(karaoke|cover|tribute|instrumental|originally performed|made famous|in the style of|remix|edit|sped up|slowed|reverb|8d|lullaby|piano version|acoustic)\b/i;
+  const words = (x) => (x || '').toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/).filter(Boolean);
+  function rankTracks(term, results) {
+    const q = words(term); const asked = new Set(q);
+    const seen = new Set();
+    return results.filter((r) => r.trackId && r.trackName).map((r, i) => {
+      const artist = words(r.artistName), title = words(r.trackName);
+      // the words that name the artist count once; the rest of what you typed has to be in the title
+      const inArtist = q.filter((w) => artist.includes(w)).length, inTitle = q.filter((w) => !artist.includes(w) && title.includes(w)).length;
+      const version = VERSION.test(r.trackName) || VERSION.test(r.collectionName || '');
+      const wantsVersion = [...asked].some((w) => VERSION.test(w));
+      const score = inArtist * 3 + inTitle * 3 + (inArtist && inTitle ? 4 : 0) - (version && !wantsVersion ? 8 : 0) - i * 0.05;
+      return { r, score };
+    }).sort((a, b) => b.score - a.score).map((x) => x.r).filter((r) => {
+      const k = words(r.artistName).join(' ') + '|' + words(r.trackName).join(' ');
+      if (seen.has(k)) return false; seen.add(k); return true;
+    });
+  }
   // "search anything": tracks, films, shows, books and places, together
   async function searchAll(q) {
     const term = q.trim();
-    const tracks = fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=5&country=us`).then((r) => r.json())
-      .then((d) => d.results.map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }))).catch(() => []);
+    const tracks = fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=song&limit=25&country=us`).then((r) => r.json())
+      .then((d) => rankTracks(term, d.results || []).slice(0, 5).map((r) => ({ kind: 'track', key: 'itunes:song:' + r.trackId, title: r.trackName, meta: r.artistName, art: (r.artworkUrl100 || '').replace('100x100bb', '300x300bb') }))).catch(() => []);
     const [t, f, s, b, p] = await Promise.all([tracks, searchShelf('film', term).catch(() => []), searchShelf('show', term).catch(() => []), searchShelf('book', term).catch(() => []), searchPlaces(term).catch(() => [])]);
     const places = p.map(placeHit);
     // interleave so no one kind hogs the list

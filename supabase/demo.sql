@@ -36,11 +36,11 @@ on conflict (id) do nothing;
 
 insert into public.profile_builds (id, profile_id, type_key, items, position) values
   ('00000000-0000-4000-8000-00000000dd01', '00000000-0000-4000-8000-0000000000a0', 'mixtape', '[
-     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"demo/rot-me-1.jpg"},
-     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","art":"demo/rot-me-2.jpg"},
-     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"demo/rot-me-3.jpg"},
-     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"demo/rot-imani-6.jpg"},
-     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"demo/rot-theo-6.jpg"}]', 0)
+     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b2/44/8b/b2448b3b-e882-d5d3-6042-2477e354e72e/19UMGIM85342.rgb.jpg/600x600bb.jpg"},
+     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies"},
+     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/5d/99/7d/5d997de6-f6ae-3561-ed2e-9cc40c067b92/cover.jpg/600x600bb.jpg"},
+     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b5/35/84/b535844b-6fe5-f659-4ba2-217c8e8b5e8a/20UMGIM38482.rgb.jpg/600x600bb.jpg"},
+     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/62/93/13/6293132e-20ff-67ab-3d1f-96bb6797a6ba/196589564955.jpg/600x600bb.jpg"}]', 0)
 on conflict (id) do update set items = excluded.items;
 
 insert into public.profile_places (profile_id, place_id, position) values
@@ -108,35 +108,35 @@ on conflict (id) do nothing;
 
 insert into public.profile_builds (id, profile_id, type_key, items, position) values
   ('00000000-0000-4000-8000-00000000d701', '00000000-0000-4000-8000-000000000007', 'mixtape', '[
-     {"key":"ocean-pink-white","artist":"Frank Ocean","title":"Pink + White","art":"demo/rot-damon-7.jpg"},
-     {"key":"kendrick-luther","artist":"Kendrick Lamar & SZA","title":"luther","art":"demo/album-1.png"},
-     {"key":"caesar-get-you","artist":"Daniel Caesar","title":"Get You","art":"demo/album-2.png"},
-     {"key":"faiyaz-dead-man","artist":"Brent Faiyaz","title":"Dead Man Walking","art":"demo/prof-rot-1.png"},
-     {"key":"giveon-heartbreak","artist":"Giveon","title":"Heartbreak Anniversary","art":"demo/rot-new-4.jpg"}]', 0),
+     {"key":"ocean-pink-white","artist":"Frank Ocean","title":"Pink + White","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/45/68/bb4568f3-68cd-619d-fbcb-4e179916545d/BlondCover-Final.jpg/600x600bb.jpg"},
+     {"key":"kendrick-luther","artist":"Kendrick Lamar & SZA","title":"luther","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/50/c2/cc/50c2cc95-3658-9417-0d4b-831abde44ba1/24UM1IM28978.rgb.jpg/600x600bb.jpg"},
+     {"key":"caesar-get-you","artist":"Daniel Caesar","title":"Get You","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b6/cd/1a/b6cd1a5b-83af-a1e2-0ad7-ea530fcf2522/859722261219.jpg/600x600bb.jpg"},
+     {"key":"faiyaz-dead-man","artist":"Brent Faiyaz","title":"Dead Man Walking","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/30/1b/30/301b30ef-9bb5-8fbd-6bdc-30552aefd0c6/8DrDvnuaSqqztj1vOGwY_Wasteland-Final6.jpg/600x600bb.jpg"},
+     {"key":"giveon-heartbreak","artist":"Giveon","title":"Heartbreak Anniversary","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/51/89/1b/51891b63-e1cd-bda7-9473-31fb6b473040/886448298816.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d801', '00000000-0000-4000-8000-000000000008', 'mixtape', '[
-     {"key":"tame-let-it-happen","artist":"Tame Impala","title":"Let It Happen","art":"demo/album-3.png"},
-     {"key":"mgmt-electric-feel","artist":"MGMT","title":"Electric Feel","art":"demo/album-4.png"},
-     {"key":"phoenix-lisztomania","artist":"Phoenix","title":"Lisztomania","art":"demo/album-5.png"},
-     {"key":"demarco-chamber","artist":"Mac DeMarco","title":"Chamber of Reflection","art":"demo/prof-rot-2.png"},
-     {"key":"beach-house-space-song","artist":"Beach House","title":"Space Song","art":"demo/prof-rot-3.png"}]', 0),
+     {"key":"tame-let-it-happen","artist":"Tame Impala","title":"Let It Happen","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a8/2e/b4/a82eb490-f30a-a321-461a-0383c88fec95/15UMGIM23316.rgb.jpg/600x600bb.jpg"},
+     {"key":"mgmt-electric-feel","artist":"MGMT","title":"Electric Feel","art":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/29/7c/40/297c40a2-fc65-ad81-12d4-e28c8043b600/888880646842.jpg/600x600bb.jpg"},
+     {"key":"phoenix-lisztomania","artist":"Phoenix","title":"Lisztomania","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/28/8d/ab/288dabdd-f8de-80f6-1aab-40a24cb1b33f/00892038002190_Cover.jpg/600x600bb.jpg"},
+     {"key":"demarco-chamber","artist":"Mac DeMarco","title":"Chamber of Reflection","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/e0/04/eb/e004eb2b-754f-4a76-9ecc-87d4eea2a327/cover.jpg/600x600bb.jpg"},
+     {"key":"beach-house-space-song","artist":"Beach House","title":"Space Song","art":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/09/e0/d5/09e0d559-0682-f0f0-5e0c-3cd11e3114fd/beachhouse_depressioncherry_2400_300.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000d901', '00000000-0000-4000-8000-000000000009', 'mixtape', '[
-     {"key":"mitski-my-love","artist":"Mitski","title":"My Love Mine All Mine","art":"demo/rot-imani-7.jpg"},
-     {"key":"bridgers-motion-sickness","artist":"Phoebe Bridgers","title":"Motion Sickness","art":"demo/rot-theo-7.jpg"},
-     {"key":"boygenius-not-strong","artist":"boygenius","title":"Not Strong Enough","art":"demo/rot-new-1.jpg"},
-     {"key":"clairo-sofia","artist":"Clairo","title":"Sofia","art":"demo/rot-new-2.jpg"},
-     {"key":"lana-norman","artist":"Lana Del Rey","title":"Norman Fucking Rockwell","art":"demo/rot-new-3.jpg"}]', 0),
+     {"key":"mitski-my-love","artist":"Mitski","title":"My Love Mine All Mine","art":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/8f/4b/40/8f4b4044-d02b-dc25-7d01-7d9d225fdce4/40240.jpg/600x600bb.jpg"},
+     {"key":"bridgers-motion-sickness","artist":"Phoebe Bridgers","title":"Motion Sickness","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/20/4c/6e/204c6ef3-8e95-4cee-2256-202ca62aebed/60220.jpg/600x600bb.jpg"},
+     {"key":"boygenius-not-strong","artist":"boygenius","title":"Not Strong Enough","art":"https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/ad/fc/81/adfc819e-00b2-3cb5-deb2-931a5b6da3fa/22UM1IM44998.rgb.jpg/600x600bb.jpg"},
+     {"key":"clairo-sofia","artist":"Clairo","title":"Sofia","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/f2/47/06/f24706bc-a90c-f730-bd8a-586ddde8af3e/829299184631.jpg/600x600bb.jpg"},
+     {"key":"lana-norman","artist":"Lana Del Rey","title":"Norman Fucking Rockwell"}]', 0),
   ('00000000-0000-4000-8000-00000000de01', '00000000-0000-4000-8000-000000000010', 'mixtape', '[
-     {"key":"fred-again-delilah","artist":"Fred again..","title":"Delilah (pull me out of this)","art":"demo/rot-new-5.jpg"},
-     {"key":"kaytranada-glowed","artist":"KAYTRANADA","title":"Glowed Up","art":"demo/rot-damon-6.jpg"},
-     {"key":"disclosure-latch","artist":"Disclosure","title":"Latch","art":"demo/album-1.png"},
-     {"key":"jamie-xx-gosh","artist":"Jamie xx","title":"Gosh","art":"demo/album-2.png"},
-     {"key":"four-tet-two-thousand","artist":"Four Tet","title":"Two Thousand and Seventeen","art":"demo/album-3.png"}]', 0),
+     {"key":"fred-again-delilah","artist":"Fred again..","title":"Delilah (pull me out of this)","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b0/9c/b7/b09cb72c-cca9-5d66-bc9d-a9b5e5f86b22/5054197236389.jpg/600x600bb.jpg"},
+     {"key":"kaytranada-glowed","artist":"KAYTRANADA","title":"Glowed Up"},
+     {"key":"disclosure-latch","artist":"Disclosure","title":"Latch","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/57/93/e0/5793e0d6-4877-e015-ef54-3fd4eff87344/14UMGIM12348.rgb.jpg/600x600bb.jpg"},
+     {"key":"jamie-xx-gosh","artist":"Jamie xx","title":"Gosh","art":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b9/dc/ce/b9dcce9c-8cf8-4105-0fab-fb048702bce2/cover.jpg/600x600bb.jpg"},
+     {"key":"four-tet-two-thousand","artist":"Four Tet","title":"Two Thousand and Seventeen","art":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/aa/99/b5/aa99b504-2656-85c4-965a-3bc80e52d0f2/666017319728_cover.jpg/600x600bb.jpg"}]', 0),
   ('00000000-0000-4000-8000-00000000df01', '00000000-0000-4000-8000-000000000011', 'mixtape', '[
-     {"key":"lacy-dark-red","artist":"Steve Lacy","title":"Dark Red","art":"demo/album-4.png"},
-     {"key":"paak-come-down","artist":"Anderson .Paak","title":"Come Down","art":"demo/album-5.png"},
-     {"key":"thundercat-them-changes","artist":"Thundercat","title":"Them Changes","art":"demo/prof-rot-1.png"},
-     {"key":"tyler-see-you-again","artist":"Tyler, The Creator","title":"See You Again","art":"demo/prof-rot-2.png"},
-     {"key":"gambino-summer","artist":"Childish Gambino","title":"Feels Like Summer","art":"demo/prof-rot-3.png"}]', 0)
+     {"key":"lacy-dark-red","artist":"Steve Lacy","title":"Dark Red","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/6d/c2/86/6dc286d1-057e-c014-e42f-dbf4e829867b/5054526102712.jpg/600x600bb.jpg"},
+     {"key":"paak-come-down","artist":"Anderson .Paak","title":"Come Down","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/04/f0/3204f09c-4580-3880-7f5f-254dfa4d258f/888915184455_cover.jpg/600x600bb.jpg"},
+     {"key":"thundercat-them-changes","artist":"Thundercat","title":"Them Changes","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0a/e8/0c/0ae80cc1-e4c2-5e14-4dc2-3dfefb013896/5054429007756.png/600x600bb.jpg"},
+     {"key":"tyler-see-you-again","artist":"Tyler, The Creator","title":"See You Again","art":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/c6/3d/3b/c63d3b44-d74b-9b79-be7d-aeb714146378/5052917021727_CookinCovers.jpg/600x600bb.jpg"},
+     {"key":"gambino-summer","artist":"Childish Gambino","title":"Feels Like Summer","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/6b/26/22/6b262212-325b-4971-2c47-51ae443aa78d/886447212882.jpg/600x600bb.jpg"}]', 0)
 on conflict (id) do update set items = excluded.items;
 
 insert into public.profile_places (profile_id, place_id, position) values
@@ -170,52 +170,52 @@ delete from public.builds where starter_id = '00000000-0000-4000-8000-0000000000
 insert into public.builds (id, type_key, profile_build_id, starter_id, owner_id, items, turn_id, round, status, agreed_by, as_is_note, via, agreed_at, created_at, updated_at) values
   -- Felix remixed your mixtape and sent a note: your move
   ('00000000-0000-4000-8000-0000000be001', 'mixtape', '00000000-0000-4000-8000-00000000dd01', '00000000-0000-4000-8000-000000000007', '00000000-0000-4000-8000-0000000000a0', '[
-     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"demo/rot-me-1.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","art":"demo/rot-me-2.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"ocean-pink-white","artist":"Frank Ocean","title":"Pink + White","art":"demo/rot-damon-7.jpg","by":"00000000-0000-4000-8000-000000000007"},
-     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"demo/rot-me-3.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"demo/rot-imani-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"caesar-get-you","artist":"Daniel Caesar","title":"Get You","art":"demo/album-2.png","by":"00000000-0000-4000-8000-000000000007"},
-     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"demo/rot-theo-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"}]',
+     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b2/44/8b/b2448b3b-e882-d5d3-6042-2477e354e72e/19UMGIM85342.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"ocean-pink-white","artist":"Frank Ocean","title":"Pink + White","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/45/68/bb4568f3-68cd-619d-fbcb-4e179916545d/BlondCover-Final.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000007"},
+     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/5d/99/7d/5d997de6-f6ae-3561-ed2e-9cc40c067b92/cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b5/35/84/b535844b-6fe5-f659-4ba2-217c8e8b5e8a/20UMGIM38482.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"caesar-get-you","artist":"Daniel Caesar","title":"Get You","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b6/cd/1a/b6cd1a5b-83af-a1e2-0ad7-ea530fcf2522/859722261219.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000007"},
+     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/62/93/13/6293132e-20ff-67ab-3d1f-96bb6797a6ba/196589564955.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"}]',
    '00000000-0000-4000-8000-0000000000a0', 1, 'open', '{}', null, null, null, now() - interval '2 hours', now() - interval '2 hours'),
   -- Justin did the same: your move
   ('00000000-0000-4000-8000-0000000be002', 'mixtape', '00000000-0000-4000-8000-00000000dd01', '00000000-0000-4000-8000-000000000008', '00000000-0000-4000-8000-0000000000a0', '[
-     {"key":"tame-let-it-happen","artist":"Tame Impala","title":"Let It Happen","art":"demo/album-3.png","by":"00000000-0000-4000-8000-000000000008"},
-     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"demo/rot-me-1.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","art":"demo/rot-me-2.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"demo/rot-me-3.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"demarco-chamber","artist":"Mac DeMarco","title":"Chamber of Reflection","art":"demo/prof-rot-2.png","by":"00000000-0000-4000-8000-000000000008"},
-     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"demo/rot-imani-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"demo/rot-theo-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"}]',
+     {"key":"tame-let-it-happen","artist":"Tame Impala","title":"Let It Happen","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/a8/2e/b4/a82eb490-f30a-a321-461a-0383c88fec95/15UMGIM23316.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000008"},
+     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b2/44/8b/b2448b3b-e882-d5d3-6042-2477e354e72e/19UMGIM85342.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/5d/99/7d/5d997de6-f6ae-3561-ed2e-9cc40c067b92/cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"demarco-chamber","artist":"Mac DeMarco","title":"Chamber of Reflection","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/e0/04/eb/e004eb2b-754f-4a76-9ecc-87d4eea2a327/cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000008"},
+     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b5/35/84/b535844b-6fe5-f659-4ba2-217c8e8b5e8a/20UMGIM38482.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/62/93/13/6293132e-20ff-67ab-3d1f-96bb6797a6ba/196589564955.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"}]',
    '00000000-0000-4000-8000-0000000000a0', 1, 'open', '{}', null, null, null, now() - interval '5 hours', now() - interval '5 hours'),
   -- Mariah loved your mixtape as it is: match back or not
   ('00000000-0000-4000-8000-0000000be003', 'mixtape', '00000000-0000-4000-8000-00000000dd01', '00000000-0000-4000-8000-000000000009', '00000000-0000-4000-8000-0000000000a0', '[
-     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"demo/rot-me-1.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","art":"demo/rot-me-2.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"demo/rot-me-3.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"demo/rot-imani-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"demo/rot-theo-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"}]',
+     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b2/44/8b/b2448b3b-e882-d5d3-6042-2477e354e72e/19UMGIM85342.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"harnett-let-me","artist":"Sinead Harnett","title":"If You Let Me","art":"https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/5d/99/7d/5d997de6-f6ae-3561-ed2e-9cc40c067b92/cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b5/35/84/b535844b-6fe5-f659-4ba2-217c8e8b5e8a/20UMGIM38482.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/62/93/13/6293132e-20ff-67ab-3d1f-96bb6797a6ba/196589564955.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"}]',
    '00000000-0000-4000-8000-0000000000a0', 1, 'as_is', '{}', 'Okay this rotation is unreal. Record store, then coffee?', null, null, now() - interval '9 hours', now() - interval '9 hours'),
   -- you made James's rotation a mixtape just now: his move (he answers in a couple of minutes)
   ('00000000-0000-4000-8000-0000000be004', 'mixtape', '00000000-0000-4000-8000-00000000de01', '00000000-0000-4000-8000-0000000000a0', '00000000-0000-4000-8000-000000000010', '[
-     {"key":"fred-again-delilah","artist":"Fred again..","title":"Delilah (pull me out of this)","art":"demo/rot-new-5.jpg","by":"00000000-0000-4000-8000-000000000010"},
-     {"key":"kaytranada-glowed","artist":"KAYTRANADA","title":"Glowed Up","art":"demo/rot-damon-6.jpg","by":"00000000-0000-4000-8000-000000000010"},
-     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"demo/rot-me-1.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"disclosure-latch","artist":"Disclosure","title":"Latch","art":"demo/album-1.png","by":"00000000-0000-4000-8000-000000000010"},
-     {"key":"jamie-xx-gosh","artist":"Jamie xx","title":"Gosh","art":"demo/album-2.png","by":"00000000-0000-4000-8000-000000000010"},
-     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"demo/rot-theo-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"four-tet-two-thousand","artist":"Four Tet","title":"Two Thousand and Seventeen","art":"demo/album-3.png","by":"00000000-0000-4000-8000-000000000010"}]',
+     {"key":"fred-again-delilah","artist":"Fred again..","title":"Delilah (pull me out of this)","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b0/9c/b7/b09cb72c-cca9-5d66-bc9d-a9b5e5f86b22/5054197236389.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000010"},
+     {"key":"kaytranada-glowed","artist":"KAYTRANADA","title":"Glowed Up","by":"00000000-0000-4000-8000-000000000010"},
+     {"key":"walker-body","artist":"Summer Walker","title":"Body","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/b2/44/8b/b2448b3b-e882-d5d3-6042-2477e354e72e/19UMGIM85342.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"disclosure-latch","artist":"Disclosure","title":"Latch","art":"https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/57/93/e0/5793e0d6-4877-e015-ef54-3fd4eff87344/14UMGIM12348.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000010"},
+     {"key":"jamie-xx-gosh","artist":"Jamie xx","title":"Gosh","art":"https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/b9/dc/ce/b9dcce9c-8cf8-4105-0fab-fb048702bce2/cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000010"},
+     {"key":"sza-snooze","artist":"SZA","title":"Snooze","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/62/93/13/6293132e-20ff-67ab-3d1f-96bb6797a6ba/196589564955.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"four-tet-two-thousand","artist":"Four Tet","title":"Two Thousand and Seventeen","art":"https://is1-ssl.mzstatic.com/image/thumb/Music128/v4/aa/99/b5/aa99b504-2656-85c4-965a-3bc80e52d0f2/666017319728_cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000010"}]',
    '00000000-0000-4000-8000-000000000010', 1, 'open', '{}', null, null, null, now() - interval '1 minute', now() - interval '1 minute'),
   -- you and Kevin finished one: a match
   ('00000000-0000-4000-8000-0000000be005', 'mixtape', '00000000-0000-4000-8000-00000000df01', '00000000-0000-4000-8000-0000000000a0', '00000000-0000-4000-8000-000000000011', '[
-     {"key":"lacy-dark-red","artist":"Steve Lacy","title":"Dark Red","art":"demo/album-4.png","by":"00000000-0000-4000-8000-000000000011"},
-     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","art":"demo/rot-me-2.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"paak-come-down","artist":"Anderson .Paak","title":"Come Down","art":"demo/album-5.png","by":"00000000-0000-4000-8000-000000000011"},
-     {"key":"thundercat-them-changes","artist":"Thundercat","title":"Them Changes","art":"demo/prof-rot-1.png","by":"00000000-0000-4000-8000-000000000011"},
-     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"demo/rot-imani-6.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
-     {"key":"tyler-see-you-again","artist":"Tyler, The Creator","title":"See You Again","art":"demo/prof-rot-2.png","by":"00000000-0000-4000-8000-000000000011"},
-     {"key":"gambino-summer","artist":"Childish Gambino","title":"Feels Like Summer","art":"demo/prof-rot-3.png","by":"00000000-0000-4000-8000-000000000011"},
-     {"key":"ocean-pink-white","artist":"Frank Ocean","title":"Pink + White","art":"demo/rot-damon-7.jpg","by":"00000000-0000-4000-8000-000000000011"}]',
+     {"key":"lacy-dark-red","artist":"Steve Lacy","title":"Dark Red","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/6d/c2/86/6dc286d1-057e-c014-e42f-dbf4e829867b/5054526102712.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000011"},
+     {"key":"falls-butterflies","artist":"Isiaah Falls","title":"Butterflies","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"paak-come-down","artist":"Anderson .Paak","title":"Come Down","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/32/04/f0/3204f09c-4580-3880-7f5f-254dfa4d258f/888915184455_cover.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000011"},
+     {"key":"thundercat-them-changes","artist":"Thundercat","title":"Them Changes","art":"https://is1-ssl.mzstatic.com/image/thumb/Music221/v4/0a/e8/0c/0ae80cc1-e4c2-5e14-4dc2-3dfefb013896/5054429007756.png/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000011"},
+     {"key":"jhene-triggered","artist":"Jhené Aiko","title":"Triggered","art":"https://is1-ssl.mzstatic.com/image/thumb/Music122/v4/b5/35/84/b535844b-6fe5-f659-4ba2-217c8e8b5e8a/20UMGIM38482.rgb.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-0000000000a0"},
+     {"key":"tyler-see-you-again","artist":"Tyler, The Creator","title":"See You Again","art":"https://is1-ssl.mzstatic.com/image/thumb/Music116/v4/c6/3d/3b/c63d3b44-d74b-9b79-be7d-aeb714146378/5052917021727_CookinCovers.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000011"},
+     {"key":"gambino-summer","artist":"Childish Gambino","title":"Feels Like Summer","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/6b/26/22/6b262212-325b-4971-2c47-51ae443aa78d/886447212882.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000011"},
+     {"key":"ocean-pink-white","artist":"Frank Ocean","title":"Pink + White","art":"https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/bb/45/68/bb4568f3-68cd-619d-fbcb-4e179916545d/BlondCover-Final.jpg/600x600bb.jpg","by":"00000000-0000-4000-8000-000000000011"}]',
    null, 3, 'agreed', '{00000000-0000-4000-8000-0000000000a0,00000000-0000-4000-8000-000000000011}', null, 'build', now() - interval '30 hours', now() - interval '50 hours', now() - interval '30 hours');
 
 insert into public.build_turns (build_id, actor_id, action, items, changes, note, created_at) values

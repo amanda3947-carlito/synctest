@@ -266,15 +266,12 @@ img { display: block; }
 .device.is-tab-builds .device__chrome, .device.is-tab-builds .feed { visibility: hidden; }
 .device.is-tab-builds { --nav-ink: #303030; --nav-tint-a: rgba(255, 255, 255, 0.55); --nav-tint-b: rgba(255, 255, 255, 0.4); --nav-rim: rgba(255, 255, 255, 0.8); --nav-selected: rgba(255, 255, 255, 0.7); }
 .device.is-tab-builds .gnav { box-shadow: 0 10px 22px -6px rgba(12, 12, 13, 0.16), 0 2px 8px rgba(12, 12, 13, 0.06), inset 0 1px 0 var(--nav-rim), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
-.builds__head { flex: 0 0 auto; height: 45px; margin: 72px 20px 0; display: flex; align-items: center; justify-content: space-between; }
-:root.is-native .builds__head { margin-top: calc(var(--sb-top) + 10px); }
-.builds__me { position: relative; width: 50px; height: 45px; padding: 0; background: none; }
-.builds__me-img { position: absolute; left: 0; top: 0; width: 42px; height: 42px; border-radius: 50%; object-fit: cover; object-position: 50% 25%; }
-.builds__me-disc { position: absolute; left: 28px; top: 24px; width: 22px; height: 22px; object-fit: contain; }
+.builds__head { flex: 0 0 auto; height: 36px; margin: calc(var(--sb-top, 53px) + 9px) 20px 0; display: flex; align-items: center; justify-content: space-between; }   /* the avatar lands where the feed's does */
+.builds__me { flex: 0 0 36px; }
 .builds__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* the frame has no visible title; kept for screen readers */
 .builds__filter { width: 36px; height: 36px; padding: 0; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; }
 /* the tabs (1148:11064): 20px Plus Jakarta, 16 apart; the one you're on in ink and bold, the rest grey with the count in the accent */
-.builds__tabs { flex: 0 0 auto; display: flex; gap: 16px; padding: 14px 20px 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.builds__tabs { flex: 0 0 auto; display: flex; gap: 16px; padding: 17px 20px 0; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .builds__tabs::-webkit-scrollbar { display: none; }
 .btab { flex: 0 0 auto; padding: 0; background: none; border: 0; font-family: var(--font-display); font-size: 20px; font-weight: 400; line-height: 1.2; letter-spacing: -0.4px; color: #767676; white-space: nowrap; transition: color 0.2s; }
 .btab.is-on { color: #1e1e1e; font-weight: 700; }
@@ -285,11 +282,11 @@ img { display: block; }
 .builds__empty p { margin: 0 0 6px; }
 /* Highlights (:: builds, 1100:36445): a carousel of up to five 333-wide cards. The one in view stands at full size;
    the next peeks in from the right a touch smaller, and swaps up as it lands */
-.builds__body.is-highlights { padding-left: 0; padding-right: 0; overflow-x: hidden; }
-.bhl { display: flex; gap: 18px; height: 100%; max-height: 640px; box-sizing: border-box; padding: 24px 19px 44px; margin: -24px 0 -44px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-padding-left: 19px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.builds__body.is-highlights { padding: 25px 0 calc(max(24px, var(--sb-bottom, 24px)) + 84px); overflow: hidden; }   /* the cards run down to 20 above the nav (1148:9212: 601 tall) */
+.bhl { display: flex; gap: 18px; height: calc(100% + 68px); box-sizing: border-box; padding: 24px 19px 44px; margin: -24px 0 -44px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scroll-padding-left: 19px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .bhl::-webkit-scrollbar { display: none; }
 /* ":: build card _highlight" (1148:9213): 335 × 572, r 32, the photo edge to edge */
-.bhl__card { position: relative; flex: 0 0 335px; height: 100%; max-height: 572px; scroll-snap-align: start; padding: 0; border: 0; border-radius: 32px; overflow: hidden; background: #e9e7e2; text-align: left; box-shadow: 0 16px 32px -4px rgba(12, 12, 13, 0.12), 0 4px 4px -4px rgba(12, 12, 13, 0.06); transform-origin: 0 50%; will-change: transform; transition: transform 0.18s ease-out; }
+.bhl__card { position: relative; flex: 0 0 335px; height: 100%; scroll-snap-align: start; padding: 0; border: 0; border-radius: 32px; overflow: hidden; background: #e9e7e2; text-align: left; box-shadow: 0 16px 32px -4px rgba(12, 12, 13, 0.12), 0 4px 4px -4px rgba(12, 12, 13, 0.06); transform-origin: 0 50%; will-change: transform; transition: transform 0.18s ease-out; }
 .bhl__img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; }
 .bhl__top { position: absolute; left: 0; right: 0; top: 0; height: 63px; display: flex; align-items: center; justify-content: center; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.4) 3%, rgba(0, 0, 0, 0) 96%); }
 .bhl__dots { display: flex; gap: 4px; align-items: center; padding: 8px; }

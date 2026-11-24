@@ -1,5 +1,5 @@
 /* Offline shell for Sync Concept Lab. Bump CACHE when you change the app. */
-const CACHE = "scl-v8";
+const CACHE = "scl-v9";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg"];
 
 self.addEventListener("install", (event) => {
@@ -16,6 +16,8 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  // the live app under sync/ is never served from this cache: it always comes fresh from the network
+  if (url.origin === self.location.origin && url.pathname.includes("/sync/")) return;
   // Fonts: network first, fall back to cache so the app still renders offline.
   if (url.origin !== self.location.origin) {
     event.respondWith(fetch(req).then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); return res; }).catch(() => caches.match(req)));

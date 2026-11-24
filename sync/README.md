@@ -154,6 +154,10 @@ Inside the shell the page runs edge to edge: `native.js` marks the document `is-
 and the nav follow the insets, and the real status bar's text goes dark over the white panels and
 light over the feed. Everything else is the same code as the website.
 
+On a screen much bigger than a phone (480 pt wide or more, like a foldable opened up), `native.js` marks the page
+`is-framed` and aux draws at the 17 Pro's 402 × 874, centred on the dark backdrop with rounded corners, so it looks
+and feels the way it does on a regular phone. Folded, or on any phone, it fills the screen as usual.
+
 For TestFlight: Product → Archive in Xcode, then Distribute App → App Store Connect. That needs an
 Apple Developer account ($99/yr) with the app registered in App Store Connect under the same bundle
 id. Switch to bundled mode first so reviewers get a copy that does not depend on GitHub Pages.

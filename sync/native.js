@@ -5,6 +5,12 @@
   const cap = window.Capacitor;
   if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return;
   document.documentElement.classList.add('is-native');
+  // a screen much bigger than a phone (an unfolded foldable): draw aux at the 17 Pro's 402 × 874, centred, the way
+  // it looks on a regular phone, instead of stretching to fill it. Folding it back (or any phone) fills the screen again.
+  const FRAME_FROM = 480;   // no phone in portrait is this wide
+  const frame = () => document.documentElement.classList.toggle('is-framed', window.innerWidth >= FRAME_FROM);
+  frame();
+  window.addEventListener('resize', frame);
   const StatusBar = cap.Plugins && cap.Plugins.StatusBar;
   const set = (style) => { if (StatusBar && StatusBar.setStyle) StatusBar.setStyle({ style }).catch(() => {}); };
   // dark text over the white screens (onboarding, your profile, the Builds list); light over photos
@@ -12,12 +18,15 @@
   const sync = () => {
     const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
     const onWhite = (auth && !auth.hidden) || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'));
-    set(onWhite ? 'LIGHT' : 'DARK');
+    // framed, the real status bar sits over the dark backdrop around the phone, so its text stays light
+    const framed = document.documentElement.classList.contains('is-framed');
+    set(!framed && onWhite ? 'LIGHT' : 'DARK');
   };
   const start = () => {
     const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
     if (auth) new MutationObserver(sync).observe(auth, { attributes: true, attributeFilter: ['hidden'] });
     if (dev) new MutationObserver(sync).observe(dev, { attributes: true, attributeFilter: ['class'] });
+    new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     sync();
   };
   // the keyboard: the shell shrinks the web view to the space above it (capacitor.config.js), and tells the page

@@ -1992,6 +1992,11 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 :root.is-native .sky__me { top: calc(var(--sb-top) + 9px); }
 :root.is-native .device__nav { bottom: max(24px, var(--sb-bottom)); }
 :root.is-native .ob__foot { padding-bottom: max(24px, var(--sb-bottom)); }
+/* framed (native.js, an unfolded foldable): the 17 Pro's 402 × 874 centred on the dark backdrop, with a phone's own
+   status-bar and home-indicator room inside the frame rather than the big screen's insets */
+:root.is-native.is-framed { --sb-top: 53px; --sb-bottom: 34px; }
+:root.is-native.is-framed .device { max-width: 402px; max-height: 874px; border-radius: var(--radius-device); }
+:root.is-native.is-framed body { padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
 /* with the keyboard up the home indicator is covered, so the buttons sit just above the keys */
 :root.is-native.is-kb-open .ob__foot { padding-bottom: 16px; }
 :root.is-native.is-kb-open .ob__realbar { padding-bottom: 16px; }

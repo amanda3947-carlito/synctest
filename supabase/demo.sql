@@ -53,6 +53,13 @@ insert into public.profile_shelf (profile_id, kind, key, title, meta, position) 
   ('00000000-0000-4000-8000-0000000000a0', 'film', 'seed:past-lives', 'Past Lives', '2023 · Celine Song', 1),
   ('00000000-0000-4000-8000-0000000000a0', 'book', 'seed:intermezzo', 'Intermezzo', 'Sally Rooney', 2)
 on conflict (profile_id, key) do nothing;
+-- her featured build: her spots, next to the mixtape
+insert into public.profile_builds (id, profile_id, type_key, items, position) values
+  ('00000000-0000-4000-8000-00000000dd02', '00000000-0000-4000-8000-0000000000a0', 'spots', '[
+     {"key":"place:00000000-0000-4000-8000-00000000b005","place_id":"00000000-0000-4000-8000-00000000b005","title":"Fort Greene Park","meta":"Park • Fort Greene"},
+     {"key":"place:00000000-0000-4000-8000-00000000b003","place_id":"00000000-0000-4000-8000-00000000b003","title":"Books Are Magic","meta":"Store • Cobble Hill"},
+     {"key":"place:00000000-0000-4000-8000-00000000b007","place_id":"00000000-0000-4000-8000-00000000b007","title":"Elsewhere","meta":"Venue • Bushwick"}]', 1)
+on conflict (id) do update set items = excluded.items;
 
 -- ───────────── five people you are building with ─────────────
 insert into auth.users (id, instance_id, aud, role, phone, phone_confirmed_at, raw_app_meta_data, raw_user_meta_data, created_at, updated_at)

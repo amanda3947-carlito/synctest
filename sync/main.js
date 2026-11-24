@@ -201,6 +201,28 @@
         </div>
         <div class="prow__action">${PLAY_BTN(esc(r.title))}</div>
       </div>`).join('');
+    // the featured build: 3 to 6 of their spots or titles, to swap your own into (a mixtape's sibling)
+    const feat = person.featured;
+    const featArt = (t) => (t.art ? `<img src="${esc(t.art)}" alt="">` : feat.type === 'spots' ? '<img class="prow__pin" src="assets/details/map-pin-line.svg" alt="">' : `<i>${esc((t.title || '?').slice(0, 1))}</i>`);
+    const featuredHTML = feat ? `
+        <section class="punit punit--featured">
+          <p class="punit__title">${feat.type === 'spots' ? 'Their spots' : 'Watching and reading'} <span class="punit__tag">Featured</span></p>
+          <div class="prow-list">
+            ${feat.items.map((t) => `
+            <div class="prow prow--feat">
+              <div class="prow__img prow__img--${feat.type}${t.art ? '' : ' is-type'}">${featArt(t)}</div>
+              <div class="prow__details">
+                <p class="t-body-sm">${esc(window.SyncAPI.toRow(feat.type, t).artist || '')}</p>
+                <p class="t-sub">${esc(t.title)}</p>
+              </div>
+            </div>`).join('')}
+            <button class="prow" type="button" data-action="featured">
+              <div class="prow__img prow__img--empty"></div>
+              <div class="prow__details"><p class="t-sub">${feat.type === 'spots' ? 'Swap in your spots' : 'Swap in your picks'}</p></div>
+              <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
+            </button>
+          </div>
+        </section>` : '';
     const spotCards = p.spots.map((s) => `
       <div class="pspot">
         <div class="pspot__img${s.img ? '' : ' pspot__img--pin'}">${s.img ? `<img src="${s.img}" alt="">` : '<img class="pspot__pin" src="assets/details/map-pin-line.svg" alt="">'}${s.shared ? '<span class="pspot__you">you too</span>' : ''}</div>
@@ -258,6 +280,7 @@
             </button>
           </div>
         </section>
+        ${featuredHTML}
         ${(person.details && DETAIL_ORDER.some((k) => person.details[k])) ? `
         <section class="punit">
           <p class="punit__title">Details</p>
@@ -376,6 +399,14 @@
     person.added = false;   // true once this turn's adds are used up
   };
   const addLimitOf = (person) => person.addLimit || 1;
+  // what the sheet says for each kind of build
+  const SHEET = {
+    mixtape: { done: 'It\'s a mixtape' },
+    spots: { title: 'Make it your spots', sub: 'Swap in a spot of yours, or add one', placeholder: 'Search for a spot', sent: 'Spots sent', done: 'It\'s a match',
+      blank: ['Where would you take them?', 'Add, swap, and move spots on a shared list.<br>Building together makes match', 'Try another name or neighborhood.'] },
+    shelf: { title: 'Make it your picks', sub: 'Swap in something you\'re watching or reading', placeholder: 'Search movies, shows and books', sent: 'Picks sent', done: 'It\'s a match',
+      blank: ['What should they watch or read next?', 'Add, swap, and move titles on a shared list.<br>Building together makes match', 'Try another title.'] },
+  };
 
   // a quiet line at the top of the device for errors the database sends back
   const noticeEl = document.createElement('div');
@@ -429,8 +460,9 @@
           <p class="sheet__blank-sub">${sub}</p>
         </div>
       </div>`;
-  const BLANK_START = () => blankHTML('Build the perfect playlist', 'Add, swap, and move songs in a shared playlist.<br>Building together makes match');
-  const BLANK_NONE = () => blankHTML('Nothing matched that', 'Try another song or artist.');
+  let sheetBlank = null;   // the empty state's copy for this kind of build: [title, sub, nothing-found sub]
+  const BLANK_START = () => (sheetBlank ? blankHTML(sheetBlank[0], sheetBlank[1]) : blankHTML('Build the perfect playlist', 'Add, swap, and move songs in a shared playlist.<br>Building together makes match'));
+  const BLANK_NONE = () => blankHTML('Nothing matched that', sheetBlank ? sheetBlank[2] : 'Try another song or artist.');
   const showResults = (tracks, note) => {
     shownResults = tracks;
     const inList = new Set(mixtapeOf(sheetPerson).flatMap((t) => [t.artist + '|' + t.title, t.key].filter(Boolean)));
@@ -486,6 +518,7 @@
     sheetMin = opts.minItems || 0;
     sheetKind = opts.kind || 'track';
     sheetSearch = opts.search || null;
+    sheetBlank = opts.blank || null;
     sheetInput.placeholder = opts.placeholder || 'Search for a track to make it a mixtape';
     person.addLimit = opts.addLimit || 1;
     resetMixtape(person);
@@ -495,7 +528,7 @@
     sheetAgree.hidden = !opts.canAgree;
     sheetCta.classList.toggle('has-agree', !!opts.canAgree);
     sheet.classList.remove('is-dirty', 'is-searching');
-    sheetSend.disabled = true;
+    sheetSend.disabled = !opts.ready;   // ready: there is something to save before any change (a first featured pick)
     sheetInput.value = '';
     renderList();
     sheetRoot.classList.add('is-open');
@@ -772,6 +805,30 @@
       el.addEventListener('click', (e) => {
         const b = e.target.closest('[data-i]');
         if (b) { done(items[Number(b.dataset.i)].value); return; }
+        if (e.target.closest('[data-cancel]') || e.target.classList.contains('asheet__scrim')) done(null);
+      });
+    });
+  }
+  // the same glass panel with a one-line field: resolves with the text (trimmed, may be empty) on Save, or null
+  function askText({ title, message, value = '', placeholder = '', max = 120, save = 'Save' }) {
+    return new Promise((resolve) => {
+      const el = document.createElement('div');
+      el.className = 'asheet';
+      el.innerHTML = `<div class="asheet__scrim"></div><div class="asheet__panel" role="dialog" aria-label="${esc(title || 'Edit')}">
+          <div class="asheet__group"><div class="asheet__head">${title ? `<p class="asheet__title">${esc(title)}</p>` : ''}${message ? `<p class="asheet__msg">${esc(message)}</p>` : ''}
+              <input class="asheet__field" type="text" maxlength="${max}" placeholder="${esc(placeholder)}" value="${esc(value)}" enterkeyhint="done"><p class="asheet__count"></p></div>
+            <button class="asheet__item" type="button" data-save>${esc(save)}</button></div>
+          <button class="asheet__item asheet__cancel" type="button" data-cancel>Cancel</button>
+        </div>`;
+      device.appendChild(el);
+      const field = el.querySelector('.asheet__field'), count = el.querySelector('.asheet__count');
+      const tally = () => { count.textContent = `${field.value.length} / ${max}`; };
+      tally(); field.addEventListener('input', tally);
+      requestAnimationFrame(() => requestAnimationFrame(() => { el.classList.add('is-in'); field.focus(); }));
+      const done = (v) => { field.blur(); el.classList.remove('is-in'); setTimeout(() => el.remove(), 260); resolve(v); };
+      field.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); done(field.value.trim()); } });
+      el.addEventListener('click', (e) => {
+        if (e.target.closest('[data-save]')) { done(field.value.trim()); return; }
         if (e.target.closest('[data-cancel]') || e.target.classList.contains('asheet__scrim')) done(null);
       });
     });
@@ -1128,7 +1185,7 @@
     const sub = cheer.querySelector('.toast__sub');
     toast.classList.remove('toast--mix', 'toast--msg');
     toast.classList.add(`toast--${kind}`);
-    title.textContent = kind === 'msg' ? 'Message sent' : 'Mixtape sent';
+    title.textContent = kind === 'msg' ? 'Message sent' : / sent$/.test(preview) ? preview : 'Mixtape sent';   // 'Spots sent', 'Picks sent'
     sub.textContent = kind === 'msg' && preview ? `\u201C${preview}\u201D` : '';
     cheer.classList.add('is-on');
     nav.show();   // the badge lands on the nav, so it has to be up
@@ -1220,6 +1277,10 @@
     });
 
     // dots: one per item; the active one is a 40px track with a progress fill
+    const caption = document.createElement('p');
+    caption.className = 'card__caption';
+    caption.hidden = true;
+    card.appendChild(caption);
     const dots = card.querySelector('.dots');
     const dotEls = person.items.map((_, i) => {
       const d = document.createElement('div');
@@ -1251,7 +1312,7 @@
   // what the mixtape tile says, from where the build between you stands
   function tileLabel(b, me) {
     if (!b) return 'Make it a<br>mixtape';
-    if (b.status === 'agreed') return 'It\'s a<br>mixtape';
+    if (b.status === 'agreed') return b.type_key === 'mixtape' ? 'It\'s a<br>mixtape' : 'It\'s a<br>match';
     if (b.status === 'as_is') return b.starter_id === me ? 'Loved it<br>· waiting' : 'They loved<br>it as is';
     return b.turn_id === me ? 'Your<br>turn' : 'Sent ·<br>their turn';
   }
@@ -1263,6 +1324,7 @@
     let controlTimer = 0;
     const playpause = card.querySelector('.playpause');
     const profile = card.querySelector('.profile');
+    const captionEl = card.querySelector('.card__caption');
 
     const current = () => ({ item: person.items[index], el: media[index] });
 
@@ -1281,6 +1343,8 @@
     const show = (i) => {
       index = clamp(i, 0, person.items.length - 1);
       media.forEach((el, k) => el.classList.toggle('is-active', k === index));
+      const cap = person.items[index] && person.items[index].caption;
+      captionEl.hidden = !cap; captionEl.textContent = cap || '';
       dotEls.forEach((d, k) => {
         const on = k === index;
         d.classList.toggle('is-active', on);
@@ -1462,60 +1526,72 @@
       }, target >= 0 ? PAGE_MS + 80 : 0);
     };
     const buildError = async (e) => notice(errText(e));
-    // the tile and the profile row read the state of the build between you
+    // the tile and the profile rows read the state of the build between you. You build one thing with a
+    // person at a time: their mixtape, or their featured spots or picks.
+    const API = window.SyncAPI;
     const mixTile = card.querySelector('.tile--mixtape');
     const mixRow = profile.querySelector('[data-action="mixtape"] .t-sub');
+    const featRow = profile.querySelector('[data-action="featured"] .t-sub');
+    const featCta = () => (person.featured && person.featured.type === 'spots' ? 'Swap in your spots' : 'Swap in your picks');
     const refresh = () => {
       const b = person.activeBuild;
       mixTile.querySelector('.tile__text').innerHTML = tileLabel(b, ME);
-      mixRow.textContent = tileLabel(b, ME).replace('<br>', ' ');
+      mixRow.textContent = b && b.type_key === 'mixtape' ? tileLabel(b, ME).replace('<br>', ' ') : 'Make it a mixtape';
+      if (featRow) featRow.textContent = b && person.featured && b.type_key === person.featured.type ? tileLabel(b, ME).replace('<br>', ' ') : featCta();
       mixTile.classList.toggle('is-turn', !!b && b.status === 'open' && b.turn_id === ME);
       mixTile.classList.toggle('is-waiting', !!b && b.status !== 'agreed' && b.turn_id !== ME);
       mixTile.classList.toggle('is-agreed', !!b && b.status === 'agreed');
     };
+    const profileBuildFor = (type) => (type === 'mixtape' ? person.mixtapeBuildId : person.featured && person.featured.type === type ? person.featured.id : null);
     // sending: the profile (if up) and the sheet drop away, the toast plays over the
     // photo, then the feed moves on to the next person by itself. The database answers
     // first: if it refuses the turn, the sheet's rules were bent and the card stays.
-    const onSent = async (items) => {
-      const payload = items.map(window.SyncAPI.trackItem);
+    const onSent = (type) => async (items) => {
+      const payload = items.map((r) => API.toItem(type, r));
       try {
         const b = person.activeBuild;
         let next;
-        if (b && b.status === 'open') next = await window.SyncAPI.sendTurn(b.id, payload);
-        else if (b && b.status === 'as_is') next = await window.SyncAPI.counterAsIs(b.id, payload);
-        else next = await window.SyncAPI.startBuild(person.mixtapeBuildId, payload);
+        if (b && b.status === 'open') next = await API.sendTurn(b.id, payload);
+        else if (b && b.status === 'as_is') next = await API.counterAsIs(b.id, payload);
+        else next = await API.startBuild(profileBuildFor(type), payload);
         person.activeBuild = next;
         refresh();
       } catch (e) { await buildError(e); resume(); return; }
       if (card.classList.contains('is-profile-open')) closeProfile(false);
-      celebrate(card, 'mix').then(leave);
+      celebrate(card, 'mix', type === 'mixtape' ? '' : SHEET[type].sent).then(leave);
     };
     const onAgree = async () => {
       try {
         const b = person.activeBuild;
-        person.activeBuild = b.status === 'as_is' ? await window.SyncAPI.matchBack(b.id) : await window.SyncAPI.agree(b.id);
+        person.activeBuild = b.status === 'as_is' ? await API.matchBack(b.id) : await API.agree(b.id);
         refresh();
       } catch (e) { await buildError(e); resume(); return; }
       if (card.classList.contains('is-profile-open')) closeProfile(false);
-      celebrate(card, person.activeBuild.status === 'agreed' ? 'msg' : 'mix', person.activeBuild.status === 'agreed' ? 'It\'s a mixtape' : 'Agreed. Their call now.').then(leave);
+      const done = person.activeBuild.status === 'agreed';
+      celebrate(card, done ? 'msg' : 'mix', done ? SHEET[person.activeBuild.type_key || 'mixtape'].done : 'Agreed. Their call now.').then(leave);
     };
-    const openMixtape = (e) => {
+    const openBuild = (type) => (e) => {
       e.stopPropagation();
       const b = person.activeBuild;
+      if (b && b.type_key !== type) { notice(`You two are already building ${b.type_key === 'mixtape' ? 'a mixtape' : b.type_key === 'spots' ? 'on their spots' : 'on their picks'}`); return; }
       if (b && b.status === 'agreed') { notice('You two already made this one'); return; }
       if (b && b.turn_id !== ME) { notice(b.status === 'as_is' ? 'Waiting on them to match back' : 'Their turn. You\'ll hear when it\'s back.'); return; }
+      if (!b && !profileBuildFor(type)) { notice('Nothing of theirs to build on yet'); return; }
       hold();
+      const copy = SHEET[type];
+      const opts = type === 'mixtape' ? {} : { kind: type, search: (q) => API.searchRows(type, q), placeholder: copy.placeholder, blank: copy.blank, title: copy.title, sub: copy.sub };
       if (b) {
         // the live version, with your own adds marked
-        person.sheetItems = b.items.map((t) => ({ ...t, added: t.by === ME }));
-        openSheet(person, resume, onSent, {
+        person.sheetItems = b.items.map((t) => ({ ...API.toRow(type, t), added: t.by === ME }));
+        openSheet(person, resume, onSent(type), {
+          ...opts,
           title: b.status === 'as_is' ? `${person.name} loved yours` : 'Your turn',
           sub: b.status === 'as_is' ? 'Match back, or counter with a change' : `Round ${b.round}. Change up to two things, or call it`,
           canAgree: true, onAgree, addLimit: 2,
         });
       } else {
-        person.sheetItems = null;
-        openSheet(person, resume, onSent);
+        person.sheetItems = type === 'mixtape' ? null : person.featured.items.map((t) => API.toRow(type, t));
+        openSheet(person, resume, onSent(type), opts);
       }
     };
 
@@ -1541,8 +1617,11 @@
         }).then(leave);
       }, resume);
     };
-    mixTile.addEventListener('click', openMixtape);
-    profile.querySelector('[data-action="mixtape"]').addEventListener('click', openMixtape);
+    // the tile opens whatever you two are building (a mixtape when it's nothing yet)
+    mixTile.addEventListener('click', (e) => openBuild(person.activeBuild ? person.activeBuild.type_key : 'mixtape')(e));
+    profile.querySelector('[data-action="mixtape"]').addEventListener('click', openBuild('mixtape'));
+    const featBtn = profile.querySelector('[data-action="featured"]');
+    if (featBtn && person.featured) featBtn.addEventListener('click', openBuild(person.featured.type));
     wireRecordPlayers(profile.querySelector('.prow-list'), '.prow');
     profile.querySelectorAll('.pvoice').forEach((v) => {
       const audio = new Audio(v.dataset.voice); audio.preload = 'none';
@@ -1715,7 +1794,7 @@
     const chips = [...root.querySelectorAll('.builds__chip')];
     const push = device.querySelector('.device__push');
     let list = [], view = 'highlights', isOpen = false, pushed = null, pushSettled = false;
-    const TYPE = { mixtape: ['mixtape', 'Made it a mixtape', 'track', 'tracks'], plan: ['plan', 'Made a plan', 'change', 'changes'], dinner: ['dinner', 'Cooked something up', 'change', 'changes'], watchlist: ['watchlist', 'Curated a watchlist', 'title', 'titles'] };
+    const TYPE = { mixtape: ['mixtape', 'Made it a mixtape', 'track', 'tracks'], spots: ['match', 'Swapped in their spots', 'spot', 'spots'], shelf: ['match', 'Swapped in their picks', 'title', 'titles'] };
     const line = (x) => {
       const t = TYPE[x.build.type_key] || TYPE.mixtape; const b = x.build, l = x.last; const you = l && l.actor_id === ME;
       if (b.status === 'agreed') return `It’s a ${t[0]}`;
@@ -1729,10 +1808,10 @@
       return x.mine ? 'Your move' : 'Their move';
     };
     const img = (x) => esc(x.person.photo || x.person.avatar || 'assets/avatar-blank.svg');
-    const UNIT = { mixtape: ['track', 'tracks'], watchlist: ['title', 'titles'], plan: ['change', 'changes'], dinner: ['change', 'changes'] };
+    const UNIT = { mixtape: ['track', 'tracks'], spots: ['spot', 'spots'], shelf: ['title', 'titles'] };
     const changedHTML = (x) => {
       if (!x.changed || !x.changed.count) return '';
-      const u = UNIT[x.build.type_key] || UNIT.plan; const n = x.changed.count;
+      const u = UNIT[x.build.type_key] || UNIT.mixtape; const n = x.changed.count;
       return `<div class="bchanges">${x.changed.arts.length ? `<div class="bthumbs">${x.changed.arts.map((src) => `<img src="${esc(src)}" alt="" draggable="false">`).join('')}</div>` : ''}<p class="bchanged">${n} changed ${n === 1 ? u[0] : u[1]}</p></div>`;
     };
     const discHTML = (x, cls) => `<img class="${cls}" src="${esc(x.person.disc)}" alt="" draggable="false">`;
@@ -1893,7 +1972,7 @@
 
   // ── sign-in and first run live in onboard.js; it draws into .device__auth and uses the mixtape sheet
   const authRoot = device.querySelector('.device__auth');
-  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText, profileHTML, ask: sheetMenu });
+  window.SyncOnboard.init({ device, openSheet, focusSearch: () => sheetInput.focus({ preventScroll: true }), notice, errText, profileHTML, ask: sheetMenu, askText });
   const ensureSignedIn = () => window.SyncOnboard.run();
 
   // ── boot: sign in, load the people, build the feed, then listen for builds moving
@@ -1946,7 +2025,7 @@
       if (c) { c.person.activeBuild = b; c.refresh(); }
       const pc = buildsTab.pushed; if (pc && pc.person.id === other) { pc.person.activeBuild = b; pc.refresh(); }
       if (buildsTab.isOpen && !pc) buildsTab.refresh();
-      if (b.status === 'agreed' && (!before || before.status !== 'agreed')) { badgeBuilds(); if (c) celebrate(c.card, 'msg', 'It\'s a mixtape'); }
+      if (b.status === 'agreed' && (!before || before.status !== 'agreed')) { badgeBuilds(); if (c) celebrate(c.card, 'msg', SHEET[b.type_key] ? SHEET[b.type_key].done : 'It\'s a match'); }
       else if (b.turn_id === ME && (!before || before.turn_id !== ME)) badgeBuilds();
     });
   }

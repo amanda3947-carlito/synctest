@@ -1,14 +1,11 @@
--- Sync seed: the four build types, Brooklyn places and events, and six demo profiles
+-- Sync seed: the build types (the mixtape, and the two collections that can be featured), Brooklyn places and events, and six demo profiles
 -- (the people from the designed prototype and the home feed frame) with fully filled builds.
 -- Safe to re-run: everything upserts on fixed ids.
 
 insert into public.build_types (key, name, verb, kind, unit, capacity, min_items, min_each, per_turn, slots, position) values
-  ('mixtape',   'Mixtape',   'Remix',  'list',  'track', 8, 3, 2, 2, '[]', 1),
-  ('watchlist', 'Watchlist', 'Curate', 'list',  'title', 6, 4, 2, 2, '[]', 2),
-  ('plan',      'The Plan',  'Plan',   'slots', null, null, null, null, 2,
-     '[{"id":"when","label":"When"},{"id":"vibe","label":"Vibe"},{"id":"place","label":"Where"},{"id":"do","label":"What we''ll do"}]', 3),
-  ('dinner',    'Dinner',    'Cook',   'slots', null, null, null, null, 2,
-     '[{"id":"beverage","label":"Beverage"},{"id":"appetizer","label":"Appetizer"},{"id":"main","label":"Main"},{"id":"sides","label":"Sides"},{"id":"dessert","label":"Dessert"}]', 4)
+  ('mixtape', 'Mixtape',            'Remix', 'list', 'track', 8, 3, 2, 2, '[]', 1),
+  ('spots',   'Spots',              'Swap',  'list', 'spot',  6, 3, 1, 2, '[]', 2),
+  ('shelf',   'Watching & Reading', 'Swap',  'list', 'title', 6, 3, 1, 2, '[]', 3)
 on conflict (key) do update set name = excluded.name, verb = excluded.verb, kind = excluded.kind, unit = excluded.unit,
   capacity = excluded.capacity, min_items = excluded.min_items, min_each = excluded.min_each, per_turn = excluded.per_turn,
   slots = excluded.slots, position = excluded.position;
@@ -91,7 +88,7 @@ insert into public.profile_events (profile_id, event_id) values
   ('00000000-0000-4000-8000-000000000003', '00000000-0000-4000-8000-00000000c004')
 on conflict do nothing;
 
--- the owners' builds, fully filled (the prototype's rotations as mixtapes, plus a plan and a dinner)
+-- the owners' builds, fully filled: each person's mixtape, plus one featured collection (spots or watching & reading)
 insert into public.profile_builds (id, profile_id, type_key, items, position) values
   ('00000000-0000-4000-8000-00000000d101', '00000000-0000-4000-8000-000000000001', 'mixtape', '[
      {"key":"drake-classic-pt2","artist":"Drake","title":"Classic PT2","art":"demo/rot-damon-1.jpg"},
@@ -99,31 +96,30 @@ insert into public.profile_builds (id, profile_id, type_key, items, position) va
      {"key":"lacy-nothing","artist":"Steve Lacy","title":"nothing","art":"demo/rot-damon-3.jpg"},
      {"key":"sza-sos","artist":"SZA","title":"SOS","art":"demo/rot-damon-4.jpg"},
      {"key":"pnd-padre","artist":"PARTYNEXTDOOR & Drake","title":"MEET YOUR PADRE","art":"demo/rot-damon-5.jpg"}]', 0),
-  ('00000000-0000-4000-8000-00000000d102', '00000000-0000-4000-8000-000000000001', 'plan', '{
-     "when":{"value":"Golden hour"}, "vibe":{"value":"Low-key, a little nerdy"},
-     "place":{"value":"Public Records","place_id":"00000000-0000-4000-8000-00000000b001"},
-     "do":{"value":"Dig through the listening-room shelves, then the back patio"}}', 1),
+  ('00000000-0000-4000-8000-00000000d102', '00000000-0000-4000-8000-000000000001', 'spots', '[
+     {"key":"place:00000000-0000-4000-8000-00000000b001","place_id":"00000000-0000-4000-8000-00000000b001","title":"Public Records","meta":"Restaurant • Gowanus"},
+     {"key":"place:00000000-0000-4000-8000-00000000b002","place_id":"00000000-0000-4000-8000-00000000b002","title":"Hidden Rivers","meta":"Bar • Gowanus"},
+     {"key":"place:00000000-0000-4000-8000-00000000b003","place_id":"00000000-0000-4000-8000-00000000b003","title":"Books Are Magic","meta":"Store • Cobble Hill"}]', 1),
   ('00000000-0000-4000-8000-00000000d201', '00000000-0000-4000-8000-000000000002', 'mixtape', '[
      {"key":"rodrigo-maggots","artist":"Olivia Rodrigo","title":"maggots for brains","art":"demo/rot-imani-1.jpg"},
      {"key":"grande-petal","artist":"Ariana Grande","title":"petal","art":"demo/rot-imani-2.jpg"},
      {"key":"dean-intro","artist":"Olivia Dean","title":"The Art of Loving (Intro)","art":"demo/rot-imani-3.jpg"},
      {"key":"swift-patient-zero","artist":"Taylor Swift","title":"Patient Zero","art":"demo/rot-imani-4.jpg"},
      {"key":"styles-american-girls","artist":"Harry Styles","title":"American Girls","art":"demo/rot-imani-5.jpg"}]', 0),
-  ('00000000-0000-4000-8000-00000000d202', '00000000-0000-4000-8000-000000000002', 'watchlist', '[
-     {"key":"past-lives","title":"Past Lives","meta":"Film · 2023"},
-     {"key":"the-bear","title":"The Bear","meta":"TV · FX"},
-     {"key":"frances-ha","title":"Frances Ha","meta":"Film · 2012"},
-     {"key":"fleabag","title":"Fleabag","meta":"TV · BBC"}]', 1),
+  ('00000000-0000-4000-8000-00000000d202', '00000000-0000-4000-8000-000000000002', 'shelf', '[
+     {"key":"seed:fleabag","kind":"show","title":"Fleabag","meta":"BBC"},
+     {"key":"seed:intermezzo","kind":"book","title":"Intermezzo","meta":"Sally Rooney"},
+     {"key":"seed:past-lives","kind":"film","title":"Past Lives","meta":"2023 · Celine Song"}]', 1),
   ('00000000-0000-4000-8000-00000000d301', '00000000-0000-4000-8000-000000000003', 'mixtape', '[
      {"key":"kahan-divide","artist":"Noah Kahan","title":"The Great Divide","art":"demo/rot-theo-1.jpg"},
      {"key":"bryan-lodi","artist":"Zach Bryan","title":"Lodi When","art":"demo/rot-theo-2.jpg"},
      {"key":"bunny-nuevayol","artist":"Bad Bunny","title":"NUEVAYoL","art":"demo/rot-theo-3.jpg"},
      {"key":"karol-bby","artist":"KAROL G","title":"BbY WOW","art":"demo/rot-theo-4.jpg"},
      {"key":"wallen-just-in-case","artist":"Morgan Wallen","title":"Just In Case","art":"demo/rot-theo-5.jpg"}]', 0),
-  ('00000000-0000-4000-8000-00000000d302', '00000000-0000-4000-8000-000000000003', 'dinner', '{
-     "beverage":{"value":"Mezcal palomas"}, "appetizer":{"value":"Grilled street corn"},
-     "main":{"value":"Birria tacos, the long way"}, "sides":{"value":"Charred scallion rice"},
-     "dessert":{"value":"Churros from the cart on Knickerbocker"}}', 1)
+  ('00000000-0000-4000-8000-00000000d302', '00000000-0000-4000-8000-000000000003', 'shelf', '[
+     {"key":"seed:aftersun","kind":"film","title":"Aftersun","meta":"2022 · Charlotte Wells"},
+     {"key":"seed:severance","kind":"show","title":"Severance","meta":"Apple TV+"},
+     {"key":"seed:trust","kind":"book","title":"Trust","meta":"Hernan Diaz"}]', 1)
 on conflict (id) do update set items = excluded.items, position = excluded.position;
 
 -- Damon and Olivia share two contacts; one of them (Theo) is on Sync
@@ -225,31 +221,30 @@ insert into public.profile_builds (id, profile_id, type_key, items, position) va
      {"key":"toto-mghayer","artist":"ElGrandeToto","title":"Mghayer","art":"demo/rot-new-3.jpg"},
      {"key":"khruangbin-time","artist":"Khruangbin","title":"Time (You and I)","art":"demo/rot-new-4.jpg"},
      {"key":"ocean-nights","artist":"Frank Ocean","title":"Nights","art":"demo/rot-new-5.jpg"}]', 0),
-  ('00000000-0000-4000-8000-00000000d402', '00000000-0000-4000-8000-000000000004', 'plan', '{
-     "when":{"value":"Saturday, late afternoon"}, "vibe":{"value":"Walk and talk"},
-     "place":{"value":"Fort Greene Park","place_id":"00000000-0000-4000-8000-00000000b005"},
-     "do":{"value":"Loop the park, then oysters at the market"}}', 1),
+  ('00000000-0000-4000-8000-00000000d402', '00000000-0000-4000-8000-000000000004', 'spots', '[
+     {"key":"place:00000000-0000-4000-8000-00000000b005","place_id":"00000000-0000-4000-8000-00000000b005","title":"Fort Greene Park","meta":"Park • Fort Greene"},
+     {"key":"place:00000000-0000-4000-8000-00000000b001","place_id":"00000000-0000-4000-8000-00000000b001","title":"Public Records","meta":"Restaurant • Gowanus"},
+     {"key":"place:00000000-0000-4000-8000-00000000b008","place_id":"00000000-0000-4000-8000-00000000b008","title":"Brooklyn Bridge Park, Pier 1","meta":"Park • DUMBO"}]', 1),
   ('00000000-0000-4000-8000-00000000d501', '00000000-0000-4000-8000-000000000005', 'mixtape', '[
      {"key":"outkast-atliens","artist":"Outkast","title":"ATLiens","art":"demo/rot-new-2.jpg"},
      {"key":"future-march-madness","artist":"Future","title":"March Madness","art":"demo/rot-new-4.jpg"},
      {"key":"tyler-new-magic-wand","artist":"Tyler, The Creator","title":"NEW MAGIC WAND","art":"demo/rot-new-1.jpg"},
      {"key":"gambino-redbone","artist":"Childish Gambino","title":"Redbone","art":"demo/rot-new-5.jpg"},
      {"key":"metro-creepin","artist":"Metro Boomin","title":"Creepin’","art":"demo/rot-new-3.jpg"}]', 0),
-  ('00000000-0000-4000-8000-00000000d502', '00000000-0000-4000-8000-000000000005', 'watchlist', '[
-     {"key":"atlanta","title":"Atlanta","meta":"TV · FX"},
-     {"key":"challengers","title":"Challengers","meta":"Film · 2024"},
-     {"key":"the-last-dance","title":"The Last Dance","meta":"TV · ESPN"},
-     {"key":"uncut-gems","title":"Uncut Gems","meta":"Film · 2019"}]', 1),
+  ('00000000-0000-4000-8000-00000000d502', '00000000-0000-4000-8000-000000000005', 'shelf', '[
+     {"key":"seed:atlanta","kind":"show","title":"Atlanta","meta":"FX"},
+     {"key":"seed:challengers","kind":"film","title":"Challengers","meta":"2024 · Luca Guadagnino"},
+     {"key":"seed:sneaker-wars","kind":"book","title":"Sneaker Wars","meta":"Barbara Smit"}]', 1),
   ('00000000-0000-4000-8000-00000000d601', '00000000-0000-4000-8000-000000000006', 'mixtape', '[
      {"key":"garbage-only-happy","artist":"Garbage","title":"Only Happy When It Rains","art":"demo/rot-new-3.jpg"},
      {"key":"portishead-glory-box","artist":"Portishead","title":"Glory Box","art":"demo/rot-new-5.jpg"},
      {"key":"four-tet-baby","artist":"Four Tet","title":"Baby","art":"demo/rot-new-2.jpg"},
      {"key":"jamie-xx-loud-places","artist":"Jamie xx","title":"Loud Places","art":"demo/rot-new-1.jpg"},
      {"key":"bjork-hyperballad","artist":"Björk","title":"Hyperballad","art":"demo/rot-new-4.jpg"}]', 0),
-  ('00000000-0000-4000-8000-00000000d602', '00000000-0000-4000-8000-000000000006', 'dinner', '{
-     "beverage":{"value":"Żubrówka with apple juice"}, "appetizer":{"value":"Pierogi, pan-fried"},
-     "main":{"value":"Mushroom bigos"}, "sides":{"value":"Dill cucumbers"},
-     "dessert":{"value":"Sernik from the bakery on Manhattan Ave"}}', 1)
+  ('00000000-0000-4000-8000-00000000d602', '00000000-0000-4000-8000-000000000006', 'spots', '[
+     {"key":"place:00000000-0000-4000-8000-00000000b009","place_id":"00000000-0000-4000-8000-00000000b009","title":"Human Head Records","meta":"Store • Bushwick"},
+     {"key":"place:00000000-0000-4000-8000-00000000b004","place_id":"00000000-0000-4000-8000-00000000b004","title":"Nitehawk Prospect Park","meta":"Cinema • Park Slope"},
+     {"key":"place:00000000-0000-4000-8000-00000000b006","place_id":"00000000-0000-4000-8000-00000000b006","title":"Roberta''s","meta":"Restaurant • Bushwick"}]', 1)
 on conflict (id) do update set items = excluded.items, position = excluded.position;
 
 insert into public.profile_shelf (profile_id, kind, key, title, meta, position) values

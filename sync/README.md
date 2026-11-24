@@ -105,6 +105,16 @@ sync/
   match. The charm beside a name is the taste badge (`assets/badges`, a white disc with the sticker, from
   the "taste badges" frame). A shelf row saved without a cover gets one looked up when it is shown.
 
+## Builds and collections (migration 0013)
+
+Everything centres on the **mixtape**: every profile on the feed has one. Next to it a profile has
+**collections**: Watching & Reading, Spots, and text (prompts, and a caption on each photo). One collection
+can be **featured** as a second build: the owner picks 3 to 6 of their spots or titles (Edit → Featured
+build), and on their profile a visitor taps "Swap in your spots" (or picks) to swap or add their own, two
+changes a turn, the same back-and-forth and both-agree as a mixtape. You build one thing with a person at a
+time. The Plan, Dinner and Watchlist builds from the earlier iteration are gone. Captions are set from the
+chip on each photo on the Edit page and show over that photo on the feed card.
+
 ## The iOS app (Xcode)
 
 The web app runs as-is inside an iOS shell (Capacitor) that lives in `app/`. The shell has two
@@ -148,8 +158,8 @@ a full run (0010 and 0011 are used).
 
 ## Not yet
 
-Builds and Chats tabs (nothing designed for them yet),
-plan / watchlist / dinner builds in the UI (the backend has them), push notifications, contact import on
+The Chats tab (nothing designed for it yet), captions in the first-run photo step (they're on the
+Edit page), push notifications, contact import on
 iOS Safari (needs the installed app), the video requirement on photos (encouraged, not enforced).
 
 ## Testing

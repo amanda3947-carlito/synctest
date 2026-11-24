@@ -2016,3 +2016,29 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 
 /* in the iOS app the real keyboard is always the one: the drawn stand-ins (onboarding, the reply panel) never show */
 :root.is-native .ob__kb, :root.is-native .device__keyboard { display: none !important; }
+
+/* ── the featured build on a profile: their spots or titles as rows under the rotation ── */
+.punit__tag { display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 9999px; background: var(--surface); color: #1e1e1e; font-size: 11px; font-weight: 500; vertical-align: 1px; }
+.prow--feat .prow__img img { animation: none; }   /* spots and covers don't spin like records */
+.prow__img--spots { border-radius: 14px; }
+.prow__img--shelf { border-radius: 8px; flex-basis: 40px; width: 40px; height: 56px; margin: -3px 5px; }
+.prow__img.is-type { background: rgba(255, 255, 255, 0.9); display: flex; align-items: center; justify-content: center; }
+.prow__img.is-type i { font-style: normal; font-family: var(--font-display); font-weight: 700; font-size: 18px; color: #1e1e1e; }
+.prow__img .prow__pin { width: 24px; height: 24px; object-fit: contain; opacity: 0.6; }
+
+/* ── a photo's caption on the card: a line over the photo it belongs to, above the name ── */
+.card__caption { position: absolute; z-index: 3; left: 16px; right: 16px; bottom: calc(228px + var(--nav-lift, 0px)); margin: 0; pointer-events: none;
+  color: #fff; font-size: 15px; font-weight: 500; line-height: 1.3; letter-spacing: -0.2px; text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  transition: bottom 0.75s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s, filter 0.3s; }
+.card__caption[hidden] { display: none; }
+.card.has-seek .card__caption { bottom: calc(270px + var(--nav-lift, 0px)); }
+.card.is-composing .card__caption, .card.is-profile-open .card__caption { opacity: 0; }
+
+/* ── a one-line text box over the page (photo captions): glass panel from the bottom like the action sheet ── */
+.asheet__field { width: 100%; box-sizing: border-box; margin: 4px 0 0; padding: 12px 14px; border: 0; border-radius: 12px; background: rgba(255, 255, 255, 0.9); color: #1e1e1e; font: inherit; font-size: 16px; outline: none; }
+.asheet__count { margin: 6px 2px 0; font-size: 12px; color: var(--subtle); text-align: right; }
+
+/* the caption chip on a photo in the editor */
+.mine__cap-btn { position: absolute; left: 14px; right: 14px; bottom: 12px; padding: 5px 8px; border-radius: 9999px; border: 0; background: rgba(0, 0, 0, 0.45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font-size: 11px; font-weight: 500; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mine__cap-btn.is-empty { color: rgba(255, 255, 255, 0.85); }

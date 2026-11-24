@@ -10,6 +10,7 @@ supabase/
   migrations/0003_onboarding.sql          onboarded flag, place/event search index, my_contact_count()
   migrations/0004_shelf.sql               reading & watching: profile_shelf and shared_shelf()
   migrations/0005_essentials.sql          last_name and the basics (details jsonb)
+  migrations/0013_collections.sql  mixtape + one featured collection (spots or shelf); old builds retired; photo captions
   seed.sql                   build types, Brooklyn places and events, three demo profiles
   storage.sql                the private `media` bucket and its upload/read policies
   tests/run.sh               runs migration + seed + an end-to-end scenario on a local Postgres
@@ -91,7 +92,7 @@ Migration 0011 makes every seed person a **stand-in**. A pg_cron job runs `stand
 any build waiting on a stand-in who has let it sit for their pace (`standins.pace`, 45 seconds to 2.5
 minutes) gets their move, made as them through the same `send_turn` / `agree_build` / `match_back` a phone
 calls. On a mixtape they add one or two tracks from their own rotation on their first move, then agree once
-it is complete or you already have; on a plan or a dinner they swap one slot, then agree; an as-is gets
+it is complete or you already have; on featured spots or titles they add one or two from their own collection the same way; an as-is gets
 matched back. Each move carries one of their lines (`standins.lines`) as its note, and a match gets a line
 in the chat. A move that fails is logged as a warning and retried after their pace.
 

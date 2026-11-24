@@ -80,7 +80,7 @@ select pg_temp.expect_error(format($$select send_message(%L, 'hi')$$, :'match_id
 select pg_temp.as_user(:'damon');
 select name from feed();   -- Theo only
 
-\echo '--- love as is: Theo loves Damon''s plan with a note; Damon matches back'
+\echo '--- love as is: Theo loves Damon''s featured spots with a note; Damon matches back'
 select pg_temp.as_user(:'theo');
 select pg_temp.expect_error($$select love_as_is('00000000-0000-4000-8000-00000000d102', 'ok')$$, 'say something');
 select id as asis_id, status, as_is_note from love_as_is('00000000-0000-4000-8000-00000000d102', 'Public Records at golden hour is exactly my speed.') \gset
@@ -88,13 +88,15 @@ select pg_temp.as_user(:'damon');
 select status, via from match_back(:'asis_id');
 select body from messages m join matches x on x.id = m.match_id where x.build_id = :'asis_id';   -- the note opens the chat
 
-\echo '--- counter an as-is: Olivia loves Theo''s dinner, Theo changes dessert, it becomes a build'
+\echo '--- counter an as-is: Olivia loves Theo''s watching & reading, Theo swaps one title, it becomes a build'
 select pg_temp.as_user(:'olivia');
-select id as asis2, status from love_as_is('00000000-0000-4000-8000-00000000d302', 'Birria the long way. Say less.') \gset
+select id as asis2, status from love_as_is('00000000-0000-4000-8000-00000000d302', 'Aftersun wrecked me. Good pick.') \gset
 select pg_temp.as_user(:'theo');
 select status, round, turn_id = :'olivia' as olivias_turn from counter_as_is(:'asis2', (
-  select jsonb_set(items, '{dessert,value}', '"Flan from Tortilleria Mexicana Los Hermanos"') from builds where id = :'asis2'));
-select changes, items->'dessert'->>'by' = :'theo' as stamped from build_turns where build_id = :'asis2' and action = 'counter';
+  select jsonb_agg(case when e->>'key' = 'seed:trust' then '{"key":"seed:the-overstory","kind":"book","title":"The Overstory","meta":"Richard Powers"}'::jsonb else e end)
+    from builds, jsonb_array_elements(items) e where id = :'asis2'));
+select changes, (select e->>'by' from builds, jsonb_array_elements(items) e where id = :'asis2' and e->>'key' = 'seed:the-overstory') = :'theo' as stamped
+  from build_turns where build_id = :'asis2' and action = 'counter';
 
 \echo '--- pass, block, report'
 select pg_temp.as_user(:'olivia');
@@ -103,10 +105,21 @@ select block_profile(:'theo');
 select count(*) as theo_visible from profiles where id = :'theo';   -- 0: blocked profiles vanish
 select report_profile(:'theo', 'spam', 'test only');
 
-\echo '--- profile builds guard'
+\echo '--- profile builds guard: the old kinds are gone, one featured build at a time, 3 to 6 in it'
 select pg_temp.as_user(:'damon');
-select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'dinner', '{"main":{"value":"x"}}')$$, 'filled in');
-select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'watchlist', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"},{"key":"d","title":"D"},{"key":"e","title":"E"},{"key":"f","title":"F"},{"key":"g","title":"G"}]')$$, 'at most 6');
+select count(*) = 0 as old_kinds_gone from build_types where key in ('plan', 'dinner', 'watchlist');
+select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'shelf', '[{"key":"a","title":"A"},{"key":"b","title":"B"}]')$$, 'at least 3');
+select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'shelf', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"},{"key":"d","title":"D"},{"key":"e","title":"E"},{"key":"f","title":"F"},{"key":"g","title":"G"}]')$$, 'at most 6');
+select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'shelf', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"}]')$$, 'one featured build');
+select pg_temp.expect_error($$select set_featured('dinner', '[]')$$, 'only spots');
+select type_key, position from set_featured('shelf', '[{"key":"seed:past-lives","kind":"film","title":"Past Lives"},{"key":"seed:the-bear","kind":"show","title":"The Bear"},{"key":"seed:the-argonauts","kind":"book","title":"The Argonauts"}]');
+select string_agg(type_key, ',' order by position) = 'mixtape,shelf' as swapped from profile_builds where profile_id = :'damon';
+select set_featured(null) is null as taken_down;
+select string_agg(type_key, ',') = 'mixtape' as mixtape_only from profile_builds where profile_id = :'damon';
+
+\echo '--- photo captions'
+update profile_media set caption = 'Gowanus, the good side' where id = '00000000-0000-4000-8000-00000000a101';
+select caption from profile_media where id = '00000000-0000-4000-8000-00000000a101';
 
 \echo '--- unauthenticated: nothing'
 select set_config('request.jwt.claim.sub', '', true);

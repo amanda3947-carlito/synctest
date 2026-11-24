@@ -141,7 +141,7 @@ window.SyncAPI = (() => {
   }
   async function myMedia() {
     const id = await userId();
-    const { data } = await sb.from('profile_media').select('id,kind,path,poster_path,position').eq('profile_id', id).order('position');
+    const { data } = await sb.from('profile_media').select('id,kind,path,poster_path,position,caption').eq('profile_id', id).order('position');
     const rows = data || [];
     const url = await mediaUrls(rows.flatMap((m) => [m.path, m.poster_path]).filter(Boolean));
     return rows.map((m) => ({ ...m, url: url[m.path], posterUrl: m.poster_path ? url[m.poster_path] : null }));
@@ -159,6 +159,8 @@ window.SyncAPI = (() => {
   }
   const removeMedia = async (mediaId) => { const { error } = await sb.from('profile_media').delete().eq('id', mediaId); if (error) throw error; };
   const setMediaPosition = async (mediaId, position) => { const { error } = await sb.from('profile_media').update({ position }).eq('id', mediaId); if (error) throw error; };
+  // a photo's caption: a line of text that rides on the photo (empty takes it off)
+  const setMediaCaption = async (mediaId, caption) => { const c = (caption || '').trim().slice(0, 120) || null; const { error } = await sb.from('profile_media').update({ caption: c }).eq('id', mediaId); if (error) throw error; return c; };
   async function myBuild(typeKey) {
     const id = await userId();
     const { data } = await sb.from('profile_builds').select('*').eq('profile_id', id).eq('type_key', typeKey).maybeSingle();
@@ -248,7 +250,7 @@ window.SyncAPI = (() => {
   }
   async function myPlaces() {
     const id = await userId();
-    const { data } = await sb.from('profile_places').select('position,places(id,name,kind,neighborhood)').eq('profile_id', id).order('position');
+    const { data } = await sb.from('profile_places').select('position,places(id,name,kind,neighborhood,image_path,lat,lng)').eq('profile_id', id).order('position');
     return (data || []).filter((r) => r.places).map((r) => r.places);
   }
   async function setMyPlaces(list) {
@@ -355,6 +357,14 @@ window.SyncAPI = (() => {
     return data;
   }
 
+  // the one featured build next to the mixtape: 'spots' or 'shelf' with 3 to 6 picks, or null to take it down
+  const setFeatured = async (typeKey, items) => { const { data, error } = await sb.rpc('set_featured', { p_type: typeKey, p_items: typeKey ? items : null }); if (error) throw error; return data; };
+  async function myFeatured() {
+    const id = await userId();
+    const { data } = await sb.from('profile_builds').select('*').eq('profile_id', id).neq('type_key', 'mixtape').maybeSingle();
+    return data;
+  }
+
   // ── people
   const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
 
@@ -405,7 +415,7 @@ window.SyncAPI = (() => {
   }
   async function hydrate(p, me) {
     const [media, builds, places, events, mutuals, shared, shelf, sharedShelf] = await Promise.all([
-      sb.from('profile_media').select('kind,path,poster_path,position').eq('profile_id', p.id).order('position'),
+      sb.from('profile_media').select('kind,path,poster_path,position,caption').eq('profile_id', p.id).order('position'),
       sb.from('profile_builds').select('id,type_key,items,position').eq('profile_id', p.id).order('position'),
       sb.from('profile_places').select('position,places(id,name,kind,neighborhood,image_path,lat,lng)').eq('profile_id', p.id).order('position'),
       sb.from('profile_events').select('events(id,title,venue,starts_at)').eq('profile_id', p.id),
@@ -415,9 +425,11 @@ window.SyncAPI = (() => {
       rpc('shared_shelf', { p_profile: p.id }).catch(() => []),
     ]);
     const mixtape = (builds.data || []).find((b) => b.type_key === 'mixtape');
+    const featured = (builds.data || []).find((b) => b.type_key === 'spots' || b.type_key === 'shelf');
     const paths = [
       ...(media.data || []).flatMap((m) => [m.path, m.poster_path]),
       ...(mixtape ? mixtape.items.map((t) => t.art) : []),
+      ...(featured ? featured.items.map((t) => t.art) : []),
       p.avatar_path, ...(p.style_paths || []),
       ...Object.values(p.prompts || {}).map((x) => x && x.voice),
       ...(places.data || []).map((r) => r.places && r.places.image_path),
@@ -431,6 +443,7 @@ window.SyncAPI = (() => {
     paths.push(...(places.data || []).map((r) => r.places && r.places.image_path));
     const url = await mediaUrls(paths.filter(Boolean));
     const u = (x) => (x ? url[x] || x : null);
+    const placeImg = Object.fromEntries((places.data || []).filter((r) => r.places && r.places.image_path).map((r) => [r.places.id, u(r.places.image_path)]));
     return {
       id: p.id,
       name: p.name,
@@ -438,11 +451,13 @@ window.SyncAPI = (() => {
       seeking: p.seeking || null,
       details: p.details || {},
       items: (media.data || []).map((m) => (m.kind === 'video'
-        ? { type: 'video', src: u(m.path), poster: u(m.poster_path) }
-        : { type: 'photo', src: u(m.path) })),
+        ? { type: 'video', src: u(m.path), poster: u(m.poster_path), caption: m.caption || null }
+        : { type: 'photo', src: u(m.path), caption: m.caption || null })),
       rotation: mixtape ? mixtape.items.map((t) => ({ key: t.key, art: u(t.art), artist: t.artist, title: t.title, by: t.by })) : [],
       builds: (builds.data || []),
       mixtapeBuildId: mixtape ? mixtape.id : null,
+      // the featured collection build: its picks, drawn like the collection they came from
+      featured: featured ? { id: featured.id, type: featured.type_key, items: featured.items.map((t) => ({ ...t, art: u(t.art) || (t.place_id && placeImg[t.place_id]) || null })) } : null,
       profile: {
         cover: p.cover, avatar: u(p.avatar_path) || 'assets/avatar-blank.svg',
         intro: { quote: (p.prompts && p.prompts.intro && p.prompts.intro.text) || p.intro_quote, prompt: p.intro_prompt || 'Say something witty back', voice: u(p.prompts && p.prompts.intro && p.prompts.intro.voice), seconds: p.prompts && p.prompts.intro && p.prompts.intro.seconds },
@@ -451,7 +466,7 @@ window.SyncAPI = (() => {
         obsession: p.prompts && p.prompts.obsession ? { quote: p.prompts.obsession.text, prompt: 'Tell me yours', voice: u(p.prompts.obsession.voice), seconds: p.prompts.obsession.seconds } : null,
         taste: p.taste || [],
         style: (p.style_paths || []).map(u),
-        spots: (places.data || []).filter((r) => r.places).map((r) => ({ img: u(r.places.image_path), name: r.places.name, meta: `${r.places.kind || 'Spot'} • ${r.places.neighborhood || ''}`, shared: (shared || []).some((s) => s.id === r.places.id) })),
+        spots: (places.data || []).filter((r) => r.places).map((r) => ({ id: r.places.id, img: u(r.places.image_path), name: r.places.name, meta: `${r.places.kind || 'Spot'} • ${r.places.neighborhood || ''}`, shared: (shared || []).some((s) => s.id === r.places.id) })),
         events: (events.data || []).filter((r) => r.events).map((r) => r.events).sort((a, b) => a.starts_at.localeCompare(b.starts_at)),
         mutuals: (mutuals || []).map((m) => ({ ...m, avatar: u(m.avatar_path) })),
         shelf: await Promise.all((shelf.data || []).map(async (s) => ({ ...s, art: s.art || await coverFor(s.kind, s.title), shared: (sharedShelf || []).some((x) => x.key === s.key) }))),
@@ -503,8 +518,39 @@ window.SyncAPI = (() => {
   // a track from the mixtape sheet, in the shape the database keeps
   const trackItem = (t) => ({ key: t.key || (t.artist + '|' + t.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''), artist: t.artist, title: t.title, art: t.art });
 
+  // ── the three kinds of build. The sheet draws every row as {key, title, artist (the line above the
+  //    title), art}; these turn a build's items into rows and rows back into items, and search each kind.
+  const SHELF_TAG = { film: 'Movie', show: 'Show', book: 'Book' };
+  const BUILD_KINDS = {
+    mixtape: { noun: 'mixtape', unit: ['track', 'tracks'] },
+    spots: { noun: 'spots', unit: ['spot', 'spots'] },
+    shelf: { noun: 'picks', unit: ['title', 'titles'] },
+  };
+  const strip = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v != null && v !== ''));
+  function toRow(type, t) {
+    if (type === 'mixtape') return { ...t };
+    if (type === 'shelf') return { ...t, artist: [SHELF_TAG[t.kind], t.meta].filter(Boolean).join(' · ') };
+    return { ...t, artist: t.meta || 'Spot' };
+  }
+  function toItem(type, r) {
+    if (type === 'mixtape') return trackItem(r);
+    if (type === 'shelf') return strip({ key: r.key, kind: r.kind, title: r.title, meta: r.meta != null ? r.meta : ((r.artist || '').replace(/^(Movie|Show|Book)( · )?/, '') || null), art: r.art });
+    const pl = r.place || {};
+    return strip({ key: r.key, title: r.title, meta: r.meta || r.artist, art: r.art, place_id: r.place_id || (isUuid(r.id) ? r.id : null) || (isUuid(pl.id) ? pl.id : null), lat: r.lat != null ? r.lat : pl.lat, lng: r.lng != null ? r.lng : pl.lng });
+  }
+  // a search for the sheet, per kind: tracks from Apple; films, shows and books together; spots from the map
+  async function searchRows(type, q) {
+    if (type === 'shelf') {
+      const hits = await Promise.all(['film', 'show', 'book'].map((k) => searchShelf(k, q).catch(() => [])));
+      const out = []; for (let i = 0; i < 4; i++) for (const h of hits) if (h[i]) out.push(h[i]);
+      return out.slice(0, 10).map((h) => toRow('shelf', { key: h.key, kind: h.kind, title: h.title, meta: h.meta || null, art: h.art }));
+    }
+    if (type === 'spots') return (await searchKind('place', q)).map((h) => ({ key: h.key, id: h.id, place: h.place, title: h.title, meta: h.meta || 'Spot', artist: h.meta || 'Spot', art: null, lat: h.place && h.place.lat, lng: h.place && h.place.lng }));
+    return (await searchKind('track', q)).map((h) => ({ key: h.key, artist: h.meta, title: h.title, art: h.art }));
+  }
+
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
-           watchBuilds, mediaUrls, trackItem };
+           watchBuilds, mediaUrls, trackItem, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, toRow, toItem, searchRows };
 })();

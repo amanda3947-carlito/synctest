@@ -1,7 +1,7 @@
 name: Deploy to GitHub Pages
 on:
   push:
-    branches: [claude/dating-app-test-tool-bvc8eb]
+    branches: [claude/magical-ritchie-3ngcom]
   workflow_dispatch:
 permissions:
   contents: read

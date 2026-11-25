@@ -1268,8 +1268,9 @@
   function buildCard(person) {
     const card = cardTpl.content.firstElementChild.cloneNode(true);
     if (person.placeholder) card.classList.add('card--placeholder');
-    card.querySelector('.name__word').textContent = person.name;
-    card.querySelector('.name__disc').src = person.disc;
+    // the feed card keeps it simple (1098:27924): first name and age. The badge is the full profile's extra.
+    card.querySelector('.name__first').textContent = person.age ? `${person.name},` : person.name;
+    card.querySelector('.name__age').textContent = person.age ? ` ${person.age}` : '';
     // what they are looking for, as a glass pill over the name (the "home feed" frame), with the onboarding charm
     const seek = card.querySelector('.name__seek');
     if (person.seeking && SEEKING[person.seeking]) { seek.hidden = false; card.classList.add('has-seek'); seek.querySelector('.name__seek-ic').src = `assets/seeking/${person.seeking}.png`; seek.querySelector('.name__seek-label').textContent = SEEKING[person.seeking]; }

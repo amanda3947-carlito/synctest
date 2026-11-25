@@ -385,9 +385,9 @@ img { display: block; }
   color: var(--white);
   white-space: nowrap;
 }
-.name__disc { width: 30px; height: 30px; object-fit: contain; }
+.name__age { font-weight: 400; letter-spacing: -0.3px; white-space: pre; }   /* "Damon, 27": the age in the regular weight */
 /* the taste badge: the sticker on a glass disc, white at 20% over a blur of what's behind, two soft shadows under it */
-.name__disc, .pavatar-disc, .pbar__disc, .sky__me-disc, .board__me-disc, .builds__me-disc, .bcard__disc { border-radius: 50%; background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
+.pavatar-disc, .pbar__disc, .sky__me-disc, .board__me-disc, .builds__me-disc, .bcard__disc { border-radius: 50%; background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
 /* "CaretDoubleRight" (1098:27961): the way into the profile, at the row's right */
 
 /* "bottom content": gap 8 */
@@ -1438,7 +1438,11 @@ img { display: block; }
 .device__auth[hidden] { display: none; }
 /* booting: the sky is the loading state; nothing of the feed (its chrome, its glass nav, its cards) shows until main.js lifts it */
 .device.is-booting .device__chrome, .device.is-booting .device__nav, .device.is-booting .feed { opacity: 0; pointer-events: none; }
-.device__nav, .feed { transition: opacity 0.4s ease; }
+/* the nav rides with the scroll (the full profile): it glides down out of frame and back up on a soft ease.
+   Going down it eases in and out; coming back it decelerates into place. */
+.device__nav { transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease; }
+.device.is-nav-hidden .device__nav { transition: transform 0.42s cubic-bezier(0.45, 0, 0.55, 1), opacity 0.4s ease; }
+.feed { transition: opacity 0.4s ease; }
 .device__auth.is-leaving { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
 /* the cover (your profile): a plane above the feed that slides in from the left edge and back out the same way */
 .device__auth.is-cover { transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); will-change: transform; box-shadow: 16px 0 48px rgba(12, 12, 13, 0.22); }

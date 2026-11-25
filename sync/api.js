@@ -460,6 +460,7 @@ window.SyncAPI = (() => {
     return {
       id: p.id,
       name: p.name,
+      age: ageOf(p.birthdate),
       disc: discFor(p),
       seeking: p.seeking || null,
       details: p.details || {},
@@ -484,6 +485,12 @@ window.SyncAPI = (() => {
       },
     };
   }
+  // whole years since their birthday, as of today (null when it isn't known)
+  const ageOf = (d) => {
+    if (!d) return null;
+    const [y, m, day] = String(d).slice(0, 10).split('-').map(Number), now = new Date();
+    return now.getFullYear() - y - ((now.getMonth() + 1 < m || (now.getMonth() + 1 === m && now.getDate() < day)) ? 1 : 0);
+  };
   async function feed(limit = 20) {
     const me = await userId();
     const rows = await rpc('feed', { p_limit: limit });

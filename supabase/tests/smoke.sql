@@ -82,10 +82,10 @@ select pg_temp.expect_error(format($$select send_message(%L, 'hi')$$, :'match_id
 select pg_temp.as_user(:'damon');
 select name from feed();   -- Theo only
 
-\echo '--- love as is: Theo loves Damon''s featured spots with a note; Damon matches back'
+\echo '--- love as is: Theo loves Damon''s mixtape with a note; Damon matches back'
 select pg_temp.as_user(:'theo');
-select pg_temp.expect_error($$select love_as_is('00000000-0000-4000-8000-00000000d102', '  ')$$, 'add a note');
-select id as asis_id, status, as_is_note from love_as_is('00000000-0000-4000-8000-00000000d102', 'Public Records at golden hour is exactly my speed.') \gset
+select pg_temp.expect_error($$select love_as_is('00000000-0000-4000-8000-00000000d101', '  ')$$, 'add a note');
+select id as asis_id, status, as_is_note from love_as_is('00000000-0000-4000-8000-00000000d101', 'Jazz on vinyl is exactly my speed.') \gset
 select pg_temp.as_user(:'damon');
 select status, via from match_back(:'asis_id');
 select body from messages m join matches x on x.id = m.match_id where x.build_id = :'asis_id';   -- the note opens the chat
@@ -93,14 +93,14 @@ select body from messages m join matches x on x.id = m.match_id where x.build_id
 select (send_note(:'asis_id', 'hi')).status as still_agreed;
 select count(*) = 2 as two_messages from messages m join matches x on x.id = m.match_id where x.build_id = :'asis_id';
 
-\echo '--- counter an as-is: Olivia loves Theo''s watching & reading, Theo swaps one title, it becomes a build'
+\echo '--- counter an as-is: Olivia loves Theo''s mixtape, Theo swaps one track, it becomes a build'
 select pg_temp.as_user(:'olivia');
-select id as asis2, status from love_as_is('00000000-0000-4000-8000-00000000d302', 'Aftersun wrecked me. Good pick.') \gset
+select id as asis2, status from love_as_is('00000000-0000-4000-8000-00000000d301', 'The Great Divide on the walk home. Good pick.') \gset
 select pg_temp.as_user(:'theo');
 select status, round, turn_id = :'olivia' as olivias_turn from counter_as_is(:'asis2', (
-  select jsonb_agg(case when e->>'key' = 'seed:trust' then '{"key":"seed:the-overstory","kind":"book","title":"The Overstory","meta":"Richard Powers"}'::jsonb else e end)
+  select jsonb_agg(case when e->>'key' = 'wallen-just-in-case' then '{"key":"bryan-something","artist":"Zach Bryan","title":"Something in the Orange"}'::jsonb else e end)
     from builds, jsonb_array_elements(items) e where id = :'asis2'));
-select changes, (select e->>'by' from builds, jsonb_array_elements(items) e where id = :'asis2' and e->>'key' = 'seed:the-overstory') = :'theo' as stamped
+select changes, (select e->>'by' from builds, jsonb_array_elements(items) e where id = :'asis2' and e->>'key' = 'bryan-something') = :'theo' as stamped
   from build_turns where build_id = :'asis2' and action = 'counter';
 
 \echo '--- a note on a build in flight: it rides as a turn note, the turn stays where it was'
@@ -115,17 +115,12 @@ select block_profile(:'theo');
 select count(*) as theo_visible from profiles where id = :'theo';   -- 0: blocked profiles vanish
 select report_profile(:'theo', 'spam', 'test only');
 
-\echo '--- profile builds guard: the old kinds are gone, one featured build at a time, 3 to 6 in it'
+\echo '--- profile builds guard: a profile''s build is its mixtape, with at least 3 tracks'
 select pg_temp.as_user(:'damon');
-select count(*) = 0 as old_kinds_gone from build_types where key in ('plan', 'dinner', 'watchlist');
-select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'shelf', '[{"key":"a","title":"A"},{"key":"b","title":"B"}]')$$, 'at least 3');
-select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'shelf', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"},{"key":"d","title":"D"},{"key":"e","title":"E"},{"key":"f","title":"F"},{"key":"g","title":"G"}]')$$, 'at most 6');
-select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'shelf', '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"}]')$$, 'one featured build');
-select pg_temp.expect_error($$select set_featured('dinner', '[]')$$, 'only spots');
-select type_key, position from set_featured('shelf', '[{"key":"seed:past-lives","kind":"film","title":"Past Lives"},{"key":"seed:the-bear","kind":"show","title":"The Bear"},{"key":"seed:the-argonauts","kind":"book","title":"The Argonauts"}]');
-select string_agg(type_key, ',' order by position) = 'mixtape,shelf' as swapped from profile_builds where profile_id = :'damon';
-select set_featured(null) is null as taken_down;
-select string_agg(type_key, ',') = 'mixtape' as mixtape_only from profile_builds where profile_id = :'damon';
+select string_agg(key, ',') = 'mixtape' as only_mixtape from build_types;
+select pg_temp.expect_error($$insert into profile_builds (profile_id, type_key, items) values ('00000000-0000-4000-8000-000000000001', 'mixtape', '[{"key":"a","title":"A"},{"key":"b","title":"B"}]')$$, 'at least 3');
+select pg_temp.expect_error($$update profile_builds set items = '[{"key":"a","title":"A"},{"key":"b","title":"B"},{"key":"c","title":"C"},{"key":"d","title":"D"},{"key":"e","title":"E"},{"key":"f","title":"F"},{"key":"g","title":"G"},{"key":"h","title":"H"},{"key":"i","title":"I"}]' where id = '00000000-0000-4000-8000-00000000d101'$$, 'at most 8');
+select count(*) = 0 as no_set_featured from pg_proc where proname = 'set_featured';
 
 \echo '--- photo captions'
 update profile_media set caption = 'Gowanus, the good side' where id = '00000000-0000-4000-8000-00000000a101';

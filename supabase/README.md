@@ -12,6 +12,8 @@ supabase/
   migrations/0005_essentials.sql          last_name and the basics (details jsonb)
   migrations/0013_collections.sql  mixtape + one featured collection (spots or shelf); old builds retired; photo captions
   migrations/0014_send_back_as_is.sql  no minimum from each person: whoever's turn it is can agree as it stands
+  migrations/0015_notes.sql  a like with a note is never blocked; send_note for a build in flight or a chat
+  migrations/0016_mixtape_only.sql  the featured build is gone: a profile's build is its mixtape
   seed.sql                   build types, Brooklyn places and events, three demo profiles
   storage.sql                the private `media` bucket and its upload/read policies
   tests/run.sh               runs migration + seed + an end-to-end scenario on a local Postgres
@@ -101,8 +103,7 @@ in the chat. A move that fails is logged as a warning and retried after their pa
 
 Fourteen more people for the feed (after `seed.sql` and migration 0011): Marcus, Kwame, Sofia, Arjun, June, Camille,
 Rafa, Leo, Ivy, Amara, Zuri, Nia, Finn and Kai. Their photos are in `sync/assets/people/` (paths `demo/people/…`).
-Each has a five-track mixtape with real covers, prompts, details, three spots, watching & reading, six of them a
-featured build (spots or shelf), and a stand-in row so they answer your remixes and likes. Ten new Brooklyn,
+Each has a five-track mixtape with real covers, prompts, details, three spots, watching & reading, and a stand-in row so they answer your remixes and likes. Ten new Brooklyn,
 Queens and Manhattan spots come with them. Safe to re-run. `reset_me.sql` puts the live demo account's own builds back.
 
 ## Deleting an account

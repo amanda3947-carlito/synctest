@@ -114,15 +114,13 @@ sync/
   match. The charm beside a name is the taste badge (`assets/badges`, a white disc with the sticker, from
   the "taste badges" frame). A shelf row saved without a cover gets one looked up when it is shown.
 
-## Builds and collections (migration 0013)
+## Builds and collections (migrations 0013, 0016)
 
-Everything centres on the **mixtape**: every profile on the feed has one. Next to it a profile has
-**collections**: Watching & Reading, Spots, and text (prompts, and a caption on each photo). One collection
-can be **featured** as a second build: the owner picks 3 to 6 of their spots or titles (Edit → Featured
-build), and on their profile a visitor taps "Swap in your spots" (or picks) to swap or add their own, two
-changes a turn, the same back-and-forth and both-agree as a mixtape. You build one thing with a person at a
-time. The Plan, Dinner and Watchlist builds from the earlier iteration are gone. Captions are set from the
-chip on each photo on the Edit page and show over that photo on the feed card.
+Everything centres on the **mixtape**: it is the one build, and every profile on the feed has one. Next to it a
+profile has **collections**: Watching & Reading, Spots, and text (prompts, and a caption on each photo). The
+featured build (a collection offered as a second build) came and went: migration 0016 took it down, since the
+profile interactions coming next cover that ground. Captions are set from the chip on each photo on the Edit page
+and show over that photo on the feed card.
 
 ## The iOS app (Xcode)
 

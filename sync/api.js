@@ -378,13 +378,6 @@ window.SyncAPI = (() => {
     return data;
   }
 
-  // the one featured build next to the mixtape: 'spots' or 'shelf' with 3 to 6 picks, or null to take it down
-  const setFeatured = async (typeKey, items) => { const { data, error } = await sb.rpc('set_featured', { p_type: typeKey, p_items: typeKey ? items : null }); if (error) throw error; return data; };
-  async function myFeatured() {
-    const id = await userId();
-    const { data } = await sb.from('profile_builds').select('*').eq('profile_id', id).neq('type_key', 'mixtape').maybeSingle();
-    return data;
-  }
 
   // ── people
   const rpc = async (fn, args) => { const { data, error } = await sb.rpc(fn, args); if (error) throw error; return data; };
@@ -447,11 +440,9 @@ window.SyncAPI = (() => {
       rpc('shared_shelf', { p_profile: p.id }).catch(() => []),
     ]);
     const mixtape = (builds.data || []).find((b) => b.type_key === 'mixtape');
-    const featured = (builds.data || []).find((b) => b.type_key === 'spots' || b.type_key === 'shelf');
     const paths = [
       ...(media.data || []).flatMap((m) => [m.path, m.poster_path]),
       ...(mixtape ? mixtape.items.map((t) => t.art) : []),
-      ...(featured ? featured.items.map((t) => t.art) : []),
       p.avatar_path, ...(p.style_paths || []),
       ...Object.values(p.prompts || {}).map((x) => x && x.voice),
       ...(places.data || []).map((r) => r.places && r.places.image_path),
@@ -478,8 +469,6 @@ window.SyncAPI = (() => {
       rotation: mixtape ? mixtape.items.map((t) => ({ key: t.key, art: u(t.art), artist: t.artist, title: t.title, by: t.by })) : [],
       builds: (builds.data || []),
       mixtapeBuildId: mixtape ? mixtape.id : null,
-      // the featured collection build: its picks, drawn like the collection they came from
-      featured: featured ? { id: featured.id, type: featured.type_key, items: featured.items.map((t) => ({ ...t, art: u(t.art) || (t.place_id && placeImg[t.place_id]) || null })) } : null,
       profile: {
         cover: p.cover, avatar: u(p.avatar_path) || 'assets/avatar-blank.svg',
         intro: { quote: (p.prompts && p.prompts.intro && p.prompts.intro.text) || p.intro_quote, prompt: p.intro_prompt || 'Say something witty back', voice: u(p.prompts && p.prompts.intro && p.prompts.intro.voice), seconds: p.prompts && p.prompts.intro && p.prompts.intro.seconds },
@@ -588,5 +577,5 @@ window.SyncAPI = (() => {
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
            feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, sendNote, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
-           watchBuilds, mediaUrls, trackItem, searchGifs, setMediaCaption, setFeatured, myFeatured, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
+           watchBuilds, mediaUrls, trackItem, searchGifs, setMediaCaption, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
 })();

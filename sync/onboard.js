@@ -990,7 +990,6 @@ window.SyncOnboard = (() => {
           ['seeking', 'Looking for', me.seeking ? seekingLabel(me.seeking) : 'Not picked yet'],
           ['prompts', 'Prompts', `${prompts} of ${PROMPTS.length} added`],
           ['rotation', 'Rotation', plural(n(person.rotation), 'track', 'tracks', 'added')],
-          ['featured', 'Featured build', person.featured ? `${person.featured.type === 'spots' ? 'Spots' : 'Watching & Reading'} · ${person.featured.items.length} picked` : 'None yet'],
           ['board', 'Vibes', plural(n(p.style), 'element', 'elements', 'added')],
           ['shelf', 'Watching and Reading', plural(n(p.shelf), 'title', 'titles', 'added')],
           ['spot', 'Spots', plural(n(p.spots), 'place', 'places', 'listed')],
@@ -1060,7 +1059,6 @@ window.SyncOnboard = (() => {
           if (e.target.closest('[data-delete]')) { done('delete'); return; }
           if (e.target.closest('[data-static="phone"]')) { deps.notice('Your number is how you sign in. Ask us to change it.'); return; }
           const act = e.target.closest('[data-action="shelf"], [data-action="spot"]'); if (act) { done(act.dataset.action); return; }
-          if (e.target.closest('[data-action="featured"]')) { done('featured'); return; }
           if (e.target.closest('[data-action="style"]')) { done('board'); return; }   // "Add more vibes" on your own profile: the board
           if (e.target.closest('[data-action="mixtape"]')) { done('rotation'); return; }
           const ed = e.target.closest('[data-edit]'); if (ed) done(ed.dataset.edit);
@@ -1184,62 +1182,6 @@ window.SyncOnboard = (() => {
       if (!current) setTimeout(deps.focusSearch, 400);
     }));
   }
-  // ── the featured build: next to the mixtape, 3 to 6 of your spots or of what you're watching and reading,
-  // for people to swap their own into. Picks come from your collection first; a new one joins the collection too.
-  async function stepFeatured() {
-    const a = api();
-    const [cur, prof] = await Promise.all([a.myFeatured(), a.myProfile()]);
-    const person = await a.hydrate(prof, prof.id);
-    const items = [
-      { label: cur && cur.type_key === 'spots' ? 'Change your featured spots' : 'Feature your spots', value: 'spots' },
-      { label: cur && cur.type_key === 'shelf' ? 'Change your featured picks' : 'Feature watching & reading', value: 'shelf' },
-    ];
-    if (cur) items.push({ label: 'Stop featuring', value: 'off', danger: true });
-    const pick = await deps.ask({ title: 'Featured build', message: 'Your mixtape always comes first. Next to it, feature 3 to 6 of your spots, or of what you\u2019re watching and reading, and people can swap in their own.', items });
-    if (!pick) return false;
-    if (pick === 'off') {
-      try { await a.setFeatured(null); toast('Featured build taken down'); return true; } catch (e) { deps.notice(deps.errText(e)); return false; }
-    }
-    const coll = pick === 'shelf'
-      ? person.profile.shelf.map((x) => a.toRow('shelf', { key: x.key, kind: x.kind, title: x.title, meta: x.meta, art: x.art }))
-      : person.profile.spots.map((x) => ({ key: 'place:' + x.id, place_id: x.id, title: x.name, meta: x.meta, artist: x.meta, art: x.img }));
-    const start = cur && cur.type_key === pick ? cur.items.map((t) => a.toRow(pick, t)) : coll.slice(0, 6);
-    // your own first (what matches the search), then the catalog or the map
-    const search = async (q) => {
-      const t = q.toLowerCase();
-      const mine = coll.filter((r) => `${r.title} ${r.artist || ''}`.toLowerCase().includes(t));
-      const more = await a.searchRows(pick, q).catch(() => []);
-      const seen = new Set(mine.map((r) => r.key));
-      return mine.concat(more.filter((r) => !seen.has(r.key))).slice(0, 12);
-    };
-    return new Promise((res) => {
-      root().hidden = true;
-      deps.openSheet({ name: me.name, sheetItems: start }, () => { root().hidden = false; res(false); }, async (rows) => {
-        try {
-          if (rows.length > 6) throw new Error('Six at most. Drag a few to the bin.');
-          const have = new Set(coll.map((r) => r.key));
-          const fresh = rows.filter((r) => !have.has(r.key));
-          if (pick === 'spots') {
-            // a spot fresh from the map becomes a place first, so the featured one and the collection share it
-            for (const r of fresh) {
-              if (r.place_id) continue;
-              const pl = r.id && /^[0-9a-f]{8}-/.test(r.id) ? { id: r.id } : await a.addPlace(r.place);
-              r.place_id = pl.id; r.key = 'place:' + pl.id;
-            }
-            if (fresh.length) await a.setMyPlaces([...person.profile.spots.map((x) => x.id), ...fresh.map((r) => r.place_id)]);
-          } else if (fresh.length) {
-            await a.setMyShelf([...person.profile.shelf, ...fresh.map((r) => a.toItem('shelf', r))]);
-          }
-          await a.setFeatured(pick, rows.map((r) => a.toItem(pick, r)));
-          root().hidden = false; toast('Featured build saved'); res(true);
-        } catch (e) { root().hidden = false; deps.notice(deps.errText(e)); res(false); }
-      }, pick === 'shelf'
-        ? { title: 'Featured: watching & reading', sub: 'Three to six titles. People swap in their own.', sendLabel: 'Save', addLimit: Infinity, minItems: 3, kind: 'shelf', search, ready: !(cur && cur.type_key === pick), placeholder: 'Search your titles, or anything',
-            blank: ['Pick from what you\u2019re into', 'Your watching and reading shows up first.<br>Anything new joins it too.', 'Try another title.'] }
-        : { title: 'Featured: your spots', sub: 'Three to six places. People swap in their own.', sendLabel: 'Save', addLimit: Infinity, minItems: 3, kind: 'spots', search, ready: !(cur && cur.type_key === pick), placeholder: 'Search your spots, or anywhere',
-            blank: ['Pick from your spots', 'Your spots show up first.<br>Anything new joins them too.', 'Try another name or neighborhood.'] });
-    });
-  }
   async function stepCoverPick(editing) {
     let pick = coverOf(me && me.cover).id;
     frame({ cls: 'auth--board auth--covers', title: 'Make it yours', cta: editing ? 'Save' : 'Next', back: true, ready: true,
@@ -1323,7 +1265,7 @@ window.SyncOnboard = (() => {
   const BUILD = (() => { const el = document.querySelector('script[src*="onboard.js"]'); const m = el && /[?&]v=(\d+)/.exec(el.getAttribute('src') || ''); return m ? m[1] : '?'; })();
   const SECTIONS = [
     ['board', 'Make it yours', async () => { await stepBoard(true); await loadMe(); }], ['name', 'Name', () => stepName(true)], ['birthday', 'Birthday', () => stepBirthday(true)], ['seeking', 'Looking for', () => stepSeeking(true)], ['photos', 'Photos', () => stepPhotos(true)],
-    ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation], ['featured', 'Featured build', stepFeatured],
+    ['basics', 'The basics', () => stepBasics(true)], ['describes', 'What describes you', () => stepDescribes(true)], ['rotation', 'Your rotation', stepRotation],
     ['prompts', 'Prompts', () => stepPrompts(true)], ['cover', 'Cover', () => stepCoverPick(true)],
   ];
   // the list of sections, behind the dots on your profile (Sign out lives here); ?go=<step> runs one step then shows your profile

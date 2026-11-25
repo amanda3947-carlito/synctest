@@ -228,10 +228,6 @@
         </div>
         <div class="prow__action">${PLAY_BTN(esc(r.title))}</div>
       </div>`).join('');
-    // the featured build (3 to 6 of their spots or titles to swap yours into) has no section of its own: the unit it
-    // comes from carries a "Featured" tag, and that unit's add card opens the swap
-    const feat = person.featured;
-    const featTag = (type) => (feat && feat.type === type ? ' <span class="punit__tag">Featured</span>' : '');
     const spotCards = p.spots.map((s) => `
       <div class="pspot">
         <div class="pspot__img${s.img ? '' : ' pspot__img--pin'}">${s.img ? `<img src="${s.img}" alt="">` : '<img class="pspot__pin" src="assets/details/map-pin-line.svg" alt="">'}${s.shared ? '<span class="pspot__you">you too</span>' : ''}</div>
@@ -305,7 +301,7 @@
         ${(p.lyric.quote || p.lyric.voice) ? quoteUnit('Lyrics to live by', p.lyric) : ''}
         ${p.dealbreakers && (p.dealbreakers.quote || p.dealbreakers.voice) ? quoteUnit('Deal-breakers', p.dealbreakers) : ''}
         <section class="punit">
-          <p class="punit__title">Watching and Reading${featTag('shelf')}</p>
+          <p class="punit__title">Watching and Reading</p>
           <div class="pshelf">
             ${(p.shelf || []).map((sh) => `
             <div class="pbook pbook--${sh.kind}">
@@ -319,12 +315,12 @@
         </section>
         ${p.obsession && (p.obsession.quote || p.obsession.voice) ? quoteUnit('Current obsession', p.obsession) : ''}
         <section class="punit">
-          <p class="punit__title">Spots${featTag('spots')}</p>
+          <p class="punit__title">Spots</p>
           <div class="pspots">
             ${spotCards}
             <button class="pspot" type="button" data-action="spot">
               <div class="pspot__img pspot__img--empty"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
-              <div class="pspot__cap"><p class="t-sub">${feat && feat.type === 'spots' ? 'Swap in your spots' : 'Suggest a spot'}</p></div>
+              <div class="pspot__cap"><p class="t-sub">Suggest a spot</p></div>
             </button>
           </div>
         </section>
@@ -522,7 +518,7 @@
     sheetCta.classList.toggle('has-agree', !!opts.canAgree);
     sheetCta.classList.remove('is-changed');
     sheet.classList.remove('is-dirty', 'is-searching');
-    sheetSend.disabled = !opts.ready;   // ready: there is something to save before any change (a first featured pick)
+    sheetSend.disabled = !opts.ready;   // ready: there is something to save before any change
     sheetInput.value = '';
     renderList();
     sheetRoot.classList.add('is-open');
@@ -1550,18 +1546,14 @@
     };
     const buildError = async (e) => notice(errText(e));
     // the tile and the profile rows read the state of the build between you. You build one thing with a
-    // person at a time: their mixtape, or their featured spots or picks.
+    // person at a time, and it's their mixtape.
     const API = window.SyncAPI;
     const mixTile = card.querySelector('.tile--mixtape');
     const mixRow = profile.querySelector('[data-action="mixtape"] .t-sub');
-    const featBtn = person.featured ? profile.querySelector(person.featured.type === 'spots' ? '[data-action="spot"]' : '[data-action="shelf"]') : null;
-    const featRow = featBtn && person.featured.type === 'spots' ? featBtn.querySelector('.t-sub') : null;
-    const featCta = () => (person.featured && person.featured.type === 'spots' ? 'Swap in your spots' : 'Swap in your picks');
     const refresh = () => {
       const b = person.activeBuild;
       mixTile.querySelector('.tile__text').innerHTML = tileLabel(b, ME);
       mixRow.textContent = b && b.type_key === 'mixtape' ? tileLabel(b, ME).replace('<br>', ' ') : 'Make it a mixtape';
-      if (featRow) featRow.textContent = b && person.featured && b.type_key === person.featured.type ? tileLabel(b, ME).replace('<br>', ' ') : featCta();
       mixTile.classList.toggle('is-turn', !!b && b.status === 'open' && b.turn_id === ME);
       mixTile.classList.toggle('is-waiting', !!b && b.status !== 'agreed' && b.turn_id !== ME);
       mixTile.classList.toggle('is-agreed', !!b && b.status === 'agreed');
@@ -1571,10 +1563,10 @@
       const other = b.starter_id === ME ? b.owner_id : b.starter_id;
       if (!t || t.by !== other) return false;
       if (other !== b.owner_id) return true;   // they remixed yours: everything they put in is a change
-      const origin = b.type_key === 'mixtape' ? (person.rotation || []) : ((person.featured && person.featured.items) || []);
+      const origin = person.rotation || [];
       return !origin.some((o) => o.key === t.key);
     };
-    const profileBuildFor = (type) => (type === 'mixtape' ? person.mixtapeBuildId : person.featured && person.featured.type === type ? person.featured.id : null);
+    const profileBuildFor = () => person.mixtapeBuildId;
     // sending: the profile (if up) and the sheet drop away, the toast plays over the
     // photo, then the feed moves on to the next person by itself. The database answers
     // first: if it refuses the turn, the sheet's rules were bent and the card stays.
@@ -1630,7 +1622,7 @@
           ...more.sheet,
         });
       } else {
-        person.sheetItems = type === 'mixtape' ? null : person.featured.items.map((t) => API.toRow(type, t));
+        person.sheetItems = null;
         openSheet(person, resume, onSent(type), opts);
       }
     };
@@ -1734,7 +1726,6 @@
     // the tile opens whatever you two are building (a mixtape when it's nothing yet)
     mixTile.addEventListener('click', (e) => openBuild(person.activeBuild ? person.activeBuild.type_key : 'mixtape')(e));
     profile.querySelector('[data-action="mixtape"]').addEventListener('click', openBuild('mixtape'));
-    if (featBtn) featBtn.addEventListener('click', openBuild(person.featured.type));
     wireRecordPlayers(profile.querySelector('.prow-list'), '.prow');
     profile.querySelectorAll('.pvoice').forEach((v) => {
       const audio = new Audio(v.dataset.voice); audio.preload = 'none';

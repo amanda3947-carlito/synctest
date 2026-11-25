@@ -976,7 +976,7 @@ window.SyncOnboard = (() => {
         const real = panelEl.querySelector('.ob__real');
         real.querySelector('.pcta').innerHTML = '<p class="ob__cap" style="text-align:center">This is you, as people see you.</p>';
         const pc = real.querySelector('.pcover'); if (pc) pc.insertAdjacentHTML('beforeend', `<p class="mine__covername">${esc(me.name || '')}</p>`);
-        real.querySelectorAll('.pnav__btn, .preply__field, [data-action="not-interested"], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
+        real.querySelectorAll('.pnav__btn, .preply__field, [data-action="not-interested"], [data-action="like-photo"], .pplay').forEach((b) => { b.disabled = true; b.style.pointerEvents = 'none'; });
       } else {
         const prompts = Object.keys(me.prompts || {}).length;
         const details = Object.keys(me.details || {}).filter((k) => me.details[k]).length;

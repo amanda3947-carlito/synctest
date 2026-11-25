@@ -2136,3 +2136,26 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 /* Edit scrolls under the top: a white band behind the status bar and Edit | View, fading into the page */
 .auth--mine-edit .mine__top::before { content: ""; position: absolute; z-index: -1; left: -20px; right: -20px; top: -62px; bottom: -14px; background: linear-gradient(to bottom, #fff calc(100% - 18px), rgba(255, 255, 255, 0)); pointer-events: none; }
 :root.is-native .auth--mine-edit .mine__top::before { top: calc(-1 * (var(--sb-top) + 9px)); }
+
+/* ── Gallery (1156:12648): their photos again, one by one, each with a heart of its own ── */
+.pgallery { display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; scrollbar-width: none; width: 100%; height: 268px; touch-action: pan-x; overscroll-behavior-x: contain; scroll-snap-type: x proximity; }
+.pgallery::-webkit-scrollbar { display: none; }
+.pgcard { position: relative; flex: 0 0 200px; width: 200px; height: 268px; border-radius: 24px; overflow: hidden; background: #ebe9e6; scroll-snap-align: start; scroll-margin-left: 20px; }
+.pgcard__img, .compose__photo .pgcard__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pgcard__cap { position: absolute; left: 0; right: 0; bottom: 0; height: 72px; margin: 0; display: flex; align-items: flex-end; padding: 0 21px 16px 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0)); color: #f3f3f3; font-size: 13px; font-weight: 600; line-height: 1; text-align: left; }
+.pgcard__like { position: absolute; top: 13px; right: 13px; width: 28px; height: 28px; padding: 0; border-radius: 50px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.7) 95.781%); border-top: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 32px rgba(12, 12, 13, 0.4); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: transform 0.2s; }
+.pgcard__like:active { transform: scale(0.9); }
+.pgcard__heart { position: absolute; left: 4px; top: 4px; width: 20px; height: 19px; overflow: hidden; pointer-events: none; }
+.pgcard__heart img { position: absolute; left: -58.79%; top: -101.08%; width: 353.27%; height: 207.01%; max-width: none; }
+
+/* the photo you're responding to (1157:13565): a copy lifts above the panel while the page recedes */
+.compose__photo { position: absolute; left: 50%; bottom: 0; width: 200px; height: 268px; margin-left: -100px; border-radius: 24px; overflow: hidden; z-index: 1;
+  opacity: 0; visibility: hidden; pointer-events: auto; transform: translateY(var(--lift, 0px));
+  box-shadow: 0 16px 32px -4px rgba(12, 12, 13, 0.1), 0 4px 4px -4px rgba(12, 12, 13, 0.05); }
+.compose__photo.is-composing { opacity: 1; visibility: visible; transform: translateY(var(--lift, 0px)); transition: opacity 0.25s, transform 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
+
+/* a liked photo, as they read it on their side */
+.note__photo { display: block; width: 72px; height: 96px; border-radius: 12px; object-fit: cover; margin-bottom: 6px; }

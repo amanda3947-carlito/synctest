@@ -164,8 +164,9 @@
   const noteHTML = (note) => {
     const raw = String(note || '');
     const gif = (raw.match(/\[gif:(https:\/\/[^\]\s]+)\]/) || [])[1];
-    const words = raw.replace(/\s*\[gif:[^\]]+\]/g, '').replace(/\s*\[voice:[^\]]+\]/g, '').trim();
-    return `${words ? `<span class="note__text">“${esc(words)}”</span>` : ''}${gif ? `<img class="note__gif" src="${esc(gif)}" alt="GIF" loading="lazy" draggable="false">` : ''}`;
+    const photo = (raw.match(/\[photo:([^\]\s]+)\]/) || [])[1];
+    const words = raw.replace(/\s*\[(gif|voice|photo):[^\]]+\]/g, '').trim();
+    return `${photo ? `<img class="note__photo" src="${esc(photo)}" alt="Their photo" loading="lazy" draggable="false">` : ''}${words ? `<span class="note__text">“${esc(words)}”</span>` : ''}${gif ? `<img class="note__gif" src="${esc(gif)}" alt="GIF" loading="lazy" draggable="false">` : ''}`;
   };
   // a track's cover that isn't there, or doesn't load, gives way to the mixtape sheet's tile: the first letter of the title
   const ART_SLOTS = '.tile, .prow__img, .srow__art, .sres__art, .bthumbs, .ob__track-art';
@@ -228,6 +229,19 @@
         </div>
         <div class="prow__action">${PLAY_BTN(esc(r.title))}</div>
       </div>`).join('');
+    const shots = (person.items || []).map((it, i) => ({ i, src: it.type === 'video' ? it.poster : it.src, caption: it.caption })).filter((x) => x.src);
+    const galleryHTML = shots.length ? `
+        <section class="punit">
+          <p class="punit__title">Gallery</p>
+          <div class="pgallery">
+            ${shots.map((x) => `
+            <div class="pgcard" data-media="${x.i}">
+              <img class="pgcard__img" src="${esc(x.src)}" alt="" loading="lazy" draggable="false">
+              ${x.caption ? `<p class="pgcard__cap">${esc(x.caption)}</p>` : ''}
+              <button class="pgcard__like" type="button" data-action="like-photo" aria-label="Like this photo"><span class="pgcard__heart"><img src="assets/sent-art.png" alt="" draggable="false"></span></button>
+            </div>`).join('')}
+          </div>
+        </section>` : '';
     const spotCards = p.spots.map((s) => `
       <div class="pspot">
         <div class="pspot__img${s.img ? '' : ' pspot__img--pin'}">${s.img ? `<img src="${s.img}" alt="">` : '<img class="pspot__pin" src="assets/details/map-pin-line.svg" alt="">'}${s.shared ? '<span class="pspot__you">you too</span>' : ''}</div>
@@ -290,30 +304,26 @@
           <p class="punit__title">Details</p>
           <div class="pdetails">${DETAIL_ORDER.filter((k) => person.details[k]).map((k) => `<span class="pchip"><img src="assets/details/${DETAIL_ICONS[k]}.svg" width="24" height="24" alt=""><span>${esc(person.details[k])}</span></span>`).join('')}</div>
         </section>` : ''}
+        ${galleryHTML}
+        ${p.obsession && (p.obsession.quote || p.obsession.voice) ? quoteUnit('Current obsession', p.obsession) : ''}
+        ${p.style.length ? `
         <section class="punit">
           <p class="punit__title">Vibes</p>
-          ${p.style.length ? `<div class="pbento-mixed">${p.style.slice(0, 4).map((src, i) => `<div${i % 3 === 0 ? ' class="span-2"' : ''}><img src="${esc(src)}" alt=""></div>`).join('')}</div>` : ''}
-          <button class="prow prow--dashed prow--cta" type="button" data-action="style">
-            <div class="prow__details"><p class="t-sub">Add more vibes</p></div>
-            <div class="prow__action"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
-          </button>
-        </section>
+          <div class="pbento-mixed">${p.style.slice(0, 4).map((src, i) => `<div${i % 3 === 0 ? ' class="span-2"' : ''}><img src="${esc(src)}" alt=""></div>`).join('')}</div>
+        </section>` : ''}
         ${(p.lyric.quote || p.lyric.voice) ? quoteUnit('Lyrics to live by', p.lyric) : ''}
         ${p.dealbreakers && (p.dealbreakers.quote || p.dealbreakers.voice) ? quoteUnit('Deal-breakers', p.dealbreakers) : ''}
+        ${(p.shelf || []).length ? `
         <section class="punit">
           <p class="punit__title">Watching and Reading</p>
           <div class="pshelf">
-            ${(p.shelf || []).map((sh) => `
+            ${p.shelf.map((sh) => `
             <div class="pbook pbook--${sh.kind}">
               <div class="pbook__art">${sh.art ? `<img src="${esc(sh.art)}" alt="" loading="lazy">` : `<span class="pbook__type">${esc(sh.title)}</span>`}</div>
               <div class="pbook__cap"><p class="t-sub">${esc(sh.title)}</p><p class="pbook__meta">${esc(sh.meta || '')}</p></div>
             </div>`).join('')}
-            <button class="pbook pbook--add" type="button" data-action="shelf" aria-label="Add something you're watching or reading">
-              <div class="pbook__art pbook__art--empty"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
-            </button>
           </div>
-        </section>
-        ${p.obsession && (p.obsession.quote || p.obsession.voice) ? quoteUnit('Current obsession', p.obsession) : ''}
+        </section>` : ''}
         <section class="punit">
           <p class="punit__title">Spots</p>
           <div class="pspots">
@@ -984,7 +994,7 @@
       const hasText = input.value.trim().length > 0;
       field.classList.toggle('has-text', hasText);
       field.classList.toggle('has-attach', !!attachment);
-      field.classList.toggle('is-ready', (hasText || !!attachment) && !voice);
+      field.classList.toggle('is-ready', hasText && !voice);   // words are required: a GIF goes with them, not instead
     };
     // the keyboard's height: the drawn one, the drawer, or (on a phone) the real one
     const setKb = () => {
@@ -1029,7 +1039,7 @@
       setKb();
       if (!gifsLoaded) { gifsLoaded = true; loadGifs(''); }   // trending, the first time the drawer opens
     };
-    const onOutside = (e) => { if (session && !e.target.closest('.pquote.is-composing')) close(); };
+    const onOutside = (e) => { if (session && !(session.unit && session.unit.contains(e.target))) close(); };
     const onKey = (e) => { if (e.key === 'Escape') { e.preventDefault(); close(); } };
     const onViewport = () => { if (session) placeOnce(); };   // a real keyboard changes the room: settle once more
 
@@ -1041,6 +1051,14 @@
     // a note out of the blue (the like): nothing to reply to, so the panel carries a title
     // instead of a lifted unit. `scope` is what dims and holds still: the profile if it is
     // up, otherwise the feed card itself. The draft lives on the card, one per person.
+    // a photo from their gallery: a copy of it lifts above the panel (the gallery scrolls sideways, so the card itself stays put)
+    const photoEl = document.createElement('div');
+    photoEl.className = 'compose__photo';
+    root.insertBefore(photoEl, root.firstChild);
+    function openPhoto(gcard, profile, name, onSend) {
+      photoEl.innerHTML = gcard.querySelector('.pgcard__img').outerHTML + (gcard.querySelector('.pgcard__cap') ? gcard.querySelector('.pgcard__cap').outerHTML : '');
+      start({ unit: photoEl, punit: null, scope: profile, fieldBtn: null, draftHost: gcard, prompt: `Respond to ${name}\u2019s photo`, onSend, hideNav: true }, 'text');
+    }
     function openNote(scope, name, card, onSend, onClose, mode = 'text') {
       start({ unit: null, punit: null, scope, fieldBtn: null, draftHost: card, prompt: 'Say something', title: name, onSend, onClose, hideNav: scope.classList.contains('profile'), vibe: mode === 'gif' }, mode);
     }
@@ -1059,7 +1077,7 @@
       refresh();
       root.classList.toggle('is-note', !unit);
       titleEl.innerHTML = title ? `Sending a ${s.vibe ? 'vibe' : 'note'} to <b>${esc(title)}</b>` : '';
-      if (unit) { unit.classList.add('is-composing'); punit.classList.add('is-focus'); }
+      if (unit) { unit.classList.add('is-composing'); if (punit) punit.classList.add('is-focus'); }
       scope.classList.add('is-composing');
       device.classList.add('is-composing');
       if (hideNav) nav.hide();
@@ -1094,7 +1112,7 @@
       if (unit) {
         unit.classList.remove('is-composing');
         unit.style.removeProperty('--lift');
-        punit.classList.remove('is-focus');
+        if (punit) punit.classList.remove('is-focus');
       }
       scope.classList.remove('is-composing', 'is-locked');
       device.classList.remove('is-composing', 'is-keyboard-up', 'is-gifs-up');
@@ -1105,7 +1123,7 @@
     const send = async () => {
       if (!session) return;
       const text = input.value.trim();
-      if (!text && !attachment && !voice) { close(); return; }
+      if (!text && !voice) { if (attachment) { notice('Add a few words to go with it'); input.focus({ preventScroll: true }); return; } close(); return; }
       const onSend = session.onSend;
       const payload = { text, gif: attachment, voice: null, seconds: 0 };
       if (voice) {
@@ -1152,7 +1170,7 @@
     // taps inside the panel never count as "outside"
     root.addEventListener('pointerdown', (e) => { if (e.target.closest('.compose__gifs, .compose__panel')) e.stopPropagation(); });
 
-    return { open, openNote, close, get active() { return !!session; } };
+    return { open, openNote, openPhoto, close, get active() { return !!session; } };
   })();
 
   // ── sent toasts ("mixtape sent" 1053:4536, "spot sent" 1062:4972): the card pops up over
@@ -1504,22 +1522,24 @@
       if (voice) return `${text ? text + ' ' : ''}Voice note · ${seconds}s [voice:${voice}]`;
       return [text, gif ? `[gif:${gif.src}]` : ''].filter(Boolean).join(' ');
     };
-    const onReplySent = (payload) => {
-      const { text, gif, voice } = payload;
-      celebrate(card, 'msg', text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '')).then(() => {
-        closeProfile(false);
-        return wait(600);
-      }).then(() => {
-        const next = card.nextElementSibling;
-        if (next) { autoAdvancing = true; goToPage(cardIndex() + 1); }
-        else resume();
-      });
-    };
+    const quoteOf = (unit) => { const q = unit.querySelector('.t-quote'); const t = q ? q.textContent.trim() : ''; return t.length > 60 ? `${t.slice(0, 57)}…` : t; };
     profile.querySelectorAll('.preply [data-compose]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const unit = btn.closest('.pquote');
-        compose.open(unit, profile, 'text', onReplySent);
+        const title = unit.closest('.punit').querySelector('.punit__title').textContent.trim();
+        const q = quoteOf(unit);
+        compose.open(unit, profile, 'text', (payload) => sendNoteOf(payload, (t) => `${t} (re ${title.toLowerCase()}${q ? `: “${q}”` : ''})`));
+      });
+    });
+    // the gallery's hearts (1157:13565): the photo lifts over the composer, and what you say goes with it
+    profile.querySelectorAll('.pgcard [data-action="like-photo"]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (compose.active) return;
+        const gcard = btn.closest('.pgcard');
+        const src = gcard.querySelector('.pgcard__img').getAttribute('src');
+        compose.openPhoto(gcard, profile, person.name, (payload) => sendNoteOf(payload, (t) => `${t} [photo:${src}]`, 'Photo liked'));
       });
     });
 
@@ -1699,30 +1719,51 @@
     // the like with a note (the heart): always open to you. With nothing between you yet it's a like as is, waiting
     // on their response (that's their Responses tab); with a build going, the note goes to them on it; once you've
     // matched it lands in your chat. A note is required: the composer won't send an empty one.
+    // every note goes the same way: with nothing between you yet it's a like as is on their mixtape (their
+    // Responses tab); with a build going it goes to them on it; once matched it lands in your chat.
+    // `wrap` dresses the words (a photo, a prompt, a spot); `toast` is what the celebration says.
+    const liveBuild = () => (person.activeBuild && person.activeBuild.status !== 'closed' ? person.activeBuild : null);
+    const sendNoteOf = async (payload, wrap = (t) => t, toast = '') => {
+      const { text, gif, voice } = payload;
+      const b = liveBuild();
+      if (!b && !person.mixtapeBuildId) { notice('Nothing of theirs to like yet'); resume(); return; }
+      const body = wrap(noteText(payload));
+      try {
+        if (b) await window.SyncAPI.sendNote(b.id, body);
+        else { person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, body); refresh(); }
+      } catch (e) { await buildError(e); resume(); return; }
+      const line = toast || text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '');
+      if (card.parentElement !== feed) { await celebrate(card, 'msg', line); if (remixEl) { remixEl.remove(); remixEl = null; } closeProfile(false); return; }   // opened from Builds
+      celebrate(card, 'msg', line).then(() => {
+        if (!card.classList.contains('is-profile-open')) return;
+        closeProfile(false);
+        return wait(600);
+      }).then(b ? resume : leave);
+    };
+    // the heart: a profile-level like, and it has to say something (the composer won't send it empty)
     const note = (mode = 'text') => {
       if (compose.active) return;
-      const b = person.activeBuild && person.activeBuild.status !== 'closed' ? person.activeBuild : null;
-      if (!b && !person.mixtapeBuildId) { notice('Nothing of theirs to like yet'); return; }
+      if (!liveBuild() && !person.mixtapeBuildId) { notice('Nothing of theirs to like yet'); return; }
       const open = card.classList.contains('is-profile-open');
       if (!open) hold();
-      compose.openNote(open ? profile : card, person.name, card, async (payload) => {
-        const { text, gif, voice } = payload;
-        try {
-          if (b) await window.SyncAPI.sendNote(b.id, noteText(payload));
-          else { person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, noteText(payload)); refresh(); }
-        } catch (e) { await buildError(e); resume(); return; }
-        const line = text || (voice ? 'Sent a voice note' : gif ? 'Sent a GIF' : '');
-        if (card.parentElement !== feed) { await celebrate(card, 'msg', line); if (remixEl) { remixEl.remove(); remixEl = null; } closeProfile(false); return; }   // opened from Builds
-        celebrate(card, 'msg', line).then(() => {
-          if (!card.classList.contains('is-profile-open')) return;
-          closeProfile(false);
-          return wait(600);
-        }).then(b ? resume : leave);
-      }, resume, mode);
+      compose.openNote(open ? profile : card, person.name, card, (payload) => sendNoteOf(payload), resume, mode);
     };
-    // "Add more vibes" on their profile: a vibe for them, a GIF (and words if you like), sent the way a note is
-    const vibeBtn = profile.querySelector('[data-action="style"]');
-    if (vibeBtn) vibeBtn.addEventListener('click', (e) => { e.stopPropagation(); note('gif'); });
+    // "Suggest a spot": the mixtape sheet with places only. Their spots are on the list; you add one and send it.
+    const spotBtn = profile.querySelector('[data-action="spot"]');
+    if (spotBtn) spotBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!liveBuild() && !person.mixtapeBuildId) { notice('Nothing of theirs to build on yet'); return; }
+      hold();
+      const theirs = (person.profile && person.profile.spots) || [];
+      person.sheetItems = theirs.map((x) => ({ key: 'place:' + x.id, id: x.id, art: x.img, artist: x.meta, title: x.name, added: false }));
+      openSheet(person, resume, (items) => {
+        const pick = items.find((t) => t.added);
+        person.sheetItems = null;
+        if (!pick) { resume(); return; }
+        sendNoteOf({ text: '', gif: null, voice: null, seconds: 0 }, () => `Let\u2019s go here: ${pick.title}${pick.artist ? ` (${pick.artist})` : ''}`, 'Spot sent');
+      }, { kind: 'spots', search: (q) => API.searchRows('spots', q), placeholder: 'Search for a spot', title: 'Suggest a spot', sub: `Somewhere to take ${person.name}`, sendLabel: 'Send it',
+        blank: ['Where would you take them?', 'Search a place or a neighborhood.<br>Aux is for getting out there', 'Try another name or neighborhood.'] });
+    });
     // the tile opens whatever you two are building (a mixtape when it's nothing yet)
     mixTile.addEventListener('click', (e) => openBuild(person.activeBuild ? person.activeBuild.type_key : 'mixtape')(e));
     profile.querySelector('[data-action="mixtape"]').addEventListener('click', openBuild('mixtape'));
@@ -1780,7 +1821,7 @@
     let drag = null;
     card.addEventListener('pointerdown', (e) => {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (e.target.closest('.playlist, .pshelf, .pdetails, .remix')) return;   // the rotation row, the shelf, the chips and the remix take their own touches
+      if (e.target.closest('.playlist, .pshelf, .pgallery, .pdetails, .remix')) return;   // the rotation row, the shelf, the chips and the remix take their own touches
       if (e.target.closest('.preply')) return;     // the reply row's buttons are taps, not swipes
       drag = { x: e.clientX, y: e.clientY, dx: 0, dy: 0, axis: null, id: e.pointerId, open: card.classList.contains('is-profile-open'), inProfile: !!e.target.closest('.profile'), vx: 0, vy: 0, lastX: e.clientX, lastY: e.clientY, lastT: e.timeStamp, startTop: feed.scrollTop };
       suppressClick = false;
@@ -1860,7 +1901,7 @@
     // sideways burst toggles the profile, then locks until the gesture ends
     let wheelAcc = 0, wheelReset = 0, wheelLock = false;
     card.addEventListener('wheel', (e) => {
-      if (e.target.closest('.playlist, .pshelf, .pdetails, .sheet, .remix')) return;
+      if (e.target.closest('.playlist, .pshelf, .pgallery, .pdetails, .sheet, .remix')) return;
       if (Math.abs(e.deltaX) <= Math.abs(e.deltaY) * 1.2) return;
       wheelAcc += e.deltaX;
       clearTimeout(wheelReset);

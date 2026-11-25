@@ -108,6 +108,16 @@ select pg_temp.as_user(:'olivia');
 select (send_note(:'asis2', 'nice pick')).turn_id = :'olivia' as still_olivias_turn;
 select action, note from build_turns where build_id = :'asis2' and action = 'note';
 
+\echo '--- reply back: Damon likes profile 4''s photo with a note; they reply, which matches them and opens the chat'
+select pg_temp.as_user(:'damon');
+select id as asis3 from love_as_is('00000000-0000-4000-8000-00000000d401', 'Is that Venice Beach I see? [photo:demo/p4.jpg]') \gset
+select pg_temp.as_user('00000000-0000-4000-8000-000000000004');
+select pg_temp.expect_error($$select reply_note('$$ || :'asis3' || $$', ' ')$$, 'say something back');
+select status, via from reply_note(:'asis3', 'It is! Every Sunday.');
+select string_agg(m.body, ' | ' order by m.created_at) as chat from messages m join matches x on x.id = m.match_id where x.build_id = :'asis3';
+select pg_temp.as_user(:'damon');
+select pg_temp.expect_error($$select reply_note('$$ || :'asis3' || $$', 'me too')$$, 'build not found');
+
 \echo '--- pass, block, report'
 select pg_temp.as_user(:'olivia');
 select (close_build(:'asis2')).status as closed;

@@ -397,7 +397,7 @@ window.SyncAPI = (() => {
     if (!list.length) return [];
     const others = [...new Set(list.map((b) => (b.starter_id === me ? b.owner_id : b.starter_id)))];
     const [{ data: profiles }, { data: media }, { data: turns }, { data: pbs }] = await Promise.all([
-      sb.from('profiles').select('id,name,avatar_path,seeking,taste').in('id', others),
+      sb.from('profiles').select('id,name,avatar_path,seeking,taste,birthdate').in('id', others),
       sb.from('profile_media').select('profile_id,kind,path,poster_path,position').in('profile_id', others).eq('approved', true).order('position'),
       sb.from('build_turns').select('build_id,actor_id,action,changes,note,created_at').in('build_id', list.map((b) => b.id)).order('created_at', { ascending: false }),
       sb.from('profile_builds').select('id,items').in('id', list.map((b) => b.profile_build_id).filter(Boolean)),
@@ -415,8 +415,10 @@ window.SyncAPI = (() => {
       return b.items.filter((t) => t && t.by === oid && !(from && from.has(t.key)));
     };
     const arts = list.flatMap((b) => theirs(b, b.starter_id === me ? b.owner_id : b.starter_id).map((t) => t.art)).filter(Boolean);
-    const url = await mediaUrls([...Object.values(photo), ...Object.values(prof).map((p) => p.avatar_path), ...arts].filter(Boolean));
     const noteBy = {}; for (const t of turns || []) if (t.note && !noteBy[t.build_id]) noteBy[t.build_id] = t;
+    // a photo they liked travels in the note as its storage path ([photo:path]); sign it with the rest
+    const notePhotos = Object.values(noteBy).map((t) => (String(t.note).match(/\[photo:([^\]\s]+)\]/) || [])[1]).filter(Boolean);
+    const url = await mediaUrls([...Object.values(photo), ...Object.values(prof).map((p) => p.avatar_path), ...arts, ...notePhotos].filter(Boolean));
     return list.map((b) => {
       const oid = b.starter_id === me ? b.owner_id : b.starter_id;
       const p = prof[oid] || { id: oid, name: 'Someone' };
@@ -425,7 +427,8 @@ window.SyncAPI = (() => {
       return { build: b, last: last[b.id] || null, mine: b.turn_id === me, iStarted: b.starter_id === me,
         changed: { count: changed.length, arts: changed.map((t) => url[t.art] || t.art).filter(Boolean).slice(0, 3) },
         note: n && n.actor_id === oid ? n.note : null,
-        person: { id: oid, name: p.name, seeking: p.seeking || null, disc: discFor(p), photo: url[photo[oid]] || url[p.avatar_path] || null, avatar: url[p.avatar_path] || null, photos: photos[oid] || 1 } };
+        notePhoto: n && n.actor_id === oid ? (url[(String(n.note).match(/\[photo:([^\]\s]+)\]/) || [])[1]] || null) : null,
+        person: { id: oid, name: p.name, age: ageOf(p.birthdate), seeking: p.seeking || null, disc: discFor(p), photo: url[photo[oid]] || url[p.avatar_path] || null, avatar: url[p.avatar_path] || null, photos: photos[oid] || 1 } };
     });
   }
   async function hydrate(p, me) {
@@ -465,8 +468,8 @@ window.SyncAPI = (() => {
       seeking: p.seeking || null,
       details: p.details || {},
       items: (media.data || []).map((m) => (m.kind === 'video'
-        ? { type: 'video', src: u(m.path), poster: u(m.poster_path), caption: m.caption || null }
-        : { type: 'photo', src: u(m.path), caption: m.caption || null })),
+        ? { type: 'video', src: u(m.path), poster: u(m.poster_path), still: m.poster_path, caption: m.caption || null }
+        : { type: 'photo', src: u(m.path), still: m.path, caption: m.caption || null })),
       rotation: mixtape ? mixtape.items.map((t) => ({ key: t.key, art: u(t.art), artist: t.artist, title: t.title, by: t.by })) : [],
       builds: (builds.data || []),
       mixtapeBuildId: mixtape ? mixtape.id : null,
@@ -520,6 +523,9 @@ window.SyncAPI = (() => {
   // a note on a build you already have going with them (or, once matched, a message in your chat)
   const sendNote = (buildId, note) => rpc('send_note', { p_build: buildId, p_note: note });
   const matchBack = (buildId) => rpc('match_back', { p_build: buildId });
+  // "Reply back" on a note they sent: you match back and your reply is the first thing you say in your chat
+  const replyNote = (buildId, note) => rpc('reply_note', { p_build: buildId, p_note: note });
+  const mediaUrl = async (path) => (path ? (await mediaUrls([path]))[path] || null : null);
   const counterAsIs = (buildId, items) => rpc('counter_as_is', { p_build: buildId, p_items: items });
   const closeBuild = (buildId) => rpc('close_build', { p_build: buildId });
   const pass = (profileId) => rpc('pass_profile', { p_profile: profileId });
@@ -583,6 +589,6 @@ window.SyncAPI = (() => {
 
   return { sb, session, userId, sendCode, verifyCode, signOut, myProfile, createProfile, updateProfile, myState, myMedia, uploadMedia, removeMedia, setMediaPosition, myBuild,
            searchPlaces, addPlace, myPlaces, setMyPlaces, uploadVoice, addEvent, myEvents, setMyEvents, syncContacts, myContactCount, searchShelf, myShelf, setMyShelf, searchAll, searchKind, uploadStyle, uploadPhoto, saveMyBuild,
-           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, sendNote, matchBack, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
+           feed, peopleForFeed, hydrate, myBuilds, buildsList, profileById, startBuild, sendTurn, agree, loveAsIs, sendNote, matchBack, replyNote, mediaUrl, counterAsIs, closeBuild, pass, blockProfile, reportProfile, deleteAccount,
            watchBuilds, mediaUrls, trackItem, searchGifs, setMediaCaption, BUILD_KINDS, buildComplete, withArt, toRow, toItem, searchRows };
 })();

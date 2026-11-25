@@ -80,3 +80,19 @@ select m.id, x.sender::uuid, x.body, now() - x.ago
                ('73427451-a88f-4fdd-ae5f-d58ea03a1e69', 'Right?? Friday at Elsewhere?', interval '28 hours'),
                ('00000000-0000-4000-8000-000000000011', 'Say less.', interval '27 hours')) x(sender, body, ago)
  where m.build_id = '00000000-0000-4000-8000-0000000be005';
+
+-- ───────────── notes waiting on you (1160:15376 / 15925 / 16467): a photo, a prompt, the whole profile ─────────────
+delete from public.builds where id in ('00000000-0000-4000-8000-0000000be006', '00000000-0000-4000-8000-0000000be007', '00000000-0000-4000-8000-0000000be008');
+insert into public.builds (id, type_key, profile_build_id, starter_id, owner_id, items, turn_id, round, status, agreed_by, as_is_note, created_at, updated_at)
+select x.id::uuid, 'mixtape', pb.id, x.starter::uuid, pb.profile_id, pb.items, pb.profile_id, 1, 'as_is', '{}', x.note, now() - x.ago::interval, now() - x.ago::interval
+  from public.profile_builds pb, (values
+    -- Arjun liked your dog photo with a note
+    ('00000000-0000-4000-8000-0000000be006', '00000000-0000-4000-8000-000000000204', 'Okay who is this good boy?? 🐶 [photo:73427451-a88f-4fdd-ae5f-d58ea03a1e69/1795542181119-2.jpeg]', '20 minutes'),
+    -- Rafa answered your intro
+    ('00000000-0000-4000-8000-0000000be007', '00000000-0000-4000-8000-000000000207', 'Okay but whose hoodie is it now? [prompt:Intro|Will%20steal%20your%20hoodie%20and%20eat%20the%20entire%20bag%20of%20chips]', '1 hour'),
+    -- Ivy liked your whole profile with a note
+    ('00000000-0000-4000-8000-0000000be008', '00000000-0000-4000-8000-000000000209', 'Love your vibe 😍', '3 hours')
+  ) x(id, starter, note, ago)
+ where pb.id = '23651bff-3ceb-4bb1-9e37-f27ec344b8ab';
+insert into public.build_turns (build_id, actor_id, action, items, note, created_at)
+select b.id, b.starter_id, 'love_as_is', b.items, b.as_is_note, b.created_at from public.builds b where b.id in ('00000000-0000-4000-8000-0000000be006', '00000000-0000-4000-8000-0000000be007', '00000000-0000-4000-8000-0000000be008');

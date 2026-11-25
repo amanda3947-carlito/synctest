@@ -161,12 +161,22 @@
 
   const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
   // a note as people read it: its words, and a GIF sent with it ([gif:url] in the note) drawn as the GIF itself
-  const noteHTML = (note) => {
+  // what a note carries besides its words: a GIF ([gif:url]), the photo of yours it answers ([photo:storage path]),
+  // the prompt of yours it answers ([prompt:title|quote], both URI-encoded), a voice note ([voice:path])
+  const dec = (s) => { try { return decodeURIComponent(s); } catch (e) { return s; } };
+  const parseNote = (note) => {
     const raw = String(note || '');
-    const gif = (raw.match(/\[gif:(https:\/\/[^\]\s]+)\]/) || [])[1];
-    const photo = (raw.match(/\[photo:([^\]\s]+)\]/) || [])[1];
-    const words = raw.replace(/\s*\[(gif|voice|photo):[^\]]+\]/g, '').trim();
-    return `${photo ? `<img class="note__photo" src="${esc(photo)}" alt="Their photo" loading="lazy" draggable="false">` : ''}${words ? `<span class="note__text">“${esc(words)}”</span>` : ''}${gif ? `<img class="note__gif" src="${esc(gif)}" alt="GIF" loading="lazy" draggable="false">` : ''}`;
+    const pm = raw.match(/\[prompt:([^\]|\s]*)\|([^\]\s]*)\]/);
+    return {
+      words: raw.replace(/\s*\[(gif|voice|photo|prompt):[^\]]+\]/g, '').trim(),
+      gif: (raw.match(/\[gif:(https:\/\/[^\]\s]+)\]/) || [])[1] || null,
+      photo: (raw.match(/\[photo:([^\]\s]+)\]/) || [])[1] || null,
+      prompt: pm ? { title: dec(pm[1]), quote: dec(pm[2]) } : null,
+    };
+  };
+  const noteHTML = (note) => {
+    const { words, gif } = parseNote(note);
+    return `${words ? `<span class="note__text">“${esc(words)}”</span>` : ''}${gif ? `<img class="note__gif" src="${esc(gif)}" alt="GIF" loading="lazy" draggable="false">` : ''}`;
   };
   // a track's cover that isn't there, or doesn't load, gives way to the mixtape sheet's tile: the first letter of the title
   const ART_SLOTS = '.tile, .prow__img, .srow__art, .sres__art, .bthumbs, .ob__track-art';
@@ -229,13 +239,13 @@
         </div>
         <div class="prow__action">${PLAY_BTN(esc(r.title))}</div>
       </div>`).join('');
-    const shots = (person.items || []).map((it, i) => ({ i, src: it.type === 'video' ? it.poster : it.src, caption: it.caption })).filter((x) => x.src);
+    const shots = (person.items || []).map((it, i) => ({ i, src: it.type === 'video' ? it.poster : it.src, still: it.still || '', caption: it.caption })).filter((x) => x.src);
     const galleryHTML = shots.length ? `
         <section class="punit">
           <p class="punit__title">Gallery</p>
           <div class="pgallery">
             ${shots.map((x) => `
-            <div class="pgcard" data-media="${x.i}">
+            <div class="pgcard" data-media="${x.i}" data-still="${esc(x.still)}">
               <img class="pgcard__img" src="${esc(x.src)}" alt="" loading="lazy" draggable="false">
               ${x.caption ? `<p class="pgcard__cap">${esc(x.caption)}</p>` : ''}
               <button class="pgcard__like" type="button" data-action="like-photo" aria-label="Like this photo"><span class="pgcard__heart"><img src="assets/sent-art.png" alt="" draggable="false"></span></button>
@@ -324,16 +334,13 @@
             </div>`).join('')}
           </div>
         </section>` : ''}
+        ${p.spots.length ? `
         <section class="punit">
           <p class="punit__title">Spots</p>
           <div class="pspots">
             ${spotCards}
-            <button class="pspot" type="button" data-action="spot">
-              <div class="pspot__img pspot__img--empty"><span class="pplus"><img src="assets/plus-circle-dark.svg" width="24" height="24" alt=""></span></div>
-              <div class="pspot__cap"><p class="t-sub">Suggest a spot</p></div>
-            </button>
           </div>
-        </section>
+        </section>` : ''}
         <div class="pcta"><button class="ppill" type="button" data-action="not-interested">Not interested</button></div>
       </div>`;
   }
@@ -1060,7 +1067,7 @@
       start({ unit: photoEl, punit: null, scope: profile, fieldBtn: null, draftHost: gcard, prompt: `Respond to ${name}\u2019s photo`, onSend, hideNav: true }, 'text');
     }
     function openNote(scope, name, card, onSend, onClose, mode = 'text') {
-      start({ unit: null, punit: null, scope, fieldBtn: null, draftHost: card, prompt: 'Say something', title: name, onSend, onClose, hideNav: scope.classList.contains('profile'), vibe: mode === 'gif' }, mode);
+      start({ unit: null, punit: null, scope, fieldBtn: null, draftHost: card, prompt: 'Say something', title: name, onSend, onClose, hideNav: scope.classList.contains('profile'), vibe: mode === 'gif', reply: mode === 'reply' }, mode);
     }
     function start(s, mode) {
       if (session) close();
@@ -1076,7 +1083,7 @@
       if (attachment) thumb.src = attachment.src;
       refresh();
       root.classList.toggle('is-note', !unit);
-      titleEl.innerHTML = title ? `Sending a ${s.vibe ? 'vibe' : 'note'} to <b>${esc(title)}</b>` : '';
+      titleEl.innerHTML = title ? (s.reply ? `Replying to <b>${esc(title)}</b>` : `Sending a ${s.vibe ? 'vibe' : 'note'} to <b>${esc(title)}</b>`) : '';
       if (unit) { unit.classList.add('is-composing'); if (punit) punit.classList.add('is-focus'); }
       scope.classList.add('is-composing');
       device.classList.add('is-composing');
@@ -1523,14 +1530,14 @@
       if (voice) return `${text ? text + ' ' : ''}Voice note · ${seconds}s [voice:${voice}]`;
       return [text, gif ? `[gif:${gif.src}]` : ''].filter(Boolean).join(' ');
     };
-    const quoteOf = (unit) => { const q = unit.querySelector('.t-quote'); const t = q ? q.textContent.trim() : ''; return t.length > 60 ? `${t.slice(0, 57)}…` : t; };
+    const quoteOf = (unit) => { const q = unit.querySelector('.t-quote'); return q ? q.textContent.trim() : ''; };
     profile.querySelectorAll('.preply [data-compose]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         const unit = btn.closest('.pquote');
         const title = unit.closest('.punit').querySelector('.punit__title').textContent.trim();
         const q = quoteOf(unit);
-        compose.open(unit, profile, 'text', (payload) => sendNoteOf(payload, (t) => `${t} (re ${title.toLowerCase()}${q ? `: “${q}”` : ''})`));
+        compose.open(unit, profile, 'text', (payload) => sendNoteOf(payload, (t) => `${t} [prompt:${encodeURIComponent(title)}|${encodeURIComponent(q)}]`));
       });
     });
     // the gallery's hearts (1157:13565): the photo lifts over the composer, and what you say goes with it
@@ -1539,8 +1546,8 @@
         e.stopPropagation();
         if (compose.active) return;
         const gcard = btn.closest('.pgcard');
-        const src = gcard.querySelector('.pgcard__img').getAttribute('src');
-        compose.openPhoto(gcard, profile, person.name, (payload) => sendNoteOf(payload, (t) => `${t} [photo:${src}]`, 'Photo liked'));
+        const still = gcard.dataset.still;   // its storage path: a signed link would expire before they read it
+        compose.openPhoto(gcard, profile, person.name, (payload) => sendNoteOf(payload, (t) => (still ? `${t} [photo:${still}]` : t), 'Photo liked'));
       });
     });
 
@@ -1657,13 +1664,15 @@
       const b = person.activeBuild;
       if (!b || b.status === 'agreed' || b.turn_id !== ME) { if (remixEl) { remixEl.remove(); remixEl = null; } device.classList.remove('is-nav-pinned'); return; }
       device.classList.add('is-nav-pinned'); nav.show();
+      if (b.status === 'as_is') { await noteBox(b, state); return; }
       const items = await API.withArt(b.items);
       const type = b.type_key || 'mixtape';
       const noun = type === 'mixtape' ? 'mixtape' : type === 'spots' ? 'spots' : 'picks';
       const rows = items.map((t) => API.toRow(type, t));
       const ready = b.status === 'as_is' || API.buildComplete(b);
       const art = (t) => (t.art ? `<img src="${esc(t.art)}" alt="" draggable="false" data-letter="${esc((t.title || '?').slice(0, 1))}">` : `<i>${esc((t.title || '?').slice(0, 1))}</i>`);
-      if (!remixEl) { remixEl = document.createElement('div'); remixEl.className = 'remix'; card.appendChild(remixEl); }
+      if (!remixEl) { remixEl = document.createElement('div'); card.appendChild(remixEl); }
+      remixEl.className = 'remix';
       remixEl.innerHTML = `<div class="remix__scrim"></div>
         <section class="remix__panel" role="dialog" aria-label="${esc(person.name)}’s ${noun}">
           <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)}’s ${b.status === 'as_is' ? 'note' : 'remix'}" data-min="${esc(person.name)}’s ${noun}"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
@@ -1687,6 +1696,45 @@
       wireRecordPlayers(remixEl.querySelector('.remix__list'), '.remix__row');
       remixEl.dataset.state = state;
     };
+    // their note, lightboxed (1160:15376 / 15925 / 16467): what of yours it answers (a photo, a prompt, or your
+    // whole profile, shown as your avatar and badge), their words in a thought bubble, and "Reply back". The caret
+    // tucks it to the foot like the mixtape, so the whole profile reads.
+    const noteBox = async (b, state) => {
+      const n = parseNote(b.as_is_note);
+      const photo = n.photo ? await API.mediaUrl(n.photo).catch(() => null) : null;
+      const meImg = device.querySelector('.header__me img');
+      const context = photo ? `<div class="rnote__photo"><img src="${esc(photo)}" alt="Your photo" draggable="false"></div>`
+        : n.prompt && n.prompt.quote ? `<div class="rnote__prompt"><p>“${esc(n.prompt.quote)}”</p></div>`
+          : `<div class="rnote__me"><img class="rnote__face" src="${esc((meImg && meImg.src) || 'assets/avatar-blank.svg')}" alt="You" draggable="false">${meDisc ? `<span class="rnote__disc"><img src="${esc(meDisc)}" alt="" draggable="false"></span>` : ''}</div>`;
+      const kind = photo ? 'photo' : n.prompt ? 'prompt' : 'profile';
+      if (!remixEl) { remixEl = document.createElement('div'); card.appendChild(remixEl); }
+      remixEl.className = 'remix remix--note';
+      remixEl.innerHTML = `<div class="remix__scrim"></div>
+        <section class="remix__panel" role="dialog" aria-label="${esc(person.name)} sent a note">
+          <button class="remix__head" type="button" data-remix="toggle" aria-expanded="${state === 'open'}"><span class="remix__title" data-open="${esc(person.name)} sent a note" data-min="${esc(person.name)} sent a note"></span><img class="remix__caret" src="assets/caret-down.svg" width="24" height="24" alt=""></button>
+          <div class="remix__body">
+            <div class="rnote rnote--${kind}">
+              ${context}
+              <div class="rnote__bubble"><p>${esc(n.words || 'Sent you a note')}</p>${n.gif ? `<img class="rnote__gif" src="${esc(n.gif)}" alt="GIF" draggable="false">` : ''}<i></i><i></i></div>
+            </div>
+            <button class="remix__send" type="button" data-remix="reply">Reply back</button>
+          </div>
+        </section>`;
+      remixEl.dataset.state = state;
+    };
+    // "Reply back": the composer opens over their profile; sending matches you two and your reply opens the chat
+    const replyBack = () => {
+      const b = person.activeBuild; if (!b || b.status !== 'as_is') return;
+      setRemix('min');
+      compose.openNote(profile, person.name, card, async (payload) => {
+        try { person.activeBuild = await API.replyNote(b.id, noteText(payload)); refresh(); }
+        catch (e) { await buildError(e); remix('min'); return; }
+        if (remixEl) { remixEl.remove(); remixEl = null; }
+        device.classList.remove('is-nav-pinned');
+        await celebrate(card, 'msg', 'It’s a match');
+        closeProfile(false);
+      }, () => remix('min'), 'reply');
+    };
     // open ⇄ tucked, with the panel carried between its two places
     const setRemix = (state) => {
       if (!remixEl) return;
@@ -1704,6 +1752,7 @@
       e.stopPropagation();
       const act = btn.dataset.remix;
       if (act === 'toggle') { setRemix(remixEl.dataset.state === 'open' ? 'min' : 'open'); return; }
+      if (act === 'reply') { replyBack(); return; }
       if (act === 'send') { if (btn.disabled) return; remixEl.remove(); remixEl = null; device.classList.remove('is-nav-pinned'); onAgree(); return; }
       if (act === 'change') {
         // the tape anchors to the foot and becomes the mixtape sheet with search; closing it leaves the tucked bar
@@ -1749,22 +1798,6 @@
       if (!open) hold();
       compose.openNote(open ? profile : card, person.name, card, (payload) => sendNoteOf(payload), resume, mode);
     };
-    // "Suggest a spot": the mixtape sheet with places only. Their spots are on the list; you add one and send it.
-    const spotBtn = profile.querySelector('[data-action="spot"]');
-    if (spotBtn) spotBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      if (!liveBuild() && !person.mixtapeBuildId) { notice('Nothing of theirs to build on yet'); return; }
-      hold();
-      const theirs = (person.profile && person.profile.spots) || [];
-      person.sheetItems = theirs.map((x) => ({ key: 'place:' + x.id, id: x.id, art: x.img, artist: x.meta, title: x.name, added: false }));
-      openSheet(person, resume, (items) => {
-        const pick = items.find((t) => t.added);
-        person.sheetItems = null;
-        if (!pick) { resume(); return; }
-        sendNoteOf({ text: '', gif: null, voice: null, seconds: 0 }, () => `Let\u2019s go here: ${pick.title}${pick.artist ? ` (${pick.artist})` : ''}`, 'Spot sent');
-      }, { kind: 'spots', search: (q) => API.searchRows('spots', q), placeholder: 'Search for a spot', title: 'Suggest a spot', sub: `Somewhere to take ${person.name}`, sendLabel: 'Send it',
-        blank: ['Where would you take them?', 'Search a place or a neighborhood.<br>Aux is for getting out there', 'Try another name or neighborhood.'] });
-    });
     // the tile opens whatever you two are building (a mixtape when it's nothing yet)
     mixTile.addEventListener('click', (e) => openBuild(person.activeBuild ? person.activeBuild.type_key : 'mixtape')(e));
     profile.querySelector('[data-action="mixtape"]').addEventListener('click', openBuild('mixtape'));
@@ -1937,86 +1970,54 @@
   const buildsTab = (() => {
     const root = device.querySelector('.device__builds');
     const body = root.querySelector('.builds__body');
-    const chips = [...root.querySelectorAll('.btab')];
     const push = device.querySelector('.device__push');
-    let list = [], view = 'highlights', isOpen = false, pushed = null, pushSettled = false;
-    const TYPE = { mixtape: ['mixtape', 'Made it a mixtape', 'track', 'tracks'], spots: ['match', 'Swapped in their spots', 'spot', 'spots'], shelf: ['match', 'Swapped in their picks', 'title', 'titles'] };
-    const line = (x) => {
-      const t = TYPE[x.build.type_key] || TYPE.mixtape; const b = x.build, l = x.last; const you = l && l.actor_id === ME;
-      if (b.status === 'agreed') return `It’s a ${t[0]}`;
-      if (b.status === 'as_is') return x.iStarted ? 'You sent a like' : 'Liked you with a note';
-      if (!l) return x.mine ? 'Your move' : 'Their move';
-      if (l.action === 'start') return you ? `You ${t[1][0].toLowerCase()}${t[1].slice(1)}` : t[1];
-      if (l.action === 'turn') { const n = l.changes || 1; const w = `${n} ${n === 1 ? t[2] : t[3]}`; return you ? `You added ${w}` : `Added ${w}`; }
-      if (l.action === 'agree') return you ? 'You agreed' : 'Agreed, your call';
-      if (l.action === 'counter') return you ? 'You countered' : 'Countered';
-      if (l.action === 'match_back') return 'Matched back';
-      return x.mine ? 'Your move' : 'Their move';
-    };
+    let list = [], isOpen = false, pushed = null, pushSettled = false;
+    // the Builds tab (1160:14183): building is the mixtape, so a build is one of two things. They made it a mixtape
+    // (what they changed, and how many tracks), or they sent a note (on your profile, a prompt or a photo).
+    const isNote = (x) => x.build.status === 'as_is' || (!!x.last && x.last.action === 'note');
+    const line = (x) => (x.mine ? (isNote(x) ? 'Sent a note' : 'Made it a mixtape') : (isNote(x) ? 'You sent a note' : 'You made it a mixtape'));
     const img = (x) => esc(x.person.photo || x.person.avatar || 'assets/avatar-blank.svg');
-    const UNIT = { mixtape: ['track', 'tracks'], spots: ['spot', 'spots'], shelf: ['title', 'titles'] };
+    const nameHTML = (x, cls) => `<span class="${cls}">${esc(x.person.name)}${x.person.age ? `,<span class="${cls}-age"> ${x.person.age}</span>` : ''}</span>`;
+    const thumbsHTML = (x) => (x.changed && x.changed.arts.length ? `<span class="bthumbs">${x.changed.arts.map((src) => `<img src="${esc(src)}" alt="" draggable="false">`).join('')}</span>` : '');
+    const quoteHTML = (x, cls) => { const w = x.note ? parseNote(x.note).words : ''; return w ? `<span class="${cls}">“${esc(w)}”</span>` : ''; };
     const changedHTML = (x) => {
-      if (!x.changed || !x.changed.count) return '';
-      const u = UNIT[x.build.type_key] || UNIT.mixtape; const n = x.changed.count;
-      return `<div class="bchanges">${x.changed.arts.length ? `<div class="bthumbs">${x.changed.arts.map((src) => `<img src="${esc(src)}" alt="" draggable="false">`).join('')}</div>` : ''}<p class="bchanged">${n} changed ${n === 1 ? u[0] : u[1]}</p></div>`;
+      const n = x.changed ? x.changed.count : 0;
+      return n ? `<span class="bchanges">${thumbsHTML(x)}<span class="bchanged">${n} changed ${n === 1 ? 'track' : 'tracks'}</span></span>` : '';
     };
-    const discHTML = (x, cls) => `<img class="${cls}" src="${esc(x.person.disc)}" alt="" draggable="false">`;
-    // Highlights: one card per build, 333 wide; the one in view stands tallest, the next peeks in a touch smaller
-    // Highlights (1148:9213): their photo edge to edge, the photo dots on top, and at the foot their name and
-    // badge, what moved, and the art of what they changed
+    // up top, a card per person (335 × 450): their photo, the photo dots, what they're looking for, name and age,
+    // and either the art of what they changed or the note they sent
     const hlHTML = (x) => {
       const n = Math.min(5, Math.max(1, x.person.photos || 1));
-      return `<button class="bhl__card${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}" aria-label="${esc(x.person.name)}: ${esc(line(x))}">
+      const seek = x.person.seeking && SEEKING[x.person.seeking];
+      return `<button class="bhl__card${x.mine ? ' is-mine' : ''}" type="button" data-build="${x.build.id}" aria-label="${esc(x.person.name)}: ${esc(line(x))}">
         <img class="bhl__img" src="${img(x)}" alt="" draggable="false">
         <span class="bhl__top" aria-hidden="true"><span class="bhl__dots">${Array.from({ length: n }, (_, i) => `<i${i ? '' : ' class="is-on"'}></i>`).join('')}</span></span>
         <span class="bhl__foot">
-          <span class="bhl__name">${esc(x.person.name)}${discHTML(x, 'bhl__disc')}</span>
+          ${seek ? `<span class="bhl__seek"><img src="assets/seeking/${esc(x.person.seeking)}.png" alt="" draggable="false"><span>${esc(seek)}</span></span>` : ''}
+          ${nameHTML(x, 'bhl__name')}
           <span class="bhl__line">${esc(line(x))}</span>
-          ${x.changed && x.changed.arts.length ? `<span class="bthumbs">${x.changed.arts.map((src) => `<img src="${esc(src)}" alt="" draggable="false">`).join('')}</span>` : ''}
+          ${isNote(x) ? quoteHTML(x, 'bhl__quote') : thumbsHTML(x)}
         </span>
       </button>`;
     };
-    // every other tab: a row per build (the "feed for all other tabs" frame)
-    const rowHTML = (x) => `<button class="brow${x.mine && x.build.status !== 'agreed' ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
-        <span class="brow__photo"><img class="brow__img" src="${img(x)}" alt="" draggable="false">${x.person.seeking && SEEKING[x.person.seeking] ? `<span class="brow__seek"><img src="assets/seeking/${x.person.seeking}.png" alt="" draggable="false"></span>` : ''}</span>
-        <span class="brow__body"><span class="brow__head"><span class="brow__name">${esc(x.person.name)}${discHTML(x, 'brow__disc')}</span><span class="brow__line">${esc(line(x))}</span></span>${x.note ? `<span class="brow__note">${noteHTML(x.note)}</span>` : ''}${changedHTML(x)}</span>
+    // below, everyone else as a row
+    const rowHTML = (x) => `<button class="brow${x.mine ? ' is-mine' : ''}" type="button" data-build="${x.build.id}">
+        <span class="brow__photo"><img class="brow__img" src="${img(x)}" alt="" draggable="false"></span>
+        <span class="brow__body">
+          <span class="brow__head">${nameHTML(x, 'brow__name')}<span class="brow__line">${esc(line(x))}</span></span>
+          ${isNote(x) ? quoteHTML(x, 'brow__quote') : changedHTML(x)}
+        </span>
       </button>`;
-    // the carousel: a touch of zoom as a card lands in view, the next one a little smaller until it is the one
-    let hlRaf = 0;
-    const settleHl = () => {
-      const hl = body.querySelector('.bhl'); if (!hl) return;
-      const cards = [...hl.querySelectorAll('.bhl__card')]; if (!cards.length) return;
-      const origin = hl.scrollLeft + 20;
-      cards.forEach((c) => { const d = Math.abs(c.offsetLeft - origin); const t = Math.min(1, d / (c.offsetWidth + 20)); c.style.transform = `scale(${(1 - 0.077 * t).toFixed(4)})`; });
-    };
-    // the tabs: Highlights, then what's live by kind, and Responses: what they've sent back that waits on you
-    const live = () => list.filter((x) => x.build.status !== 'agreed');
-    const inView = (v) => (v === 'responses' ? live().filter((x) => x.build.status === 'as_is' && x.mine) : live().filter((x) => x.build.type_key === v && x.build.status === 'open'));
-    const EMPTY = { mixtape: 'No mixtapes going right now.', responses: 'No likes waiting on your response.', spots: 'No spots going right now.', shelf: 'Nothing on watching & reading right now.' };
     const render = () => {
-      chips.forEach((c) => {
-        c.classList.toggle('is-on', c.dataset.chips === view); c.setAttribute('aria-selected', c.dataset.chips === view);
-        const n = c.querySelector('.btab__n'); if (n) n.textContent = inView(c.dataset.chips).length;
-      });
-      body.classList.toggle('is-highlights', view === 'highlights' && list.length > 0);
       if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
-      if (view === 'highlights') {
-        // three people: what waits on you first, then what's out with them
-        const featured = [...live().filter((x) => x.mine), ...live().filter((x) => !x.mine)].slice(0, 3);
-        body.innerHTML = `<div class="bhl">${featured.map(hlHTML).join('')}</div>`;
-        const hl = body.querySelector('.bhl');
-        hl.addEventListener('scroll', () => { if (!hlRaf) hlRaf = requestAnimationFrame(() => { hlRaf = 0; settleHl(); }); }, { passive: true });
-        settleHl();
-        return;
-      }
-      const rows = inView(view);
-      body.innerHTML = rows.length ? `<div class="blist">${rows.map(rowHTML).join('')}</div>`
-        : `<div class="builds__empty"><p>${EMPTY[view] || 'Nothing here yet.'}</p></div>`;
+      // what waits on you first, then what's out with them; three up top, the rest below
+      const ordered = [...list.filter((x) => x.mine), ...list.filter((x) => !x.mine)];
+      const top = ordered.slice(0, 3), rest = ordered.slice(3);
+      body.innerHTML = `<div class="bhl">${top.map(hlHTML).join('')}</div>${rest.length ? `<div class="blist">${rest.map(rowHTML).join('')}</div>` : ''}`;
     };
     // what's still being built: a finished build (a match), or one you've sent back as is, moves on to Chats
     const stillBuilding = (x) => x.build.status !== 'agreed' && !(x.build.agreed_by || []).includes(ME);
     const load = async () => { try { list = (await window.SyncAPI.buildsList()).filter(stillBuilding); } catch (e) { console.error(e); list = []; } render(); };
-    chips.forEach((c) => c.addEventListener('click', () => { view = c.dataset.chips; render(); body.scrollTop = 0; }));
     // a tap pushes that person's card in from the right with their profile open on the build; closing the profile slides it back out
     const closePush = (instant) => {
       if (!pushed) return;

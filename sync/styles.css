@@ -266,7 +266,7 @@ img { display: block; }
 .device.is-tab-builds .device__chrome, .device.is-tab-builds .feed { visibility: hidden; }
 .device.is-tab-builds { --nav-ink: #303030; --nav-tint-a: rgba(255, 255, 255, 0.55); --nav-tint-b: rgba(255, 255, 255, 0.4); --nav-rim: rgba(255, 255, 255, 0.8); --nav-selected: rgba(255, 255, 255, 0.7); }
 .device.is-tab-builds .gnav { box-shadow: 0 10px 22px -6px rgba(12, 12, 13, 0.16), 0 2px 8px rgba(12, 12, 13, 0.06), inset 0 1px 0 var(--nav-rim), inset 0 0 0 1px rgba(255, 255, 255, 0.6); }
-.builds__head { flex: 0 0 auto; height: 36px; margin: calc(var(--sb-top, 53px) + 9px) 20px 0; display: flex; align-items: center; justify-content: space-between; }   /* the avatar lands where the feed's does */
+.builds__head { position: relative; flex: 0 0 auto; height: 36px; margin: calc(var(--sb-top, 53px) + 9px) 20px 0; display: flex; align-items: center; justify-content: space-between; }   /* the avatar lands where the feed's does */
 .builds__me { flex: 0 0 36px; }
 .builds__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }   /* the frame has no visible title; kept for screen readers */
 .builds__filter { width: 36px; height: 36px; padding: 0; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; }
@@ -2163,3 +2163,58 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 
 /* a liked photo, as they read it on their side */
 .note__photo { display: block; width: 72px; height: 96px; border-radius: 12px; object-fit: cover; margin-bottom: 6px; }
+
+/* ── Builds (1160:14183): building is the mixtape. Up top a row of 335 × 450 cards, below the rest as rows ── */
+.builds__body { padding: 21px 0 calc(max(24px, var(--sb-bottom, 24px)) + 96px); }
+.bhl { height: 450px; margin: 0; padding: 0 19px; overflow-y: visible; scroll-padding-left: 19px; }
+.bhl__card { height: 450px; flex: 0 0 335px; transform: none !important; will-change: auto; box-shadow: none; }
+.bhl__card:only-child { flex-basis: calc(100% - 0px); max-width: 363px; }
+.bhl__foot { padding: 20px; gap: 10px; }
+.bhl__seek { display: inline-flex; align-items: center; gap: 2px; height: 32px; padding: 0 10px; border-radius: 9999px; background: rgba(245, 245, 245, 0.15); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.bhl__seek img { width: 15px; height: 15px; object-fit: contain; }
+.bhl__seek span { padding: 4px; font-family: var(--font-body); font-size: 12px; font-weight: 500; line-height: 1.2; letter-spacing: -0.24px; color: #f3f3f3; white-space: nowrap; font-variation-settings: "opsz" 14; }
+.bhl__name { height: 34px; padding: 4px 16px 4px 0; line-height: 26px; }
+.bhl__name-age { font-weight: 400; white-space: pre; }
+.bhl__quote { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 287px; font-family: var(--font-body); font-size: 16px; line-height: 1.2; color: #f3f3f3; font-variation-settings: "opsz" 14; }
+.blist { margin-top: 35px; padding: 0 20px; }
+.brow { min-height: 0; height: 150px; box-sizing: border-box; align-items: flex-start; }
+.brow__photo { flex: 0 0 132px; width: 132px; height: 132px; }
+.brow__body { height: 132px; box-sizing: border-box; padding: 8px 16px 0 2px; gap: 8px; }
+.brow__head { gap: 2px; }
+.brow__name { display: block; font-size: 20px; font-weight: 600; letter-spacing: -0.4px; }
+.brow__name-age { font-weight: 400; white-space: pre; }
+.brow__line { white-space: nowrap; }
+.brow.is-mine .brow__line { color: #757575; }
+.brow.is-mine .brow__line::before { display: none; }
+.brow__quote { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-family: var(--font-body); font-size: 16px; line-height: 1.2; color: #1e1e1e; font-variation-settings: "opsz" 14; }
+.brow .bchanges { margin-top: auto; padding-bottom: 6px; gap: 4px; }
+.brow .bthumbs { height: 34px; width: 55px; }
+.brow .bthumbs > * { top: 8px; width: 26px; height: 26px; }
+.brow .bthumbs > :nth-child(2) { left: 15px; } .brow .bthumbs > :nth-child(3) { left: 29px; }
+
+/* ── their note, lightboxed (1160:15376 photo, 1160:15925 prompt, 1160:16467 profile) ── */
+.remix--note .remix__panel { gap: 20px; }
+.remix--note .remix__body { gap: 20px; align-items: stretch; }
+.rnote { position: relative; display: flex; flex-direction: column; align-items: center; padding-top: 10px; }
+.rnote__photo { width: 200px; height: 268px; border-radius: 24px; overflow: hidden; background: #e9e7e2; }
+.rnote__photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.rnote__prompt { box-sizing: border-box; width: calc(100% - 40px); margin: 18px 20px 0; min-height: 139px; padding: 24px 20px 34px; border-radius: 32px; background: #f7f6f3; display: flex; align-items: center;
+  filter: drop-shadow(0 16px 16px rgba(12, 12, 13, 0.1)) drop-shadow(0 4px 2px rgba(12, 12, 13, 0.05)); }
+.rnote__prompt p { margin: 0; font-family: var(--font-display); font-weight: 600; font-size: 20px; line-height: 27px; letter-spacing: -0.3px; color: #353331; }
+.rnote__me { position: relative; width: 130px; height: 130px; margin-top: 9px; }
+.rnote__face { display: block; width: 130px; height: 130px; box-sizing: border-box; border: 3px solid #fff; border-radius: 50%; object-fit: cover; object-position: 50% 25%; }
+.rnote__disc { position: absolute; left: 88px; top: 89px; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
+.rnote__disc img { width: 34px; height: 37px; object-fit: contain; }
+/* the thought bubble (Group 2072750580): a #f5f5f5 pill with two trailing puffs, as wide as what they said */
+.rnote__bubble { position: relative; z-index: 1; box-sizing: border-box; max-width: calc(100% - 64px); min-width: 180px; margin-top: -40px; padding: 15px 22px; border-radius: 26px; background: #f5f5f5;
+  box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05), 0 1px 4px rgba(12, 12, 13, 0.1), inset 2px 2px 16px rgba(0, 0, 0, 0.08); text-align: center; }
+.rnote--prompt .rnote__bubble { margin-top: -26px; }
+.rnote--profile .rnote__bubble { margin-top: -10px; }
+.rnote__bubble p { margin: 0; font-family: var(--font-body); font-size: 14px; font-weight: 600; line-height: 1.2; color: #000; font-variation-settings: "opsz" 14; }
+.rnote__bubble i { position: absolute; border-radius: 50%; background: #f5f5f5; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.08); }
+.rnote__bubble i:nth-of-type(1) { left: 3px; bottom: -11px; width: 24px; height: 21px; z-index: -1; }
+.rnote__bubble i:nth-of-type(2) { left: -5px; bottom: -22px; width: 12px; height: 12px; }
+.rnote__gif { display: block; max-width: 160px; max-height: 120px; margin: 8px auto 0; border-radius: 12px; }
+/* the header carries its title again (1148:11070): Plus Jakarta Bold 20, centred between your avatar and the filter */
+.builds__title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: auto; height: auto; overflow: visible; clip: auto; margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: -0.4px; color: #1e1e1e; pointer-events: none; }

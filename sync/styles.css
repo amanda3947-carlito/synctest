@@ -2205,15 +2205,18 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .rnote__disc { position: absolute; left: 88px; top: 89px; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
   background: rgba(255, 255, 255, 0.2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.45), 0 4px 4px -1px rgba(12, 12, 13, 0.05), 0 4px 4px -1px rgba(12, 12, 13, 0.1); }
 .rnote__disc img { width: 34px; height: 37px; object-fit: contain; }
-/* the thought bubble (Group 2072750580): a #f5f5f5 pill with two trailing puffs, as wide as what they said */
+/* the thought bubble (Group 2072750580): a #f5f5f5 pill with two trailing puffs, as wide as what they said. One shape:
+   the first puff overlaps the pill's foot (as in the frame, 3 in and 7 below), nothing carries its own shadow, and the
+   shadow is cast by the whole silhouette at once, so there's no seam between pill and puff */
+.rnote { padding-bottom: 18px; }   /* the puffs hang below the bubble: room for them before the button */
 .rnote__bubble { position: relative; z-index: 1; box-sizing: border-box; max-width: calc(100% - 64px); min-width: 180px; margin-top: -40px; padding: 15px 22px; border-radius: 26px; background: #f5f5f5;
-  box-shadow: 0 1px 4px rgba(12, 12, 13, 0.05), 0 1px 4px rgba(12, 12, 13, 0.1), inset 2px 2px 16px rgba(0, 0, 0, 0.08); text-align: center; }
+  filter: drop-shadow(0 1px 2px rgba(12, 12, 13, 0.1)) drop-shadow(0 1px 2px rgba(12, 12, 13, 0.05)); text-align: center; }
 .rnote--prompt .rnote__bubble { margin-top: -26px; }
 .rnote--profile .rnote__bubble { margin-top: -10px; }
 .rnote__bubble p { margin: 0; font-family: var(--font-body); font-size: 14px; font-weight: 600; line-height: 1.2; color: #000; font-variation-settings: "opsz" 14; }
-.rnote__bubble i { position: absolute; border-radius: 50%; background: #f5f5f5; box-shadow: 0 1px 4px rgba(12, 12, 13, 0.08); }
-.rnote__bubble i:nth-of-type(1) { left: 3px; bottom: -11px; width: 24px; height: 21px; z-index: -1; }
-.rnote__bubble i:nth-of-type(2) { left: -5px; bottom: -22px; width: 12px; height: 12px; }
+.rnote__bubble i { position: absolute; border-radius: 50%; background: #f5f5f5; }
+.rnote__bubble i:nth-of-type(1) { left: 3px; bottom: -7px; width: 24px; height: 21px; }
+.rnote__bubble i:nth-of-type(2) { left: -5px; bottom: -17px; width: 12px; height: 12px; }
 .rnote__gif { display: block; max-width: 160px; max-height: 120px; margin: 8px auto 0; border-radius: 12px; }
 /* the header carries its title again (1148:11070): Plus Jakarta Bold 20, centred between your avatar and the filter */
 .builds__title { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: auto; height: auto; overflow: visible; clip: auto; margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: -0.4px; color: #1e1e1e; pointer-events: none; }
@@ -2239,3 +2242,6 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
   pointer-events: none; opacity: 0; transition: opacity 0.25s; }
 .auth--mine-edit .mine__top::before, .auth--mine-view.is-light .mine__top::before { opacity: 1; }
+
+/* a person opened from Builds: just the primary nav, docked left where it is; the global like is for the feed */
+.device.is-push-in .device__like { opacity: 0; pointer-events: none; }

@@ -1479,7 +1479,7 @@
       slideTimer = setTimeout(done, reduceMotion ? 0 : 650);
     };
     const openProfile = () => { profile.scrollTop = 0; collapse(); card.classList.add('is-profile-open'); device.classList.add('is-sheet-up'); profile.setAttribute('aria-hidden', 'false'); pause(); afterSlide(() => { if (card.classList.contains('is-profile-open')) { device.classList.add('is-nav-dark'); nav.show(); } }); };
-    const closeProfile = (resumeVideo = true) => { if (compose.active) compose.close(); card.classList.remove('is-profile-open'); device.classList.remove('is-sheet-up'); profile.setAttribute('aria-hidden', 'true'); if (active && resumeVideo) play(); afterSlide(() => { if (!card.classList.contains('is-profile-open')) { device.classList.remove('is-nav-dark'); nav.show(); } }); };
+    const closeProfile = (resumeVideo = true) => { if (compose.active) compose.close(); card.classList.remove('is-profile-open'); device.classList.remove('is-sheet-up', 'is-pbar-solid'); profile.setAttribute('aria-hidden', 'true'); if (active && resumeVideo) play(); afterSlide(() => { if (!card.classList.contains('is-profile-open')) { device.classList.remove('is-nav-dark'); nav.show(); } }); };
     card.querySelector('.profile__back').addEventListener('click', closeProfile);
     profile.querySelector('.pbar__back').addEventListener('click', closeProfile);
 
@@ -1504,6 +1504,8 @@
       SMALL.ay = rowTop + 7; SMALL.dy = rowTop + 32;
       pbar.style.opacity = p;
       pbar.style.pointerEvents = p > 0.5 ? 'auto' : 'none';
+      // the bar's light ground is under the real status bar now: its text goes dark (native.js), white again over the cover
+      if (card.classList.contains('is-profile-open')) device.classList.toggle('is-pbar-solid', p > 0.5);
       // the cover's light icons are gone by halfway; the bar's dark ones only come in once its ground is mostly there
       bigNav.style.opacity = clamp(1 - p / 0.5, 0, 1);
       pbarRow.querySelectorAll('.pnav__btn, .pbar__title').forEach((el) => { el.style.opacity = clamp((p - 0.6) / 0.4, 0, 1); });

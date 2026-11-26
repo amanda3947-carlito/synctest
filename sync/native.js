@@ -21,7 +21,10 @@
     // your profile in View, still on its cover: light text over the photo, as the frame draws it; once the cover
     // scrolls away (is-light) it's the white page again
     const onCover = !!(auth && !auth.hidden && auth.querySelector('.auth--mine-view:not(.is-light)'));
-    const onWhite = ((auth && !auth.hidden) && !onCover) || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'));
+    // a person's profile scrolled past its cover: the light name bar sits under the status bar (main.js sets is-pbar-solid)
+    const onBar = !!(dev && dev.classList.contains('is-pbar-solid'));
+    // (your profile is over everything, so over its cover nothing underneath counts)
+    const onWhite = !onCover && ((auth && !auth.hidden) || onBar || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in')));
     // framed, the real status bar sits over the dark backdrop around the phone, so its text stays light
     const framed = document.documentElement.classList.contains('is-framed');
     set(!framed && onWhite ? 'LIGHT' : 'DARK');

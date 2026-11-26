@@ -2262,3 +2262,19 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .builds__filter { transition: background 0.2s, box-shadow 0.2s; }
 .device__builds.is-head-photo .builds__filter { background: linear-gradient(109.18deg, rgba(254, 254, 254, 0.142) 7.51%, rgba(255, 255, 255, 0.17) 91.27%); box-shadow: 0 10px 22px -6px rgba(12, 12, 13, 0.42), 0 2px 8px rgba(12, 12, 13, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.18); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4); }
 .device__builds.is-head-photo .builds__filter img { filter: none; }   /* the faders are drawn white: white over the photo */
+
+/* ── voice in the composer, as the frames draw it (1100:32218 → 32430 → 32745) ── */
+.compose__tools[hidden], .compose__field.has-voice .compose__tools { display: none; }   /* recording or recorded: no GIF, no photo */
+/* replying to a voice prompt ("on select audio"): the field offers only the voice note */
+.compose__field.is-audio .compose__gifbtn, .compose__field.is-audio [data-tool="image"] { display: none; }
+.compose__vbars i { background: #2c2c2c; }
+/* stopped: play (the PlayCircle), the bars, the seconds in a pill, and the dark send with its light arrow */
+.compose__vplay { width: 24px; height: 24px; flex: 0 0 24px; border: 0; border-radius: 50%; }
+.compose__vplay .ico-play { width: 24px; height: 24px; }
+.compose__voice.is-playing .compose__vplay { background: #e6e6e6; }
+.compose__vplay .ico-pause { width: 10px; height: 10px; }
+.compose__voice.is-done .compose__vtime { height: 20px; padding: 0 6px; border-radius: 999px; background: #f7f6f3; display: flex; align-items: center; line-height: 1.2; }
+.compose__voice.is-done .compose__vdrop { display: none; }   /* not in the frame: tapping away discards it */
+.compose__vsend { width: auto; height: 31px; padding: 4px 8px; flex: 0 0 auto; border-radius: 9999px; }
+.compose__vsend img { filter: none; }   /* the arrow is drawn light (#f3f3f3): it was being inverted to dark on dark */
+.compose__tool[data-tool="voice"] img { filter: brightness(0); }   /* drawn #b3b3b3; the frames ink it like GIF and photo */

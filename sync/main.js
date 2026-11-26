@@ -1077,7 +1077,9 @@
       // restore the draft left behind last time
       const draft = draftHost._draft || { text: '', gif: null };
       input.value = draft.text;
-      input.placeholder = unit && unit.querySelector('.pvoice') ? 'Tap and hold to send or record audio' : prompt;
+      const audioPrompt = !!(unit && unit.querySelector('.pvoice'));
+      input.placeholder = audioPrompt ? 'Tap and hold to send or record audio' : prompt;
+      field.classList.toggle('is-audio', audioPrompt);   // a voice prompt's reply: just the voice note (1100:32218)
       dropVoice();
       attachment = draft.gif;
       if (attachment) thumb.src = attachment.src;

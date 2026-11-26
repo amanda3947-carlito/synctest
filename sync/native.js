@@ -12,19 +12,23 @@
   frame();
   window.addEventListener('resize', frame);
   const StatusBar = cap.Plugins && cap.Plugins.StatusBar;
-  const set = (style) => { if (StatusBar && StatusBar.setStyle) StatusBar.setStyle({ style }).catch(() => {}); };
+  let current = null;
+  const set = (style) => { if (style === current) return; current = style; if (StatusBar && StatusBar.setStyle) StatusBar.setStyle({ style }).catch(() => {}); };
   // dark text over the white screens (onboarding, your profile, the Builds list); light over photos
   // (the feed, a person's card, a build pushed in from the Builds tab)
   const sync = () => {
     const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
-    const onWhite = (auth && !auth.hidden) || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'));
+    // your profile in View, still on its cover: light text over the photo, as the frame draws it; once the cover
+    // scrolls away (is-light) it's the white page again
+    const onCover = !!(auth && !auth.hidden && auth.querySelector('.auth--mine-view:not(.is-light)'));
+    const onWhite = ((auth && !auth.hidden) && !onCover) || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'));
     // framed, the real status bar sits over the dark backdrop around the phone, so its text stays light
     const framed = document.documentElement.classList.contains('is-framed');
     set(!framed && onWhite ? 'LIGHT' : 'DARK');
   };
   const start = () => {
     const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
-    if (auth) new MutationObserver(sync).observe(auth, { attributes: true, attributeFilter: ['hidden'] });
+    if (auth) new MutationObserver(sync).observe(auth, { attributes: true, attributeFilter: ['hidden', 'class'], subtree: true, childList: true });
     if (dev) new MutationObserver(sync).observe(dev, { attributes: true, attributeFilter: ['class'] });
     new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     sync();

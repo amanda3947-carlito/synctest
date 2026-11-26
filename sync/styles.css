@@ -2230,18 +2230,13 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 /* your profile's row: the 44 Edit | View toggle is centred on the avatar line (a 36 at 9 below the status bar) */
 .mine__top { top: calc(var(--sb-top, 53px) + 5px); }
 /* the toggle is Liquid Glass in both states (1110:3235): a bright frost with dark ink, its rim, and the soft 20px shadow */
-.mine__top .seg { padding: 2px; background: linear-gradient(109.18deg, rgba(255, 255, 255, 0.62) 7.51%, rgba(255, 255, 255, 0.42) 91.27%);
-  box-shadow: 0 4px 20px 1px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
-  -webkit-backdrop-filter: blur(16px) saturate(1.8); backdrop-filter: blur(16px) saturate(1.8); }
+.mine__top .seg { padding: 2px; background: linear-gradient(109.18deg, rgba(255, 255, 255, 0.5) 7.51%, rgba(255, 255, 255, 0.3) 91.27%);
+  box-shadow: 0 4px 20px 1px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  -webkit-backdrop-filter: blur(10px) saturate(1.8) brightness(1.04); backdrop-filter: blur(10px) saturate(1.8) brightness(1.04); }
 .mine__top .seg__btn { color: #000; }
 .mine__top .seg__btn.is-on { background: rgba(32, 32, 32, 0.12); }
-/* behind the row, from the top of the screen: frosted glass instead of the white fade. Always on in Edit; in View once
-   the cover has scrolled away. Its foot melts out over the last 18px so there's no hard line */
-.auth--mine .mine__top::before { content: ""; position: absolute; z-index: -1; left: -20px; right: -20px; top: calc(-1 * (var(--sb-top, 53px) + 5px)); bottom: -12px;
-  background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8);
-  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 18px), transparent);
-  pointer-events: none; opacity: 0; transition: opacity 0.25s; }
-.auth--mine-edit .mine__top::before, .auth--mine-view.is-light .mine__top::before { opacity: 1; }
+/* no band behind the row (Edit or View): the toggle floats on its own as the glass, the close beside it */
+.auth--mine .mine__top::before { content: none; }
 
 /* a person opened from Builds: just the primary nav, docked left where it is; the global like is for the feed */
 .device.is-push-in .device__like { opacity: 0; pointer-events: none; }

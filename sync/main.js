@@ -2032,7 +2032,7 @@
     window.addEventListener('resize', adaptSoon);
     const render = () => {
       requestAnimationFrame(adapt);
-      if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
+      if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing waiting on you yet.</p><p class="t-body-sm">When someone makes your mixtape theirs or sends you a note, it lands here.</p></div>'; return; }
       // what waits on you first, then what's out with them; three up top, the rest below
       const ordered = [...list.filter((x) => x.mine), ...list.filter((x) => !x.mine)];
       const top = ordered.slice(0, 3), rest = ordered.slice(3);
@@ -2040,7 +2040,9 @@
     };
     // what's still being built: a finished build (a match), or one you've sent back as is, moves on to Chats
     const stillBuilding = (x) => x.build.status !== 'agreed' && !(x.build.agreed_by || []).includes(ME);
-    const load = async () => { try { list = (await window.SyncAPI.buildsList()).filter(stillBuilding); } catch (e) { console.error(e); list = []; } render(); };
+    // incoming only, for now: what someone sent you and waits on you (a mixtape or a note). What you sent is theirs to answer.
+    const incoming = (x) => x.mine;
+    const load = async () => { try { list = (await window.SyncAPI.buildsList()).filter(stillBuilding).filter(incoming); } catch (e) { console.error(e); list = []; } render(); };
     // a tap pushes that person's card in from the right with their profile open on the build; closing the profile slides it back out
     const closePush = (instant) => {
       if (!pushed) return;

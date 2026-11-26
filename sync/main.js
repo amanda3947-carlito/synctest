@@ -1582,10 +1582,15 @@
     const API = window.SyncAPI;
     const mixTile = card.querySelector('.tile--mixtape');
     const mixRow = profile.querySelector('[data-action="mixtape"] .t-sub');
+    // their note waiting on you: everything on their profile is a way to answer it (Reply back, a prompt, a photo)
+    const noteWaiting = () => { const b = person.activeBuild; return !!b && b.status === 'as_is' && b.owner_id === ME && b.turn_id === ME; };
     const refresh = () => {
       const b = person.activeBuild;
       mixTile.querySelector('.tile__text').innerHTML = tileLabel(b, ME);
       mixRow.textContent = b && b.type_key === 'mixtape' ? tileLabel(b, ME).replace('<br>', ' ') : 'Make it a mixtape';
+      // their Rotation is just their tracks then: no status (the note is about your mixtape, not theirs), and no
+      // "Make it a mixtape", which would start a second conversation running past the first
+      const mixBtn = mixRow.closest('[data-action="mixtape"]'); if (mixBtn) mixBtn.hidden = noteWaiting();
       mixTile.classList.toggle('is-turn', !!b && b.status === 'open' && b.turn_id === ME);
       mixTile.classList.toggle('is-waiting', !!b && b.status !== 'agreed' && b.turn_id !== ME);
       mixTile.classList.toggle('is-agreed', !!b && b.status === 'agreed');
@@ -1782,6 +1787,17 @@
       const b = liveBuild();
       if (!b && !person.mixtapeBuildId) { notice('Nothing of theirs to like yet'); resume(); return; }
       const body = wrap(noteText(payload));
+      // their note is waiting on you: whatever you send from their profile is your reply to it. It matches you two,
+      // and their note and your answer (with what of theirs it's about) open the chat as one conversation
+      if (noteWaiting()) {
+        try { person.activeBuild = await API.replyNote(b.id, body); refresh(); }
+        catch (e) { await buildError(e); if (remixEl) remix('min'); return; }
+        if (remixEl) { remixEl.remove(); remixEl = null; }
+        device.classList.remove('is-nav-pinned');
+        await celebrate(card, 'msg', 'It\u2019s a match');
+        closeProfile(false);
+        return;
+      }
       try {
         if (b) await window.SyncAPI.sendNote(b.id, body);
         else { person.activeBuild = await window.SyncAPI.loveAsIs(person.mixtapeBuildId, body); refresh(); }

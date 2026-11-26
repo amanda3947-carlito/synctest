@@ -2278,3 +2278,4 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 .compose__vsend { width: auto; height: 31px; padding: 4px 8px; flex: 0 0 auto; border-radius: 9999px; }
 .compose__vsend img { filter: none; }   /* the arrow is drawn light (#f3f3f3): it was being inverted to dark on dark */
 .compose__tool[data-tool="voice"] img { filter: brightness(0); }   /* drawn #b3b3b3; the frames ink it like GIF and photo */
+.prow[hidden] { display: none; }

@@ -2010,7 +2010,26 @@
           ${isNote(x) ? quoteHTML(x, 'brow__quote') : changedHTML(x)}
         </span>
       </button>`;
+    // the header and status bar float over the list, so their ink follows what's under them: white over a photo card,
+    // dark over the white page and the light rows. The status strip and the header row are checked on their own, so
+    // each turns over right at its own edge. The app's real status bar follows is-builds-photo (native.js).
+    const head = root.querySelector('.builds__head');
+    let adaptRaf = 0;
+    const overPhoto = (top, bottom) => [...body.querySelectorAll('.bhl')].some((el) => { const r = el.getBoundingClientRect(); return r.top < bottom && r.bottom > top; });
+    const adapt = () => {
+      adaptRaf = 0;
+      const dr = root.getBoundingClientRect(), hr = head.getBoundingClientRect();
+      const sbPhoto = isOpen && overPhoto(dr.top, hr.top - 9);
+      const headPhoto = isOpen && overPhoto(hr.top, hr.bottom);
+      root.classList.toggle('is-sb-photo', sbPhoto);
+      root.classList.toggle('is-head-photo', headPhoto);
+      device.classList.toggle('is-builds-photo', sbPhoto);
+    };
+    const adaptSoon = () => { if (!adaptRaf) adaptRaf = requestAnimationFrame(adapt); };
+    body.addEventListener('scroll', adaptSoon, { passive: true });
+    window.addEventListener('resize', adaptSoon);
     const render = () => {
+      requestAnimationFrame(adapt);
       if (!list.length) { body.innerHTML = '<div class="builds__empty"><p>Nothing building yet.</p><p class="t-body-sm">Make someone a mixtape from the feed and it lands here.</p></div>'; return; }
       // what waits on you first, then what's out with them; three up top, the rest below
       const ordered = [...list.filter((x) => x.mine), ...list.filter((x) => !x.mine)];
@@ -2048,9 +2067,9 @@
       open(meAvatar, meDisc) {
         isOpen = true; root.hidden = false; device.classList.add('is-tab-builds');
         if (meAvatar) root.querySelector('.builds__me-img').src = meAvatar;
-        body.scrollTop = 0; load();
+        body.scrollTop = 0; load(); requestAnimationFrame(adapt);
       },
-      close() { if (!isOpen) return; isOpen = false; closePush(true); root.hidden = true; device.classList.remove('is-tab-builds'); },
+      close() { if (!isOpen) return; isOpen = false; closePush(true); root.hidden = true; device.classList.remove('is-tab-builds', 'is-builds-photo'); },
       refresh: load,
     };
   })();

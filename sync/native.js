@@ -27,7 +27,7 @@
     // composer, which fades the page to white behind the field
     const veiled = !!(dev && (dev.classList.contains('is-composing') || dev.querySelector('.remix[data-state="open"]')));
     // (your profile is over everything, so over its cover nothing underneath counts)
-    const onWhite = veiled || (!onCover && ((auth && !auth.hidden) || onBar || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'))));
+    const onWhite = veiled || (!onCover && ((auth && !auth.hidden) || onBar || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in') && !dev.classList.contains('is-builds-photo'))));
     // framed, the real status bar sits over the dark backdrop around the phone, so its text stays light
     const framed = document.documentElement.classList.contains('is-framed');
     set(!framed && onWhite ? 'LIGHT' : 'DARK');

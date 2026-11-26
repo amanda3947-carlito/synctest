@@ -23,8 +23,11 @@
     const onCover = !!(auth && !auth.hidden && auth.querySelector('.auth--mine-view:not(.is-light)'));
     // a person's profile scrolled past its cover: the light name bar sits under the status bar (main.js sets is-pbar-solid)
     const onBar = !!(dev && dev.classList.contains('is-pbar-solid'));
+    // white laid over whatever is underneath: the lightbox's frosted scrim (a mixtape or a note, from Builds) and the
+    // composer, which fades the page to white behind the field
+    const veiled = !!(dev && (dev.classList.contains('is-composing') || dev.querySelector('.remix[data-state="open"]')));
     // (your profile is over everything, so over its cover nothing underneath counts)
-    const onWhite = !onCover && ((auth && !auth.hidden) || onBar || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in')));
+    const onWhite = veiled || (!onCover && ((auth && !auth.hidden) || onBar || (dev && dev.classList.contains('is-tab-builds') && !dev.classList.contains('is-push-in'))));
     // framed, the real status bar sits over the dark backdrop around the phone, so its text stays light
     const framed = document.documentElement.classList.contains('is-framed');
     set(!framed && onWhite ? 'LIGHT' : 'DARK');
@@ -33,6 +36,9 @@
     const auth = document.querySelector('.device__auth'); const dev = document.querySelector('.device');
     if (auth) new MutationObserver(sync).observe(auth, { attributes: true, attributeFilter: ['hidden', 'class'], subtree: true, childList: true });
     if (dev) new MutationObserver(sync).observe(dev, { attributes: true, attributeFilter: ['class'] });
+    // the lightbox comes and goes inside a pushed card: watch for it opening, tucking and leaving
+    const push = document.querySelector('.device__push');
+    if (push) new MutationObserver(sync).observe(push, { attributes: true, attributeFilter: ['data-state'], subtree: true, childList: true });
     new MutationObserver(sync).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     sync();
   };

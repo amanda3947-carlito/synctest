@@ -2240,3 +2240,16 @@ input.mine__val::-webkit-date-and-time-value { text-align: left; }
 
 /* a person opened from Builds: just the primary nav, docked left where it is; the global like is for the feed */
 .device.is-push-in .device__like { opacity: 0; pointer-events: none; }
+
+/* ── Builds: no band at the top. The list fills the screen and scrolls up under the status bar; your avatar, the title
+   and the filter float over it on the same row as every other screen ── */
+.builds__head { position: absolute; z-index: 3; left: 20px; right: 20px; top: calc(var(--sb-top, 53px) + 9px); margin: 0; }
+.builds__body { position: absolute; inset: 0; padding-top: calc(var(--sb-top, 53px) + 9px + 36px + 21px); }
+
+/* the drawn status bar on the white screens (Builds, your profile): fixed at the very top while the page scrolls under
+   it, as the real one does. Dark ink on white; on your cover in View it's white until the cover scrolls away */
+.sb-fixed { position: absolute; z-index: 13; left: 0; right: 0; top: 0; width: 100%; pointer-events: none; }
+.mine__sb .statusbar__time span { color: #fff; }
+.auth--mine-edit .mine__sb .statusbar__time span, .auth--mine-view.is-light .mine__sb .statusbar__time span { color: #303030; }
+.auth--mine-edit .mine__sb .statusbar__levels img, .auth--mine-view.is-light .mine__sb .statusbar__levels img { filter: invert(0.85); }
+.auth--mine-view .pcover .statusbar { visibility: hidden; }   /* the fixed one stands in for the cover's own */

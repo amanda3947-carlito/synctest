@@ -965,7 +965,9 @@ window.SyncOnboard = (() => {
       const p = person.profile;
       const sess = await a.session();
       const phone = fmtPhone(sess && sess.user && sess.user.phone);
-      const top = `<div class="mine__top">
+      // the drawn status bar for the browser, fixed over the page (the app hides it: iOS draws the real one)
+      const sbar = `<div class="statusbar sb-fixed mine__sb" aria-hidden="true"><div class="statusbar__time"><span>9:41</span></div><div class="statusbar__levels"><img src="assets/cellular.svg" width="19.2" height="12.226" alt=""><img src="assets/wifi.svg" width="17.142" height="12.328" alt=""><img src="assets/battery.svg" width="27.328" height="13" alt=""></div></div>`;
+      const top = sbar + `<div class="mine__top">
           <span class="mine__topgap" aria-hidden="true"></span>
           <div class="seg" role="tablist"><button class="seg__btn${mode === 'edit' ? ' is-on' : ''}" type="button" role="tab" data-mode="edit">Edit</button><button class="seg__btn${mode === 'view' ? ' is-on' : ''}" type="button" role="tab" data-mode="view">View</button></div>
           <button class="ob__back mine__close" type="button" data-done aria-label="Close your profile"><img src="assets/x-circle.svg" width="24" height="24" alt=""></button>
